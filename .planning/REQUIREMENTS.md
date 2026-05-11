@@ -39,13 +39,11 @@
 
 ## Traceability
 
-*(Filled by roadmapper)*
-
-| Requirement | Phase |
-|-------------|-------|
-| DISP-01 | — |
-| DISP-02 | — |
-| ALRT-01 | — |
-| ALRT-02 | — |
-| ALRT-03 | — |
-| INST-01 | — |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| INST-01 | Phase 1 | Pending |
+| DISP-01 | Phase 2 | Pending |
+| DISP-02 | Phase 2 | Pending |
+| ALRT-01 | Phase 3 | Pending |
+| ALRT-02 | Phase 3 | Pending |
+| ALRT-03 | Phase 3 | Pending |

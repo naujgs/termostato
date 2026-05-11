@@ -10,6 +10,7 @@
 		AA000001000000000000000A /* TermostatoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000001000000000000000B /* TermostatoApp.swift */; };
 		AA000002000000000000000A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002000000000000000B /* ContentView.swift */; };
 		AA000003000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA000003000000000000000B /* Assets.xcassets */; };
+		AA000005000000000000000A /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA000005000000000000000B /* IOKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -17,6 +18,8 @@
 		AA000002000000000000000B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		AA000003000000000000000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA000004000000000000000B /* Termostato.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Termostato.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA000005000000000000000B /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
+		AA000006000000000000000B /* Termostato-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Termostato-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -24,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA000005000000000000000A /* IOKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,6 +48,7 @@
 				AA000001000000000000000B /* TermostatoApp.swift */,
 				AA000002000000000000000B /* ContentView.swift */,
 				AA000003000000000000000B /* Assets.xcassets */,
+				AA000006000000000000000B /* Termostato-Bridging-Header.h */,
 			);
 			path = Termostato;
 			sourceTree = "<group>";
@@ -275,6 +280,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.jgs.Termostato;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Termostato/Termostato-Bridging-Header.h";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -306,6 +312,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.jgs.Termostato;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Termostato/Termostato-Bridging-Header.h";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

@@ -11,6 +11,7 @@
 		AA000002000000000000000A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002000000000000000B /* ContentView.swift */; };
 		AA000003000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA000003000000000000000B /* Assets.xcassets */; };
 		AA000005000000000000000A /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA000005000000000000000B /* IOKit.framework */; };
+		AA000007000000000000000A /* TemperatureViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000007000000000000000B /* TemperatureViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +21,7 @@
 		AA000004000000000000000B /* Termostato.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Termostato.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA000005000000000000000B /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		AA000006000000000000000B /* Termostato-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Termostato-Bridging-Header.h"; sourceTree = "<group>"; };
+		AA000007000000000000000B /* TemperatureViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +49,7 @@
 			children = (
 				AA000001000000000000000B /* TermostatoApp.swift */,
 				AA000002000000000000000B /* ContentView.swift */,
+				AA000007000000000000000B /* TemperatureViewModel.swift */,
 				AA000003000000000000000B /* Assets.xcassets */,
 				AA000006000000000000000B /* Termostato-Bridging-Header.h */,
 			);
@@ -132,6 +135,7 @@
 			files = (
 				AA000001000000000000000A /* TermostatoApp.swift in Sources */,
 				AA000002000000000000000A /* ContentView.swift in Sources */,
+				AA000007000000000000000A /* TemperatureViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

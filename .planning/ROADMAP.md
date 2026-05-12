@@ -46,7 +46,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 02-01-PLAN.md — Extend TemperatureViewModel with ThermalReading ring buffer + replace ContentView with badge + step-chart dashboard
+- [x] 02-01-PLAN.md — Extend TemperatureViewModel with ThermalReading ring buffer + replace ContentView with badge + step-chart dashboard
 
 ### Phase 3: Alerts & Notification System
 **Goal**: Users receive a notification when their device thermal state reaches Serious or Critical, whether the app is foregrounded or backgrounded

@@ -2,6 +2,7 @@ import Foundation
 import Observation
 import Combine
 import UserNotifications
+import UIKit
 
 /// A single thermal state snapshot, used as a data point in the session history chart.
 struct ThermalReading: Identifiable {
@@ -68,6 +69,9 @@ final class TemperatureViewModel {
     @ObservationIgnored
     nonisolated(unsafe) private var thermalObserver: (any NSObjectProtocol)?
 
+    @ObservationIgnored
+    nonisolated(unsafe) private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+
     // MARK: - Init
 
     init() {
@@ -97,6 +101,11 @@ final class TemperatureViewModel {
     /// Start the 30-second polling timer. Call when scenePhase becomes .active.
     /// D-07: Always creates a fresh timer — does NOT resume a stored reference.
     func startPolling() {
+        // End any background task — app is active again.
+        if backgroundTaskID != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTaskID)
+            backgroundTaskID = .invalid
+        }
         // Guard: don't double-start.
         timerCancellable?.cancel()
         timerCancellable = Timer.publish(every: 30, on: .main, in: .common)
@@ -116,7 +125,15 @@ final class TemperatureViewModel {
     func stopPolling() {
         timerCancellable?.cancel()
         timerCancellable = nil
-        print("[Termostato] Polling stopped (backgrounded).")
+        // Request background execution time so the thermal observer can fire (iOS ~30s window).
+        let task = UIApplication.shared.beginBackgroundTask(withName: "ThermalMonitor") { [weak self] in
+            guard let self else { return }
+            let id = self.backgroundTaskID
+            UIApplication.shared.endBackgroundTask(id)
+            self.backgroundTaskID = .invalid
+        }
+        backgroundTaskID = task
+        print("[Termostato] Polling stopped. Background task \(task.rawValue) started.")
     }
 
     // MARK: - Private

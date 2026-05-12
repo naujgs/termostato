@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import UIKit
 
 struct ContentView: View {
 
@@ -8,6 +9,7 @@ struct ContentView: View {
 
     // D-06: SwiftUI @Environment scenePhase — no UIKit lifecycle hooks.
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -30,6 +32,30 @@ struct ContentView: View {
                 }
                 .padding(.horizontal, 16)
                 .frame(minHeight: 100)
+
+            // MARK: - Permission-denied banner (D-11, D-12, D-13)
+            // Shown when notification permission is denied. Persists until permission is granted.
+            // Re-check happens in startPolling() each time the app foregrounds (D-13).
+            if !viewModel.notificationsAuthorized {
+                Button {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        openURL(url)
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "bell.slash")
+                        Text("Notifications disabled — tap to open Settings")
+                            .font(.footnote)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.footnote)
+                    }
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                }
+                .buttonStyle(.plain)
+            }
 
             // xl gap between badge and chart (32pt per UI-SPEC spacing scale)
             Spacer().frame(height: 32)

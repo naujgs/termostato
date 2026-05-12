@@ -36,6 +36,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8151E0112FB3713400C7D949 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				AA000005000000000000000B /* IOKit.framework */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		AA000020000000000000000A /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -61,6 +69,7 @@
 			children = (
 				AA000021000000000000000A /* Termostato */,
 				AA000020000000000000000A /* Products */,
+				8151E0112FB3713400C7D949 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -267,7 +276,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 7ZV82QKPX6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -299,7 +308,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 7ZV82QKPX6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -345,7 +354,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
 	};
 	rootObject = AA000040000000000000000A /* Project object */;
 }

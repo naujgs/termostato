@@ -20,10 +20,7 @@ final class TemperatureViewModel {
 
     // MARK: - Init
 
-    init() {
-        // D-01: One-shot IOKit probe. Runs on init, result logged, code removed after Phase 1.
-        probeIOKit()
-    }
+    init() {}
 
     // MARK: - Lifecycle (called by ContentView scenePhase observer — D-06)
 
@@ -67,35 +64,4 @@ final class TemperatureViewModel {
         }
     }
 
-    // MARK: - IOKit Probe (D-01, D-02: REMOVE THIS ENTIRE METHOD AFTER PHASE 1)
-
-    /// Attempts to read the IOPMPowerSource Temperature key via IOKit.
-    /// Result logged to console; becomes the Phase 1 decision record.
-    /// THIS METHOD AND ITS CALL IN init() MUST BE DELETED before Phase 2 work begins.
-    private func probeIOKit() {
-        let serviceName = "IOPMPowerSource"
-        guard let matchingUnmanaged = IOServiceMatching(serviceName) else {
-            print("[Termostato][IOKit] IOServiceMatching returned nil — IOKit unavailable")
-            return
-        }
-        // IOServiceMatching returns Unmanaged<CFMutableDictionary>?; take retained value for use.
-        let matchingDict = matchingUnmanaged.takeRetainedValue()
-        let service = IOServiceGetMatchingService(0 /* kIOMasterPortDefault */, matchingDict)
-        guard service != 0 else {
-            print("[Termostato][IOKit] IOServiceGetMatchingService returned 0 — service not found (BLOCKED or no matching service)")
-            return
-        }
-        var properties: Unmanaged<CFMutableDictionary>? = nil
-        let kr = IORegistryEntryCreateCFProperties(service, &properties, kCFAllocatorDefault, 0)
-        IOObjectRelease(service)
-        guard kr == 0, let dict = properties?.takeRetainedValue() as? [String: Any] else {
-            print("[Termostato][IOKit] IORegistryEntryCreateCFProperties failed (kr=\(kr)) — BLOCKED by AMFI/sandbox")
-            return
-        }
-        if let temp = dict["Temperature"] {
-            print("[Termostato][IOKit] Temperature key found: \(temp) — IOKit ACCESS GRANTED")
-        } else {
-            print("[Termostato][IOKit] Temperature key absent from dict — key not present (keys: \(dict.keys.sorted().prefix(10).joined(separator: ", ")))")
-        }
-    }
 }

@@ -43,8 +43,10 @@ Plans:
   2. A step-chart of thermal state changes since the app was opened is visible and updates in real time
   3. The chart reads from a fixed-capacity ring buffer — it does not grow unboundedly and does not degrade in frame rate after extended use
   4. All data shown is session-only: closing and reopening the app starts a fresh history with no prior data shown
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 1 plan
+
+Plans:
+- [ ] 02-01-PLAN.md — Extend TemperatureViewModel with ThermalReading ring buffer + replace ContentView with badge + step-chart dashboard
 
 ### Phase 3: Alerts & Notification System
 **Goal**: Users receive a notification when their device thermal state reaches Serious or Critical, whether the app is foregrounded or backgrounded
@@ -65,5 +67,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Device Validation | 0/3 | Not started | - |
-| 2. Dashboard UI | 0/? | Not started | - |
+| 2. Dashboard UI | 0/1 | Not started | - |
 | 3. Alerts & Notification System | 0/? | Not started | - |

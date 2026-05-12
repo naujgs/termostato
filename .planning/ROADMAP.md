@@ -61,7 +61,7 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — TemperatureViewModel: permission request, cooldown gate, background observer, notification scheduling
-- [ ] 03-02-PLAN.md — NotificationDelegate + TermostatoApp wiring + ContentView permission-denied banner + on-device checkpoint
+- [x] 03-02-PLAN.md — NotificationDelegate + TermostatoApp wiring + ContentView permission-denied banner + on-device checkpoint
 
 ## Progress
 

@@ -1,0 +1,31 @@
+# Requirements: Termostato v1.1 Visual Improvements
+
+## Milestone Requirements
+
+### Visual Identity
+
+- [ ] **ICON-01**: App displays a custom icon on the home screen (replacing the default Xcode placeholder)
+
+### Responsiveness
+
+- [ ] **POLL-01**: App polls thermal state every 10 seconds (reduced from 30s) with the step-chart history window remaining at 60 minutes
+
+## Future Requirements (v1.2+)
+
+- State duration display ("Serious for 4 min")
+- "Back to Nominal" recovery notification
+- Persistent session history across app restarts
+
+## Out of Scope
+
+- Numeric °C temperature — IOKit blocked by AMFI under free Apple ID; TrollStore requires iOS ≤17.0, target device is iOS 18 (permanently blocked)
+- App Store distribution — personal sideload only
+- APNs remote push — local notifications are the correct approach
+- Android / other platforms
+
+## Traceability
+
+| REQ-ID | Description | Phase | Plan |
+|--------|-------------|-------|------|
+| ICON-01 | Custom app icon | TBD | TBD |
+| POLL-01 | 10s polling, 60 min history | TBD | TBD |

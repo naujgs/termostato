@@ -19,9 +19,9 @@ The phone's thermal state, always visible at a glance — with an alert before i
 
 - [x] Dashboard UI with live thermal state readout and session-length history chart — *Validated in Phase 2: badge + step-chart verified on physical iPhone*
 
-### Active
+### Validated
 
-- [ ] Push notifications when thermal state crosses a user-defined threshold
+- [x] Local notifications when thermal state reaches Serious/Critical, with cooldown and background delivery — *Validated in Phase 3: all four criteria passed on physical device*
 
 ### Out of Scope
 
@@ -65,4 +65,4 @@ This document evolves at phase transitions and milestone boundaries.
 5. "What This Is" still accurate? → Update if drifted
 
 ---
-*Last updated: 2026-05-12 after Phase 2 completion*
+*Last updated: 2026-05-13 after Phase 3 completion — v1.0 milestone complete*

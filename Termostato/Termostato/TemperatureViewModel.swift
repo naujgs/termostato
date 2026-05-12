@@ -2,6 +2,35 @@ import Foundation
 import Observation
 import Combine
 
+/// A single thermal state snapshot, used as a data point in the session history chart.
+struct ThermalReading: Identifiable {
+    let id = UUID()
+    let timestamp: Date
+    let state: ProcessInfo.ThermalState
+
+    /// Integer Y-axis value for Swift Charts mapping (Nominal=0, Fair=1, Serious=2, Critical=3).
+    var yValue: Int {
+        switch state {
+        case .nominal:   return 0
+        case .fair:      return 1
+        case .serious:   return 2
+        case .critical:  return 3
+        @unknown default: return 0
+        }
+    }
+
+    /// State name string used as the nominal category key for foregroundStyle color mapping.
+    var stateName: String {
+        switch state {
+        case .nominal:   return "Nominal"
+        case .fair:      return "Fair"
+        case .serious:   return "Serious"
+        case .critical:  return "Critical"
+        @unknown default: return "Nominal"
+        }
+    }
+}
+
 /// Primary data pipeline for Termostato.
 /// Phase 2 adds: history array, chart data points.
 /// Phase 3 adds: notification triggering on threshold crossing.
@@ -13,6 +42,10 @@ final class TemperatureViewModel {
 
     /// Current thermal state. Observers (SwiftUI Views) read this directly.
     private(set) var thermalState: ProcessInfo.ThermalState = .nominal
+
+    /// Session history ring buffer — max 120 readings (D-05). Session-only, never persisted (D-06).
+    private static let maxHistory = 120
+    private(set) var history: [ThermalReading] = []
 
     // MARK: - Private polling state
     // D-07: No stored mutable timer reference — cancel-and-recreate pattern.
@@ -51,6 +84,11 @@ final class TemperatureViewModel {
 
     private func updateThermalState() {
         thermalState = ProcessInfo.processInfo.thermalState
+        let reading = ThermalReading(timestamp: Date(), state: thermalState)
+        if history.count >= Self.maxHistory {
+            history.removeFirst()
+        }
+        history.append(reading)
         print("[Termostato] thermalState = \(thermalStateDescription)")
     }
 

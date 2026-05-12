@@ -76,8 +76,14 @@ None yet.
 - Phase 1 IOKit behavior is unconfirmed on the actual target device under free Apple ID signing — Phase 1 spike MUST run on physical device, not simulator
 - Phase 3 background notification delivery under free Apple ID must be tested by backgrounding the app with Xcode debugger detached (debugger suppresses app suspension)
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260513-0yk | Add UIApplication.beginBackgroundTask to TemperatureViewModel so the thermal state observer stays live after the app backgrounds | 2026-05-12 | 34216e8 | [260513-0yk-add-uiapplication-beginbackgroundtask-to](./quick/260513-0yk-add-uiapplication-beginbackgroundtask-to/) |
+
 ## Session Continuity
 
-Last session: 2026-05-12T20:12:13.523Z
-Stopped at: Completed 03-alerts-notification-system-01-PLAN.md
+Last session: 2026-05-13
+Stopped at: Completed quick task 260513-0yk: Add UIApplication.beginBackgroundTask to TemperatureViewModel so the thermal state observer stays live after the app backgrounds
 Resume file: None

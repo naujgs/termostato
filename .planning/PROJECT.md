@@ -15,9 +15,12 @@ The phone's thermal state, always visible at a glance — with an alert before i
 - [x] App installable via Xcode sideload (no App Store) — *Validated in Phase 1: Foundation & Device Validation*
 - [x] Display iOS thermal state level (Nominal / Fair / Serious / Critical) via public API — *Validated in Phase 1: confirmed on physical device via ProcessInfo.thermalState*
 
+### Validated
+
+- [x] Dashboard UI with live thermal state readout and session-length history chart — *Validated in Phase 2: badge + step-chart verified on physical iPhone*
+
 ### Active
 
-- [ ] Dashboard UI with live thermal state readout and session-length history chart
 - [ ] Push notifications when thermal state crosses a user-defined threshold
 
 ### Out of Scope
@@ -62,4 +65,4 @@ This document evolves at phase transitions and milestone boundaries.
 5. "What This Is" still accurate? → Update if drifted
 
 ---
-*Last updated: 2026-05-12 after Phase 1 completion*
+*Last updated: 2026-05-12 after Phase 2 completion*

@@ -60,7 +60,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — TemperatureViewModel: permission request, cooldown gate, background observer, notification scheduling
+- [x] 03-01-PLAN.md — TemperatureViewModel: permission request, cooldown gate, background observer, notification scheduling
 - [ ] 03-02-PLAN.md — NotificationDelegate + TermostatoApp wiring + ContentView permission-denied banner + on-device checkpoint
 
 ## Progress
@@ -72,4 +72,4 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Foundation & Device Validation | 0/3 | Not started | - |
 | 2. Dashboard UI | 0/1 | Not started | - |
-| 3. Alerts & Notification System | 0/2 | Not started | - |
+| 3. Alerts & Notification System | 1/2 | In Progress|  |

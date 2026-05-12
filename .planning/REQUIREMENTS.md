@@ -9,9 +9,9 @@
 
 ### Alerts
 
-- [ ] **ALRT-01**: App requests notification permission from the user on first launch (graceful no-permission fallback)
-- [ ] **ALRT-02**: App fires a local notification when thermal state reaches Serious or Critical — includes cooldown to prevent repeat firing while state remains elevated
-- [ ] **ALRT-03**: Alerts fire via `thermalStateDidChangeNotification` so they work when the app is in the background (app not terminated)
+- [x] **ALRT-01**: App requests notification permission from the user on first launch (graceful no-permission fallback)
+- [x] **ALRT-02**: App fires a local notification when thermal state reaches Serious or Critical — includes cooldown to prevent repeat firing while state remains elevated
+- [x] **ALRT-03**: Alerts fire via `thermalStateDidChangeNotification` so they work when the app is in the background (app not terminated)
 
 ### Installation
 
@@ -44,6 +44,6 @@
 | INST-01 | Phase 1 | Pending |
 | DISP-01 | Phase 2 | Pending |
 | DISP-02 | Phase 2 | Pending |
-| ALRT-01 | Phase 3 | Pending |
-| ALRT-02 | Phase 3 | Pending |
-| ALRT-03 | Phase 3 | Pending |
+| ALRT-01 | Phase 3 | Complete |
+| ALRT-02 | Phase 3 | Complete |
+| ALRT-03 | Phase 3 | Complete |

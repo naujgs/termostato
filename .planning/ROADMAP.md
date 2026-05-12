@@ -27,7 +27,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. `ProcessInfo.thermalState` returns a valid value and logs to console with each poll cycle
   3. A written decision record exists stating whether IOKit returns data or is silently blocked (determining whether a graceful "–°C" fallback is needed)
   4. The data pipeline runs while the app is foregrounded and pauses when it is backgrounded (scenePhase observer confirmed)
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [x] 01-01-PLAN.md — Xcode project scaffold: iOS 18.0 target, Swift 6.3 strict concurrency, bridging header for IOKit
+- [x] 01-02-PLAN.md — TemperatureViewModel (@Observable, @MainActor, 30s polling) + scenePhase lifecycle wiring + IOKit probe
+- [x] 01-03-PLAN.md — On-device validation checkpoint + DECISION-IOKIT.md record + probe code removal
 
 ### Phase 2: Dashboard UI
 **Goal**: Users can see the current thermal state and session history at a glance on the live dashboard
@@ -59,6 +64,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Device Validation | 0/? | Not started | - |
+| 1. Foundation & Device Validation | 0/3 | Not started | - |
 | 2. Dashboard UI | 0/? | Not started | - |
 | 3. Alerts & Notification System | 0/? | Not started | - |

@@ -1,19 +1,41 @@
-# Project Research Summary
+# Research Summary — Termostato v1.1
 
 **Project:** Termostato
-**Domain:** iOS device internal temperature / thermal monitoring (sideloaded personal tool)
-**Researched:** 2026-05-11
-**Confidence:** MEDIUM — public API paths are HIGH confidence; numeric temperature via IOKit is empirically constrained and must be validated on device
+**Domain:** iOS thermal monitoring app (sideloaded, personal use)
+**Milestone:** v1.1 — Custom app icon + polling interval reduction (30s → 10s)
+**Researched:** 2026-05-13
+**Confidence:** HIGH
+
+> **Scope note:** v1.1 research originally covered three features: app icon, TrollStore IOKit numeric
+> temperature, and polling interval. The TrollStore/IOKit path has been ruled **out of scope** for
+> this milestone. The target device runs iOS 18.x; TrollStore supports a maximum of iOS 17.0 and
+> will never support iOS 17.0.1 or later (Apple patched the CoreTrust vulnerability CVE-2023-41991
+> in iOS 17.0.1). The numeric temperature feature is deferred to a future milestone contingent on
+> a compatible device being available. All TrollStore-specific findings are documented in the
+> research files for reference but are NOT roadmap-relevant for v1.1.
 
 ---
 
 ## Executive Summary
 
-Termostato is a single-screen foreground dashboard app built with SwiftUI, Swift Charts, and `UserNotifications` — all built-in Apple frameworks. Zero external dependencies are required. The app reads thermal data from two sources: `ProcessInfo.thermalState` (public, always works, 4-level categorical) and `IOPMPowerSource` via IOKit (private, numeric °C, may be blocked). The architecture is MVVM with a single `@Observable @MainActor` ViewModel, an `AsyncStream`-based polling service, and an event-driven notification gate. The build order is deliberately bottom-up: foundation types, then private API bridge, then ViewModel, then UI — placing the highest-risk component (IOKit access) at the front of the queue.
+Termostato v1.1 is a low-risk, two-change milestone. Both in-scope features are well-understood,
+require no new frameworks or dependencies, and can be validated quickly. The custom app icon is a
+pure asset-catalog change — zero Swift code involved. The polling interval reduction from 30s to
+10s is a single integer literal change in `TemperatureViewModel.swift`, with one required companion
+change: `maxHistory` must increase from 120 to 360 to preserve 60 minutes of session history at
+the new sampling rate, and the chart sub-label in `ContentView.swift` must be updated to match.
 
-The central risk is that the numeric temperature path is blocked under standard Xcode sideloading. The IOKit `IOPMPowerSource` `Temperature` key requires the private entitlement `systemgroup.com.apple.powerlog`, which AMFI enforces at the kernel level regardless of installation method. A free or paid $99/yr Apple Developer certificate cannot carry this entitlement. The IOKit call returns empty data silently — no crash, no error — meaning the failure is invisible unless tested explicitly on device before any UI is built. The project must treat Phase 1 as a device validation spike: confirm IOKit behavior under the actual signing configuration before investing time in the numeric display UI. If IOKit returns nothing, the primary data source falls back to `ProcessInfo.thermalState`, and the numeric display shows "–°C" with a note that TrollStore is required to unlock it.
+The main implementation risk is a subtle behavioral consequence of the polling change: failing to
+update `maxHistory` alongside the timer interval silently shrinks the history window from 60 minutes
+to 20 minutes, with no build warning or runtime error. Both constants must ship in the same commit.
+The app icon risk is lower — the existing `AppIcon.appiconset/Contents.json` is already in the
+correct Xcode 14+ single-size format. The only pitfalls are dragging the PNG into Finder instead of
+Xcode's asset catalog editor (which leaves `Contents.json` unreferenced), and failing to clean-build
+before verifying on device (Xcode caches asset catalog output).
 
-Background alerting and foreground numeric display are architecturally separate paths and must be designed that way from the start. The polling timer (IOKit + `thermalState` reads every 2 seconds) only runs while the app is in the foreground. For background alerts, the only viable mechanism is `ProcessInfo.thermalStateDidChangeNotification`, which iOS delivers to backgrounded (not terminated) apps. This event-driven path eliminates any need for background fetch or polling in the background. The two alert triggers — numeric threshold crossing (foreground-only, polling-based) and thermal state escalation (background-capable, event-driven) — are complementary and should both be implemented.
+No new tooling, no new frameworks, no new entitlements, no new files. The bridging header, signing
+configuration, and notification infrastructure from v1.0 are untouched. This milestone closes
+entirely within the existing app structure.
 
 ---
 
@@ -21,156 +43,110 @@ Background alerting and foreground numeric display are architecturally separate 
 
 ### Recommended Stack
 
-The entire app is buildable with Apple's own SDK. Toolchain: Xcode 26.4.1 (latest stable as of 2026-05-11; Apple renamed from 16.x to 26.x at WWDC 2025), Swift 6.3, targeting iOS 18.x minimum deployment. SwiftUI is the right choice over UIKit for a single-screen dashboard. Swift Charts provides a `LineMark` history chart in ~20 lines of code. `UserNotifications` handles local threshold alerts with no special entitlement. IOKit is accessed via a C bridging header for the private battery temperature read.
+The v1.0 stack is unchanged. Xcode 26.4.1 with Swift 6.3 and iOS 18.x minimum deployment remain
+correct. No new frameworks are introduced. The existing `Timer.publish(every:on:in:)` Combine
+pipeline handles the polling interval change natively — `Timer.publish(every: 10, ...)` is a
+drop-in replacement with identical behavior at a different cadence.
 
-**Core technologies:**
-- **Xcode 26.4.1 + Swift 6.3**: toolchain — latest stable; Swift 6 strict concurrency enforced by default, use `@MainActor` on the ViewModel
-- **SwiftUI (built-in)**: UI framework — declarative, correct fit for a single-screen live dashboard; UIKit adds zero value
-- **Swift Charts (built-in, iOS 16+)**: session history chart — zero dependency, `LineMark` + `AreaMark` handles the time-series use case natively
-- **`ProcessInfo.thermalState` (Foundation)**: primary data source — public, sandbox-safe, 4-level thermal classification, always works
-- **IOKit via C bridging header**: numeric temperature source — private, best-effort; returns `nil` silently when blocked
-- **`UserNotifications` (built-in)**: local alert delivery — no special entitlement required, works in sideloaded apps with free Apple ID
+**Core technologies relevant to v1.1:**
+- `Timer.publish(every:on:in:)` (Combine/Foundation): drives polling loop — interval literal is the only change
+- Swift Charts (bundled): renders history chart — unchanged; handles 360 data points without performance concern
+- `Assets.xcassets` / `AppIcon.appiconset`: Xcode 14+ single-size mode already configured; one PNG slot to fill
 
-### Expected Features
+### In-Scope Features
 
-The features table maps cleanly onto two buckets: what users will consider broken if absent (table stakes), and what makes the app stand out (differentiators). Persistent history, network monitoring, battery health, and APNs push are explicit anti-features.
+**Must do (v1.1 scope):**
+- Custom app icon — Xcode placeholder signals "dev build" even on a personal tool; one 1024x1024 PNG resolves it
+- Reduce polling interval 30s → 10s — surfaces thermal state changes 3x faster; notification latency from the polling path drops from 30s worst-case to 10s
+- Increase `maxHistory` 120 → 360 — mandatory companion to interval change; preserves 60-minute history window
+- Update chart sub-label — "Session history (last 60 min)" remains accurate after the maxHistory increase
 
-**Must have (table stakes for v1):**
-- Live numeric temperature display (°C / °F) with graceful "–°C" degradation — the core value prop
-- Unit toggle (°C ↔ °F), persisted to `UserDefaults` — omitting it feels amateurish
-- Thermal state badge with 4-level color coding (green / yellow / orange / red) — free confidence signal
-- User-configurable alert threshold — without it, the alert fires at a hardcoded number
-- Threshold-based local notification — the app's stated purpose
-- `thermalStateDidChangeNotification` alert on `.serious` / `.critical` — zero extra cost, background-capable
-- Session history line chart — makes the app feel complete
+**Out of scope for v1.1 (explicitly deferred):**
+- Numeric temperature via TrollStore/IOKit — device runs iOS 18.x; TrollStore maximum is iOS 17.0; blocked at the device level. Defer until a compatible device is available or an alternative access path is identified.
 
-**Should have (polish / differentiators, defer to second milestone):**
-- Thermal-state band overlay on chart (`RectangleMark` background bands)
-- Threshold `RuleMark` on chart — visual reminder of where the alert fires
-- Crosshair / scrub interaction (iOS 17+ `chartXSelection`)
+### Architecture Impact
 
-**Defer to v2+:**
-- WidgetKit widget — requires a separate extension target; `ProcessInfo.thermalState` access from extension unverified
-- Cool-down timer estimate — requires trend analysis, speculative without usage data
-- Apple Watch companion — separate WatchKit target, out of scope
-- Export to CSV / JSON — requires persistent history, deferred per PROJECT.md
+Both in-scope changes are surgical. The v1.0 MVVM structure (`TemperatureViewModel @Observable @MainActor` + dumb `ContentView`) is untouched architecturally.
 
-### Architecture Approach
+**Modified components:**
 
-Single-process, foreground-primary, no network or persistence layer. Shallow MVVM: a C bridging shim (`ThermalBridge`) wraps the IOKit call; `ThermalSensorService` wraps the bridge in an `AsyncStream<ThermalReading>`; `ThermalViewModel` (`@Observable`, `@MainActor`) consumes the stream, maintains a fixed-capacity `RingBuffer<ThermalReading>`, and calls `NotificationGate` on each reading. The `thermalStateDidChangeNotification` path is a parallel channel merged into the same `ThermalReading` type.
+| File | Change | Lines affected |
+|------|--------|---------------|
+| `TemperatureViewModel.swift` | `Timer.publish(every: 30)` → `Timer.publish(every: 10)` | 1 line (line 111) |
+| `TemperatureViewModel.swift` | `maxHistory = 120` → `maxHistory = 360` | 1 line (line 49) |
+| `ContentView.swift` | Chart sub-label string update | 1 line (line 113) |
+| `Assets.xcassets/AppIcon.appiconset/` | Add 1024x1024 PNG; `Contents.json` gains `"filename"` key | Asset + JSON |
 
-**Major components:**
-1. `ThermalBridge` (C/ObjC shim) — single point of private IOKit contact; returns `-1.0` sentinel on failure; isolated for mockability
-2. `ThermalSensorService` — wraps bridge in `AsyncStream`; owns 2-second foreground poll timer; merges `thermalStateDidChangeNotification` into stream
-3. `ThermalReading` (value type) — `struct`, `Sendable`; timestamp + celsius + thermalState; shared type across all layers
-4. `RingBuffer<ThermalReading>` — fixed-capacity (3,600 samples = 2 hrs at 2s interval) circular buffer; O(1) append; caps chart dataset size
-5. `ThermalViewModel` (`@Observable`, `@MainActor`) — single source of truth; drives `NotificationGate`; wires `scenePhase` to start/stop polling
-6. `NotificationGate` — rate-limits `UNUserNotificationCenter` calls; 60-second cooldown + hysteresis; no UI dependencies
-7. `DashboardView` / `SessionChartView` / `SettingsView` — dumb SwiftUI views; read ViewModel, no business logic
+No new files. No new Swift types. No new framework imports.
 
 ### Critical Pitfalls
 
-1. **IOKit numeric temperature blocked by AMFI on standard sideloads** — `IOPMPowerSource` `Temperature` key requires `systemgroup.com.apple.powerlog`, a private entitlement AMFI enforces at kernel level. The call returns empty data silently. Validate IOKit behavior on the actual device in Phase 1 as a spike before building any numeric display UI.
+1. **`maxHistory` not updated with polling interval** — At 10s polling, the existing 120-entry ring buffer covers only 20 minutes. Failing to increase to 360 silently degrades the history window with no error. Both constants must change in the same commit. (PITFALLS.md: Pitfall F)
 
-2. **Background timer death kills polling-based alerts** — iOS suspends the polling loop within seconds of backgrounding. Use `thermalStateDidChangeNotification` as the sole background alert trigger. Polling-based threshold alerts are foreground-only and must say so in the UI.
+2. **App icon PNG dragged to Finder instead of Xcode's asset catalog editor** — The file lands on disk but `Contents.json` is never updated with a `"filename"` key. The build succeeds; the icon remains a placeholder on the home screen. Always drag into Xcode's editor UI. (PITFALLS.md: Pitfall D)
 
-3. **Notification permission denied on first ask is permanent** — iOS will not re-show the system prompt. Gate `requestAuthorization` behind a user-initiated action (first threshold configuration). Handle `.denied` state explicitly with a Settings deep-link banner.
+3. **Stale asset cache after icon change** — Xcode caches asset catalog output. Always run `Product → Clean Build Folder` before verifying on device after any icon change. (PITFALLS.md: Pitfall D)
 
-4. **Notification flood at threshold boundary** — the polling interval can trigger a notification every 2 seconds while temperature oscillates at the threshold. Implement the `NotificationGate` cooldown (60-second minimum + hysteresis) before shipping any alert functionality.
+4. **Timer RunLoop mode accidentally changed** — When editing `every: 30` to `every: 10`, only the `every:` argument changes. `on: .main, in: .common` must remain. Switching to `.default` pauses timer delivery during touch interactions. (PITFALLS.md: Pitfall G)
 
-5. **Swift Charts renders unbounded data O(n) per frame** — no capacity cap degrades chart performance within 30 minutes on older devices. The `RingBuffer` with fixed capacity must be part of the initial data model design, not a retrofit.
+5. **App icon PNG has alpha channel or wrong dimensions** — iOS rejects icons with transparency. No pre-applied rounded corners (iOS applies squircle mask; pre-rounded source creates double-masking). Must be exactly 1024x1024 pixels, sRGB PNG, opaque. (PITFALLS.md: Pitfall D)
 
 ---
 
 ## Implications for Roadmap
 
-### Phase 1: Foundation and Device Validation Spike
+Both features are independent. Neither blocks the other. Recommended execution order is lowest-risk
+first to establish a working baseline before the slightly more involved asset work.
 
-**Rationale:** The IOKit numeric temperature path is the single highest-risk item. It must be validated under the actual signing configuration on the target device before any UI work begins. If it fails silently, every numeric display feature needs to be reframed as TrollStore-gated. Discovering this in Phase 3 wastes all UI work built on a false assumption.
+### Phase 1: Polling Interval + History Preservation
 
-**Delivers:**
-- `ThermalReading` struct (shared data contract)
-- `RingBuffer<T>` with fixed capacity (prevents chart performance regression)
-- `ThermalBridge` C shim with confirmed IOKit behavior on target device
-- `ThermalSensorService` with `AsyncStream` + 2-second poll loop
-- `ThermalViewModel` (`@Observable`, `@MainActor`) wired to sensor service
-- `scenePhase` observer to start/stop polling
-- Console-level proof of temperature readings (data flow confirmed, not UI)
-- Written decision record: "IOKit returns data / IOKit blocked — numeric display requires TrollStore"
+**Rationale:** One-line code change with a well-understood behavioral consequence. Verifiable in Simulator immediately. Establishes a clean commit before touching assets.
 
-**Addresses:** Live temperature data pipeline (prerequisite for every other feature)
-**Avoids:** Building UI on an unvalidated private API; unbounded array growth; background thread ViewModel mutations
-**Research flag:** Needs on-device validation; cannot be unit-tested under the actual provisioning profile without a physical device
+**Delivers:** 10-second polling cadence with 60-minute history preserved at the higher resolution.
 
----
+**Addresses:**
+- Timer interval reduction (30s → 10s) — `TemperatureViewModel.swift` line 111
+- Ring buffer expansion (120 → 360) — `TemperatureViewModel.swift` line 49
+- Chart sub-label accuracy — `ContentView.swift` line 113
 
-### Phase 2: Dashboard UI
+**Avoids:**
+- Pitfall F: `maxHistory` and timer interval must ship together; a half-done change silently corrupts the history window
+- Pitfall G: only `every:` changes; `on: .main, in: .common` is preserved exactly
 
-**Rationale:** Once the data pipeline is proven, the foreground display is straightforward SwiftUI. No architectural unknowns — connecting the ViewModel to views.
-
-**Delivers:**
-- `DashboardView` with large numeric readout (or "–°C" graceful degradation)
-- Thermal state badge with 4-level color coding
-- Unit toggle (°C / °F) with `UserDefaults` persistence
-- `SessionChartView` using Swift Charts `LineMark` + `AreaMark` reading from `RingBuffer`
-- Threshold `RuleMark` on chart
-- "Cert expires in N days" indicator
-
-**Addresses:** Live numeric display, thermal state badge, session history chart, unit toggle (all table-stakes features)
-**Avoids:** Connecting chart to unbounded array (already handled by `RingBuffer` from Phase 1)
-**Research flag:** None — all patterns are well-documented SwiftUI + Swift Charts
+**Research flag:** No additional research needed. Documented Combine API, direct codebase line references confirmed.
 
 ---
 
-### Phase 3: Alerts and Notification System
+### Phase 2: Custom App Icon
 
-**Rationale:** Alerts depend on the data pipeline (Phase 1) and the settings UI needs a dashboard to attach to (Phase 2). The two alert channels — polling-based numeric (foreground-only) and event-driven state-change (background-capable) — must be built together here to make their architectural separation explicit.
+**Rationale:** Pure asset change with zero code risk. Requires a designed PNG (external dependency) and device verification after a clean build.
 
-**Delivers:**
-- `NotificationGate` with 60-second cooldown + hysteresis
-- `SettingsView` with user-configurable threshold picker
-- Foreground threshold-based local notification (fires when `celsius >= threshold`)
-- Background `thermalStateDidChangeNotification` alert (fires on `.serious` / `.critical`)
-- `requestAuthorization` gated behind first threshold configuration (not app launch)
-- `.denied` state handler with Settings deep-link banner
-- UI copy distinguishing foreground-only numeric alerts from background state-change alerts
+**Delivers:** Custom icon visible on home screen, Spotlight, and Settings.
 
-**Addresses:** User-configurable threshold, threshold alert, state-change alert
-**Avoids:** Notification flood; background polling assumption; permission denial silent failure
-**Research flag:** Background notification delivery under free Apple ID must be tested on device — not in Xcode with debugger attached (debugger suppresses app suspension)
+**Addresses:**
+- Custom app icon — `Assets.xcassets/AppIcon.appiconset/` PNG slot + `Contents.json` filename key
 
----
+**Avoids:**
+- Pitfall D: drag into Xcode editor (not Finder); clean build before device verify
+- Pitfall E: keep asset set named `AppIcon`; do not rename
+- PNG requirements: 1024x1024, RGB (no alpha), no pre-rounded corners, sRGB
 
-### Phase 4: Polish (optional second milestone)
-
-**Rationale:** Differentiator features add visual richness but have no bearing on core value. Defer until the core three phases are stable.
-
-**Delivers:**
-- Thermal-state `RectangleMark` background bands on the history chart
-- iOS 17+ `chartXSelection` drag-to-scrub interaction
-- UX refinements from device testing
-
-**Addresses:** Chart differentiators from FEATURES.md
-**Research flag:** None — documented Swift Charts patterns
+**Research flag:** No additional research needed. Existing `Contents.json` already in Xcode 14+ single-size format; the slot is pre-configured.
 
 ---
 
 ### Phase Ordering Rationale
 
-- Phase 1 first because IOKit validation is the highest-risk unknown; failure changes the scope of every subsequent phase
-- Phase 2 before Phase 3 because settings/threshold UI must attach to a visible dashboard; notification logic without a UI to configure it creates untestable code
-- The two alert channels (polling-based numeric, event-driven state-change) built together in Phase 3 to force the architectural separation to be explicit
-- Phase 4 last because it adds no new dependencies and can be dropped without affecting core value
+- Code-only phase first: the polling change requires no external assets, is instantly testable in Simulator, and has a deterministic pass/fail (either the chart shows 360 entries over 60 minutes or it does not). No design tooling dependency.
+- Asset phase second: icon work depends on a designed PNG being ready. Keeping it second means the polling work is committed and verified before any asset pipeline questions arise.
+- Both phases are small enough to merge into a single milestone build. The phase split only matters if the icon design takes longer than the code change.
+
+---
 
 ### Research Flags
 
-Phases needing device validation:
-- **Phase 1:** IOKit private API — must be validated on the target physical device under the actual free Apple ID signing configuration; simulator and unit tests cannot substitute
-- **Phase 3:** Background notification delivery — must be tested by launching from home screen, backgrounding, and inducing a thermal state change; Xcode debugger suppresses app suspension
-
-Phases with standard patterns (skip dedicated research):
-- **Phase 2:** SwiftUI dashboard + Swift Charts — well-documented, established patterns, no unknowns
-- **Phase 4:** Swift Charts advanced features — documented Apple APIs
+- **Phase 1 (polling interval):** No research needed. Standard Combine timer pattern; exact line numbers in codebase confirmed.
+- **Phase 2 (app icon):** No research needed. Xcode 14+ single-size mode is fully documented; the project's asset catalog is already correctly configured for it.
 
 ---
 
@@ -178,45 +154,53 @@ Phases with standard patterns (skip dedicated research):
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Xcode 26.4.1 verified via xcodereleases.com; all frameworks are first-party Apple; zero external dependencies eliminate version-conflict risk |
-| Features | MEDIUM | Table stakes from App Store competitor survey; UX conventions from Swift Charts docs + HIG; private API feature set is LOW confidence until device-validated |
-| Architecture | HIGH | `@Observable`, `AsyncStream`, `UNUserNotificationCenter`, and `scenePhase` patterns are documented Apple APIs; only `ThermalBridge` is speculative |
-| Pitfalls | HIGH | IOKit entitlement constraint corroborated across Apple Developer Forums, leminlimez gist, Battman docs, George Garside blog, and Flutter issue #60406; background suspension behavior is well-documented iOS behavior |
+| Stack (polling change) | HIGH | Timer.publish is a documented Combine API; interval is an unconstrained scalar; codebase line confirmed |
+| Stack (app icon) | HIGH | Xcode 14+ single-size mode confirmed via Apple docs; Contents.json already in correct format |
+| Features (in-scope) | HIGH | Both features are additive changes to existing confirmed-working infrastructure |
+| Architecture | HIGH | Codebase read directly; exact line numbers for every constant confirmed 2026-05-13 |
+| Pitfalls | HIGH | Derived from official Apple docs, direct codebase analysis, and TrollStore GitHub |
 
-**Overall confidence:** MEDIUM-HIGH — the architecture and stack are solid; the numeric temperature path has a known feasibility gate that must be resolved in Phase 1 before any commitments about the feature set can be confirmed.
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **IOKit on the specific target device and iOS version:** The `Temperature` key in `IOPMPowerSource` may not be present on all device/iOS combinations even when the entitlement is available. Phase 1 spike must test on the actual device. Resolution: device validation spike in Phase 1.
+- **Icon design asset:** The technical pipeline is fully understood but the 1024x1024 PNG must be produced before Phase 2 can execute. This is a prerequisite for the implementer, not a research gap.
+- **Device icon cache quirk:** A freshly sideloaded icon occasionally requires a device restart to appear on the home screen. This is a known iOS behavior, not a build bug. Document in the phase plan to prevent wasted debugging time.
 
-- **`thermalStateDidChangeNotification` delivery when backgrounded on free Apple ID:** Community sources confirm it fires in the background, but behavior under a free developer profile has not been independently verified for this entitlement combination. Resolution: test in Phase 3 by backgrounding the app under real conditions (charging + CPU load to induce a state change).
+---
 
-- **dyld cache iOS version alignment:** If private API headers are extracted from the dyld cache for development reference, they must come from firmware matching the exact iOS version on the target device. Mismatched headers risk silent runtime failures. Resolution: use `ipsw` to extract headers from matching firmware; pin test device iOS version during active development.
+## Out-of-Scope Reference: TrollStore / IOKit Numeric Temperature
+
+The following findings are preserved for future planning but are **not actionable for v1.1**.
+
+- TrollStore supports iOS 14.0b2 through iOS 17.0 only. iOS 17.0.1 and all iOS 18.x are permanently incompatible (CoreTrust CVE-2023-41991 patched by Apple, confirmed in TrollStore README and iDevice Central).
+- Numeric temperature key: `"Temperature"` in the `IOPMPowerSource` IOKit dictionary. Raw value is centidegrees Celsius (divide by 100 for °C).
+- Required entitlement: `systemgroup.com.apple.powerlog` (private, boolean true).
+- The bridging header (`Termostato-Bridging-Header.h`) already declares all needed IOKit C functions. No bridging header changes are needed when this feature is eventually implemented.
+- Build workflow would require a separate Xcode build configuration with `CODE_SIGNING_ALLOWED=NO` and an ldid Run Script phase.
+- Graceful degradation is architecture-ready: a `numericTemperature: Double?` property returning nil when the entitlement is absent displays nothing rather than "0.0°C".
+
+**To revisit:** Acquire a device on iOS 17.0 or earlier, or monitor TrollStore project for future iOS 18+ support (no current timeline from opa334).
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Apple Developer Docs — ProcessInfo.ThermalState](https://developer.apple.com/documentation/foundation/processinfo/thermalstate-swift.enum)
-- [Apple Developer Docs — thermalStateDidChangeNotification](https://developer.apple.com/documentation/foundation/processinfo/thermalstatedidchangenotification)
-- [Apple Developer Docs — UNUserNotificationCenter](https://developer.apple.com/documentation/usernotifications/unusernotificationcenter)
-- [Apple Developer Docs — Swift Charts](https://developer.apple.com/documentation/charts)
-- [Apple Developer Docs — Migrating to @Observable](https://developer.apple.com/documentation/swiftui/migrating-from-the-observable-object-protocol-to-the-observable-macro)
-- [xcodereleases.com](https://xcodereleases.com/) — Xcode 26.4.1 confirmed latest stable, 2026-04-16
+- [Apple Developer Documentation — Configuring your app icon](https://developer.apple.com/documentation/xcode/configuring-your-app-icon) — single-size asset catalog workflow
+- [Apple Energy Efficiency Guide — Minimize Timer Use](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/MinimizeTimerUse.html) — timer wakeup overhead guidance
+- `TemperatureViewModel.swift` (existing codebase, read 2026-05-13) — `Timer.publish(every: 30)` at line 111, `maxHistory = 120` at line 49
+- `ContentView.swift` (existing codebase, read 2026-05-13) — chart sub-label at line 113
+- `Assets.xcassets/AppIcon.appiconset/Contents.json` (existing codebase, read 2026-05-13) — single-entry modern format confirmed
+- [TrollStore GitHub (opa334)](https://github.com/opa334/TrollStore) — iOS version ceiling confirmed
 
 ### Secondary (MEDIUM confidence)
-- [Apple Developer Forums — iOS CPU/GPU/battery temperature](https://developer.apple.com/forums/thread/696700)
-- [Apple Developer Forums — Swift Charts large dataset performance](https://developer.apple.com/forums/thread/740314)
-- [Apple Developer Forums — iOS background execution limits](https://developer.apple.com/forums/thread/685525)
-- [Dev.to — iOS sideloading mechanics 2025](https://dev.to/1_king_0b1e1f8bfe6d1/how-ios-sideloading-actually-works-in-2025-dev-certs-altstore-and-the-eu-exception-1m2h)
-- [George Garside — Custom entitlements on sideloaded iOS apps](https://georgegarside.com/blog/ios/custom-entitlement-ios-app-ipa/)
-
-### Tertiary (LOW confidence — needs device validation)
-- [leminlimez GitHub gist — IOPMPowerSource battery temperature](https://gist.github.com/leminlimez/ed3e3ee3a287c503c5b834acdc0dfcdc) — `Temperature` key and `systemgroup.com.apple.powerlog`; community, unverified against current iOS
-- [MacRumors Forums — battery/device temperature no longer available](https://forums.macrumors.com/threads/battery-device-temperature-no-longer-available-to-apps.2399209/) — API availability changes discussion
-- [Flutter issue #60406 — Sandbox deny iokit-get-properties](https://github.com/flutter/flutter/issues/60406) — MACF sandbox enforcement evidence
+- [SwiftLee — App Icon Generator no longer needed with Xcode 14](https://www.avanderlee.com/xcode/replacing-app-icon-generators/) — single-size workflow confirmation
+- [Use Your Loaf — Xcode 14 Single Size App Icon](https://useyourloaf.com/blog/xcode-14-single-size-app-icon/) — asset catalog mode details
+- [iDevice Central — TrollStore on iOS 17.0.1–26.2](https://idevicecentral.com/tweaks/can-you-install-trollstore-on-ios-17-0-1-ios-18-3/) — iOS 18 incompatibility confirmation (out-of-scope reference)
+- [leminlimez — IOPMPowerSource gist](https://gist.github.com/leminlimez/ed3e3ee3a287c503c5b834acdc0dfcdc) — Temperature key, entitlement string (out-of-scope reference)
 
 ---
-*Research completed: 2026-05-11*
+
+*Research completed: 2026-05-13*
 *Ready for roadmap: yes*

@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: "Completed quick task 260513-0yk: Add UIApplication.beginBackgroundTask to TemperatureViewModel so the thermal state observer stays live after the app backgrounds"
-last_updated: "2026-05-12T23:05:26.623Z"
-last_activity: 2026-05-12
+status: complete
+stopped_at: "v1.0 milestone complete — all 3 phases shipped and verified on device"
+last_updated: "2026-05-13T00:00:00.000Z"
+last_activity: 2026-05-13
 progress:
   total_phases: 3
   completed_phases: 3
@@ -18,10 +18,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-11)
+See: .planning/PROJECT.md (updated 2026-05-13)
 
-**Core value:** The phone's actual internal temperature, always visible at a glance — with an alert before it gets dangerously hot.
-**Current focus:** Phase 03 — alerts-notification-system
+**Core value:** The phone's thermal state, always visible at a glance — with an alert before it gets dangerously hot.
+**Current focus:** v1.0 shipped — planning next milestone
 
 ## Current Position
 
@@ -74,8 +74,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 1 IOKit behavior is unconfirmed on the actual target device under free Apple ID signing — Phase 1 spike MUST run on physical device, not simulator
-- Phase 3 background notification delivery under free Apple ID must be tested by backgrounding the app with Xcode debugger detached (debugger suppresses app suspension)
+None — all v1.0 blockers resolved.
 
 ### Quick Tasks Completed
 

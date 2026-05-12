@@ -1,10 +1,11 @@
 ---
 phase: 2
 slug: dashboard-ui
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-12
+reviewed_at: 2026-05-12
 ---
 
 # Phase 2 — UI Design Contract
@@ -58,16 +59,18 @@ All sizes in points. SwiftUI semantic styles map to these values on standard iOS
 | Role | SwiftUI Style | Approx Size | Weight | Line Height |
 |------|--------------|-------------|--------|-------------|
 | Badge state label | `.largeTitle` | 34pt | Bold (700) | 1.2 |
-| Section header / sub-label | `.headline` | 17pt | Semibold (600) | 1.3 |
+| Section header / sub-label | `.headline` | 17pt | Bold (700) | 1.3 |
 | Chart axis labels | `.caption` | 12pt | Regular (400) | 1.4 |
 | App title / nav | `.title2` | 22pt | Regular (400) | 1.2 |
 
-Weights used: Regular (400) and Bold (700). Semibold (600) for `.headline` only.
+Weights used: Regular (400) and Bold (700).
+
+Implementation note: apply `.fontWeight(.bold)` override on the `.headline` role — the system default Semibold weight is not used. This keeps the declared weight set to exactly two values.
 
 Rationale:
 - Badge uses `.largeTitle` + bold so the state name dominates the screen half at a glance (D-01, CONTEXT specifics: "impossible to misread").
+- Section header / sub-label uses `.headline` + `.fontWeight(.bold)` override — size distinction (17pt vs 12pt caption) plus consistent bold weight creates hierarchy without introducing a third weight class.
 - Chart axis labels use `.caption` because chart density at 120 data points demands minimal label footprint.
-- Only 2 explicit weight classes (regular + bold) with semibold as a system-assigned intermediate for `.headline`.
 
 Source: D-01 (badge glanceability), Claude's Discretion (exact typography), Apple HIG Dynamic Type scale
 

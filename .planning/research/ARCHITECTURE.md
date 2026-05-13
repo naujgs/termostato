@@ -2,292 +2,273 @@
 
 **Project:** Termostato
 **Domain:** iOS device thermal monitoring (sideloaded)
-**Researched:** 2026-05-11
+**Researched:** 2026-05-13 (v1.1 update — supersedes 2026-05-11 pre-build version)
 
 ---
 
-## Recommended Architecture
+## Current Architecture (v1.0 Shipped)
 
-A single-process, foreground-only app. No network layer, no persistence layer. All complexity lives in the sensor abstraction and the notification gate.
+The app is a single-file MVVM pipeline. No services layer, no dependency injection, no persistence.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        UI Layer                              │
-│  DashboardView  ──►  SessionChartView  ──►  StatusBadgeView │
-│        │                    │                               │
-│        └────────────────────┘                               │
-│                    reads via @Observable                     │
-└───────────────────────────┬─────────────────────────────────┘
-                            │ @State / binding
-┌───────────────────────────▼─────────────────────────────────┐
-│                   ThermalViewModel                           │
-│  @Observable class — owns all mutable app state             │
-│  • currentReading: ThermalReading                           │
-│  • history: RingBuffer<ThermalReading>   (in-memory only)   │
-│  • alertThreshold: Double (°C, user-configured)             │
-│  • thermalState: ProcessInfo.ThermalState                   │
-└─────────────┬────────────────────────┬──────────────────────┘
-              │ async for await        │ calls
-┌─────────────▼────────────┐  ┌────────▼───────────────────────┐
-│   ThermalSensorService   │  │   NotificationGate             │
-│   (polling layer)        │  │   (notification layer)         │
-│                          │  │                                │
-│  AsyncStream<ThermalReading> │  • fire(reading:threshold:)   │
-│  • polls private API     │  │  • cooldown: 60 s min interval │
-│    every N seconds       │  │  • lastFiredAt: Date?          │
-│  • reads thermalState    │  │  UNUserNotificationCenter      │
-│    via NotificationCenter│  └────────────────────────────────┘
-│  • yields ThermalReading │
-└──────────────────────────┘
-              │ wraps
-┌─────────────▼──────────────────────────────────────────────┐
-│               Private API Bridge (C shim)                  │
-│  ThermalBridge.h / ThermalBridge.m                         │
-│  • IOServiceMatching("IOPMPowerSource")                     │
-│  • IORegistryEntryCreateCFProperties → "Temperature" key   │
-│  • divide raw value by 100 → °C Double                     │
-│  • returns -1.0 on failure (graceful degradation)          │
-└────────────────────────────────────────────────────────────┘
+TermostatoApp (@main)
+  └── NotificationDelegate (@State, strong ref — prevents UNUserNotificationCenter weak-ref dealloc)
+  └── ContentView
+        └── TemperatureViewModel (@State, @Observable @MainActor)
+              ├── thermalState: ProcessInfo.ThermalState          ← published read-only
+              ├── history: [ThermalReading]                       ← 120-entry ring buffer
+              ├── notificationsAuthorized: Bool                   ← drives permission banner
+              ├── lastAlertedState: ProcessInfo.ThermalState?     ← cooldown gate
+              ├── timerCancellable: AnyCancellable?               ← Timer.publish(every: 30)
+              ├── thermalObserver: NSObjectProtocol?              ← background notification observer
+              └── backgroundTaskID: UIBackgroundTaskIdentifier    ← ~30s background window
+```
+
+**Data flow (foreground):**
+```
+Timer.publish(every: 30) → updateThermalState()
+  → ProcessInfo.processInfo.thermalState          (public API read)
+  → ThermalReading(timestamp:, state:) appended to history[]
+  → checkAndFireNotification()                    (cooldown gate → UNUserNotificationCenter)
+  → @Observable mutation → SwiftUI auto-redraw
+```
+
+**Data flow (background):**
+```
+thermalStateDidChangeNotification → handleBackgroundThermalChange()
+  → ProcessInfo.processInfo.thermalState          (fresh read, NOT self.thermalState)
+  → checkAndFireNotification()                    (same cooldown gate)
+  NOTE: does NOT append to history[] — deliberate; background changes corrupt session chart
 ```
 
 ---
 
-## Component Boundaries
+## v1.1 Integration Points
 
-| Component | Responsibility | Communicates With | Notes |
-|-----------|---------------|-------------------|-------|
-| `ThermalBridge` (C/ObjC) | Calls IOKit private API; returns raw battery temp | `ThermalSensorService` only | Isolated in its own file; single point of private API contact |
-| `ThermalSensorService` | Wraps bridge in an `AsyncStream<ThermalReading>`; owns poll timer | `ThermalViewModel` | Pure Swift; bridge is injected so it can be mocked |
-| `ThermalReading` | Value type — timestamp + temperature + thermalState | All layers | `struct`, `Sendable`; no logic |
-| `RingBuffer<T>` | Fixed-capacity in-memory circular buffer; O(1) append | `ThermalViewModel` | Generic utility; history cap ~3 600 samples |
-| `ThermalViewModel` | Single source of truth for UI state; drives notification gate | UI views, `NotificationGate` | `@Observable`; lives at app root |
-| `NotificationGate` | Rate-limits and fires `UNUserNotificationCenter` alerts | `ThermalViewModel` | Stateful cooldown; no UI dependencies |
-| `DashboardView` | Root view; large numeric readout + state badge | `ThermalViewModel` | SwiftUI; no business logic |
-| `SessionChartView` | Scrolling history chart from `history` ring buffer | `ThermalViewModel` | Uses Swift Charts (iOS 16+) |
-| `SettingsView` | Threshold picker, °C/°F toggle | `ThermalViewModel` | Sheet or navigation push from dashboard |
+### Feature 1: IOKit Numeric Temperature
 
----
+**Where the call lives:** Inside `TemperatureViewModel.updateThermalState()`. No separate service layer is needed or beneficial at this app's scope. A service layer would add indirection without testability gain (IOKit requires physical device regardless).
 
-## Data Flow (temperature reading → UI → notification)
+**What changes in the ViewModel:**
 
-```
-1. Poll tick (N-second interval, foreground only)
-        │
-        ▼
-2. ThermalBridge.readTemperature()
-   → IOKit call → raw Int ÷ 100 = Double °C
-   → fallback: -1.0 if IOKit fails
-        │
-        ▼
-3. ThermalSensorService.stream
-   → packages into ThermalReading(date:, celsius:, thermalState:)
-   → continuation.yield(reading)
-        │
-        ▼
-4. ThermalViewModel (for await loop, @MainActor)
-   → currentReading = reading
-   → history.append(reading)       ← O(1) ring buffer write
-   → NotificationGate.fire(reading, threshold: alertThreshold)
-        │
-        ▼ (SwiftUI observation, automatic)
-5. DashboardView re-renders
-   → SessionChartView re-renders (only history-dependent views)
-        │
-        ▼ (if threshold crossed AND cooldown elapsed)
-6. NotificationGate schedules UNNotificationRequest
-   → fires immediately (timeInterval: 1)
-   → lastFiredAt = now
-```
+1. Add `private(set) var numericTemperature: Double? = nil` — published property, `nil` when IOKit unavailable.
+2. Inside `updateThermalState()`, after reading `thermalState`, call the IOKit C functions through the bridging header and assign the result to `numericTemperature`.
+3. `ContentView` reads `viewModel.numericTemperature` and displays it alongside the badge. `nil` = show nothing or a dash.
 
-The `thermalState` is a secondary channel: iOS fires `ProcessInfo.thermalStateDidChangeNotification` asynchronously. `ThermalSensorService` observes this notification and merges updates into the same `ThermalReading` struct so the ViewModel has one unified type.
+**IOKit C API call from Swift under @MainActor / Swift 6 strict concurrency:**
 
----
+The IOKit functions declared in `Termostato-Bridging-Header.h` are C functions. Calling C functions from Swift is always `nonisolated` from the Swift concurrency perspective — C has no actor concept. However, because `updateThermalState()` is already a `@MainActor` method on a `@MainActor`-isolated class, the C call executes on the main thread by inheritance. This is correct and safe:
 
-## Polling Strategy
+- IOKit `IOServiceGetMatchingService` and `IORegistryEntryCreateCFProperties` are synchronous, blocking C calls. They complete in under 1ms on a physical device.
+- Calling blocking C from `@MainActor` is acceptable for sub-millisecond calls (same pattern as `ProcessInfo.processInfo.thermalState` which is also synchronous).
+- Do NOT wrap in `Task.detached` or `Task { @MainActor in }` — the C call is fast enough that offloading adds overhead with no benefit, and moving it off `@MainActor` would require a `Sendable` return type or `@unchecked Sendable` annotation.
+- Swift 6 strict concurrency will not complain about the C call itself. The only concurrency boundary that matters is that `numericTemperature` (a `@Observable` stored property) is mutated on `@MainActor` — which is satisfied by the existing class annotation.
 
-**Decision: foreground timer via `AsyncStream` + `Task.sleep`. No background fetch.**
+**IOKit property key for temperature:**
 
-Rationale:
-
-- This is a foreground dashboard app. The use case is "screen on, watching temperature." Background polling on iOS requires `BGProcessingTask` or `BGAppRefreshTask`, which iOS schedules at its discretion and provides at most ~30 seconds of runtime — unsuitable for continuous monitoring.
-- `ProcessInfo.thermalStateDidChangeNotification` is reactive and free — it handles state-transition events without polling.
-- The numeric temperature value requires polling because IOKit has no change-notification mechanism.
-- `Timer.publish` (Combine) works but `Task.sleep` inside `AsyncStream` is the modern Swift Concurrency equivalent with cleaner cancellation.
-
-**Recommended interval:** 2 seconds when app is active. No polling when app is backgrounded.
+The bridging header already declares `IORegistryEntryCreateCFProperties`. The service to match is `"IOPMPowerSource"`. After obtaining the service and calling `IORegistryEntryCreateCFProperties`, cast the `CFMutableDictionaryRef` to `[String: Any]` and read the `"Temperature"` key. The raw value is an `Int` (or `CFNumber`); divide by 100 to get Celsius as a `Double`.
 
 ```swift
-// ThermalSensorService (sketch)
-func makeStream(interval: Duration = .seconds(2)) -> AsyncStream<ThermalReading> {
-    AsyncStream { continuation in
-        let task = Task {
-            while !Task.isCancelled {
-                let celsius = ThermalBridge.readTemperature()   // C shim call
-                let state   = ProcessInfo.processInfo.thermalState
-                continuation.yield(ThermalReading(celsius: celsius, thermalState: state))
-                try? await Task.sleep(for: interval)
-            }
-            continuation.finish()
-        }
-        continuation.onTermination = { _ in task.cancel() }
+// Inside TemperatureViewModel.updateThermalState() — after the thermalState read
+numericTemperature = readIOKitTemperature()
+
+// New private helper — stays in TemperatureViewModel, no separate file needed
+private func readIOKitTemperature() -> Double? {
+    let service = IOServiceGetMatchingService(
+        mach_port_t(0),                         // kIOMasterPortDefault = 0 on iOS
+        IOServiceMatching("IOPMPowerSource")
+    )
+    guard service != 0 else { return nil }
+    defer { IOObjectRelease(service) }
+
+    var props: Unmanaged<CFMutableDictionary>? = nil
+    let kr = IORegistryEntryCreateCFProperties(service, &props, kCFAllocatorDefault, 0)
+    guard kr == KERN_SUCCESS, let dict = props?.takeRetainedValue() as? [String: Any] else {
+        return nil
     }
+
+    // "Temperature" key — raw value is Int, unit is centidegrees Celsius (divide by 100)
+    if let raw = dict["Temperature"] as? Int {
+        return Double(raw) / 100.0
+    }
+    // Some iOS versions expose it as CFNumber directly
+    if let raw = dict["Temperature"] as? Double {
+        return raw / 100.0
+    }
+    return nil
 }
 ```
 
-**Background behavior:** When the app enters the background (`scenePhase == .background`), cancel the polling task. Resume when returning to foreground. This avoids using restricted background execution time and conserves battery.
+**CFMutableDictionaryRef / Unmanaged memory management:** Use `takeRetainedValue()` (not `takeUnretainedValue()`) because `IORegistryEntryCreateCFProperties` transfers ownership to the caller (documented as "Create Rule"). Swift ARC then manages the lifetime. `defer { IOObjectRelease(service) }` handles the io_object_t release.
+
+**Entitlement requirement:** TrollStore injects `com.apple.private.iokit.user-client-cross-endian` or the `systemgroup.com.apple.powerlog` entitlement at install time. The Swift/Objective-C code requires no explicit entitlement declaration in the Xcode project — TrollStore handles this at the IPA-signing layer. Standard Xcode sideloads will hit the AMFI block and `IOServiceGetMatchingService` will return 0 (the "null" io_object_t). The `guard service != 0` check handles this gracefully — `numericTemperature` stays `nil` and the UI shows nothing.
+
+**Graceful degradation in ContentView:** The `numericTemperature: Double?` optional is the correct type. Display pattern:
 
 ```swift
-// ThermalViewModel (sketch)
-.onChange(of: scenePhase) { _, phase in
-    if phase == .active  { startPolling() }
-    if phase == .background { stopPolling() }
+if let celsius = viewModel.numericTemperature {
+    Text(String(format: "%.1f°C", celsius))
+} // else show nothing — no placeholder text needed; badge already conveys state
+```
+
+**New vs modified components:**
+
+| Component | Change Type | What Changes |
+|-----------|------------|--------------|
+| `Termostato-Bridging-Header.h` | No change needed | All required C functions already declared |
+| `TemperatureViewModel.swift` | Modified | Add `numericTemperature: Double?` property + `readIOKitTemperature()` helper + call in `updateThermalState()` |
+| `ContentView.swift` | Modified | Add numeric temperature display (Text or label) below or inside the badge area |
+| New service file | Not needed | ViewModel directly calls the C shim; no indirection layer warranted |
+
+---
+
+### Feature 2: App Icon
+
+**Xcode asset catalog structure needed:**
+
+The existing `Assets.xcassets/AppIcon.appiconset/Contents.json` uses the modern single-entry format (Xcode 14+):
+
+```json
+{
+  "images": [
+    {
+      "idiom": "universal",
+      "platform": "ios",
+      "size": "1024x1024"
+    }
+  ],
+  "info": { "author": "xcode", "version": 1 }
 }
 ```
 
----
+This is correct and complete for iOS 16+. Xcode 26 generates all required sizes at build time from the single 1024x1024 source. No additional `Contents.json` entries are needed — the old approach of listing every `@1x`/`@2x`/`@3x` at every size (20pt, 29pt, 40pt, 60pt, 76pt, 83.5pt, 1024pt) is deprecated since Xcode 14.
 
-## State Management
+**What is needed:** One 1024x1024 PNG (or SVG) placed in `AppIcon.appiconset/` and the filename registered in `Contents.json` under `"filename"`. Xcode will render all device sizes automatically.
 
-**Decision: `@Observable` macro (iOS 17+), not `ObservableObject`.**
+**Swift code changes required:** None. App icon is purely an asset catalog configuration. No Swift file is touched.
 
-Rationale:
+**New vs modified components:**
 
-- `@Observable` (Swift Observation framework, iOS 17+) gives property-level granularity: only views reading `currentReading` re-render on each tick; `SessionChartView` only re-renders when `history` changes. With `ObservableObject` + `@Published`, every `@Published` change triggers a full object re-render.
-- The project targets a personal device running current iOS — iOS 17 minimum is acceptable and avoids Combine boilerplate.
-- No `@StateObject` / `@ObservedObject` split needed: pass the model as a plain parameter or via the environment.
-- Swift Concurrency (`async/await`, `Task`, `AsyncStream`) integrates naturally without Combine pipelines.
-
-**Ownership tree:**
-
-```
-@main App
-  └── @State var thermalViewModel = ThermalViewModel()  ← owns the model
-        └── passed via .environment(thermalViewModel)
-              └── DashboardView reads currentReading, thermalState
-              └── SessionChartView reads history
-              └── SettingsView writes alertThreshold
-```
+| Component | Change Type | What Changes |
+|-----------|------------|--------------|
+| `Assets.xcassets/AppIcon.appiconset/` | Modified | Add icon image file; update `Contents.json` with `"filename"` key |
+| All Swift files | No change | Zero Swift code involvement |
 
 ---
 
-## Local Notification Architecture
+### Feature 3: 10-Second Polling Interval
 
-**Stack:** `UNUserNotificationCenter` only. No push/APNs. No background fetch.
+**The one-line change:**
 
-**Threshold crossing:** On each reading, `ThermalViewModel` checks `reading.celsius >= alertThreshold`. This is a simple scalar comparison — no external framework needed.
-
-**Debounce / cooldown strategy:**
-
-The naive implementation fires a notification every 2 seconds once the threshold is crossed, spamming the user. The `NotificationGate` component prevents this:
-
-```
-NotificationGate state machine:
-  IDLE  ──(threshold crossed)──►  FIRED
-    ▲                                │
-    └──(60 s elapsed OR drops below threshold)──┘
-
-FIRED state: suppress all new notifications for 60 seconds minimum.
-After 60 s: if still above threshold → re-fire once, stay FIRED.
-            if below threshold → transition to IDLE.
+```swift
+// TemperatureViewModel.swift, startPolling()
+// Before:
+timerCancellable = Timer.publish(every: 30, on: .main, in: .common)
+// After:
+timerCancellable = Timer.publish(every: 10, on: .main, in: .common)
 ```
 
-Implementation: track `lastFiredAt: Date?`. Before firing, check `Date.now.timeIntervalSince(lastFiredAt) >= cooldownInterval` (default 60 s).
+**Ring buffer implications:**
 
-**Permission request:** Request notification permission on first launch (not on app start, which feels aggressive — defer to when the user first sets a threshold or explicitly taps an "Enable alerts" button).
+The current ring buffer is `maxHistory = 120` entries. At 30s intervals: 120 × 30s = 3,600s = 60 minutes of history. At 10s intervals: 120 × 10s = 1,200s = 20 minutes of history.
+
+The chart sub-label in `ContentView.swift` currently reads `"Session history (last 60 min)"` — this becomes inaccurate. Options:
+
+**Option A (recommended):** Keep `maxHistory = 120`, update the label to `"Session history (last 20 min)"`. Simplest; no behavior change.
+
+**Option B:** Increase `maxHistory` to 360 to preserve 60 minutes at 10s polling. Memory impact: 360 × ~64 bytes per `ThermalReading` ≈ 23 KB. Negligible. But the chart becomes denser (360 points vs 120). Swift Charts renders this fine — it is a line chart, not a scatter plot.
+
+**Option C:** Make `maxHistory` computed from a target duration: `maxHistory = Int(targetDuration / pollingInterval)`. Cleaner but adds indirection for a personal tool.
+
+Recommendation: Option A for v1.1 (minimal change surface). Option B is a one-line follow-up if 20 minutes of history feels too short in practice.
+
+**Chart label location:** `ContentView.swift` line 113 — `Text("Session history (last 60 min)")`. Update to match actual window.
+
+**No Swift 6 concurrency implications:** The polling interval change is a scalar literal. Timer.publish runs on `.main`, which satisfies `@MainActor`. No new actors, tasks, or async calls introduced.
+
+**New vs modified components:**
+
+| Component | Change Type | What Changes |
+|-----------|------------|--------------|
+| `TemperatureViewModel.swift` | Modified | `Timer.publish(every: 30)` → `Timer.publish(every: 10)` |
+| `ContentView.swift` | Modified | Chart sub-label string update (Option A) |
+| `TemperatureViewModel.swift` | Optionally modified | `maxHistory` increase (Option B only) |
 
 ---
 
-## In-Memory Session History
+## Swift 6 Concurrency Safety: IOKit C API Calls
 
-**Decision: fixed-capacity ring buffer, no persistence.**
+This section directly addresses the concurrency concerns for IOKit.
 
-- Struct: `RingBuffer<ThermalReading>` with a capacity of 3 600 (2 s polling × 3 600 = 2 hours of data before oldest readings are overwritten).
-- Storage: plain Swift array with a write cursor; O(1) appends.
-- At 2 s intervals, 1 hour of readings ≈ 1 800 items × ~40 bytes per `ThermalReading` ≈ 72 KB. Negligible memory footprint.
-- `SessionChartView` reads the buffer as an array slice for Swift Charts rendering. No additional data transformation layer needed.
-- On app termination / background eviction, history is lost. This is intentional per project scope.
+**Summary: No Swift 6 concurrency issues arise from the IOKit call pattern described above.**
+
+Detailed analysis:
+
+1. **C functions have no actor affiliation.** `IOServiceGetMatchingService`, `IOServiceMatching`, `IORegistryEntryCreateCFProperties`, and `IOObjectRelease` are imported as global C functions. Swift treats them as `nonisolated` — they can be called from any isolation context without a `Sendable` requirement on their arguments.
+
+2. **`CFMutableDictionaryRef` and `io_object_t` are not Swift types.** They do not participate in the Swift concurrency type-safety system. They are C/CoreFoundation opaque pointers. No `Sendable` conformance is required.
+
+3. **The call site is `@MainActor`.** `readIOKitTemperature()` is called from `updateThermalState()`, which is called from the `Timer.publish` sink, which runs on `.main`. The method is on a `@MainActor`-isolated class. The C call inherits main actor isolation — it runs on the main thread. Swift 6 is satisfied: the mutation of `numericTemperature` (an `@Observable` stored property) happens on the actor that owns it.
+
+4. **`Unmanaged<CFMutableDictionary>` does not escape.** `props` is a local variable consumed immediately with `takeRetainedValue()`. No cross-actor transfer occurs.
+
+5. **`kCFAllocatorDefault` global constant.** This is a CoreFoundation global exported as a C `extern`. Swift 6 treats C globals as `nonisolated(unsafe)` when imported without `Sendable` annotations, but reading a well-known constant (not mutating) is safe in practice. The compiler may emit a warning; suppress with `nonisolated(unsafe) let alloc = kCFAllocatorDefault` if needed.
+
+**Potential compiler warning (not an error):** Swift 6 may warn about passing `CFMutableDictionary` across isolation boundaries if the result is stored in a property that the compiler cannot prove is accessed only on `@MainActor`. Because `numericTemperature` is a property of the `@MainActor`-isolated `TemperatureViewModel`, and `readIOKitTemperature()` is called from a `@MainActor` method, no such crossing occurs. No `@unchecked Sendable` annotations should be needed.
 
 ---
 
-## Build Order
+## Build Order for v1.1
 
-Build in this sequence. Each layer depends on the one below it.
+Features are independent — no dependency between them. Recommended order based on risk and effort:
 
 ```
-1. ThermalReading (struct)
-   Foundation: everything else uses this type.
-   Build this first — it has zero dependencies.
+1. 10s polling (TemperatureViewModel.swift — one line)
+   → Lowest risk, proves the timer change does not break existing behavior.
+   → Update chart label in ContentView.swift.
+   → Can be verified in the simulator immediately.
 
-2. RingBuffer<T> (generic struct)
-   Zero dependencies; testable in isolation.
+2. App icon (Assets.xcassets only)
+   → Zero code risk. Visual verification only.
+   → Drop in 1024x1024 PNG, update Contents.json, build.
 
-3. ThermalBridge (C/ObjC shim)
-   The private API wrapper. Validate that IOKit calls return real
-   data on the target device before building anything on top.
-   This is the highest-risk component — surface failure early.
-
-4. ThermalSensorService
-   Wraps ThermalBridge in AsyncStream. Unit-testable by injecting
-   a mock bridge that returns canned values.
-
-5. NotificationGate
-   Stateful cooldown + UNUserNotificationCenter wrapper.
-   No UI dependencies; testable standalone.
-
-6. ThermalViewModel (@Observable)
-   Wires ThermalSensorService → RingBuffer + NotificationGate.
-   SwiftUI previews become possible here.
-
-7. DashboardView (numeric readout + state badge)
-   First visual milestone. Proves the full data pipeline.
-
-8. SessionChartView (Swift Charts history)
-   Reads from ring buffer. Build after dashboard proves data flows.
-
-9. SettingsView (threshold + unit toggle)
-   Writes back to ViewModel. Last because it has no new dependencies.
+3. IOKit numeric temperature (TemperatureViewModel.swift + ContentView.swift)
+   → Highest risk — requires physical device running TrollStore.
+   → Implement readIOKitTemperature() with full nil-path handling first.
+   → Test on standard sideload (will return nil — that is correct behavior).
+   → Install via TrollStore to validate the non-nil path.
+   → Add ContentView display only after ViewModel returns real data on device.
 ```
 
-**Rationale for this order:** Step 3 (ThermalBridge) is the only component that cannot be unit-tested without the physical device running the private API. Placing it at step 3 — before any UI work — ensures the app's core value (numeric temperature) is validated early. If IOKit returns no useful data on a given iOS version, the failure is discovered before investing time in UI polish.
+**Rationale:** IOKit is the only component that cannot be validated in the simulator or via standard sideload. Isolating it last means the other two changes are merged and working before introducing the device-specific dependency. If TrollStore access is unavailable, features 1 and 2 ship independently.
 
 ---
 
-## Critical Architecture Constraint: Private API Risk
+## Modified Component Summary
 
-**The IOKit "Temperature" key from `IOPMPowerSource` is the only known path to a numeric reading on non-jailbroken iOS.** Research found:
+| File | Feature | Change Type | Lines Affected |
+|------|---------|------------|---------------|
+| `TemperatureViewModel.swift` | 10s polling | 1-line edit | `startPolling()` timer interval |
+| `TemperatureViewModel.swift` | IOKit temp | Addition | New property + new private method (~25 lines) |
+| `ContentView.swift` | 10s polling | 1-line edit | Chart sub-label string |
+| `ContentView.swift` | IOKit temp | Addition | ~5–8 lines in badge area |
+| `Assets.xcassets/AppIcon.appiconset/` | App icon | Asset + JSON edit | PNG + Contents.json filename key |
+| `Termostato-Bridging-Header.h` | IOKit temp | No change | All needed declarations already present |
+| `TermostatoApp.swift` | All features | No change | — |
+| `NotificationDelegate.swift` | All features | No change | — |
 
-- The `IOPMCopyBatteryInfo` / `IORegistryEntryCreateCFProperties` + `"Temperature"` key approach is used in multiple open-source battery apps (BatteryStatusShow, ios-battery-stat, leminlimez gist).
-- It requires no special entitlements for sideloaded apps (entitlements only matter for App Store submission review).
-- The raw value is an integer that must be divided by 100 to get Celsius.
-- Apple curtailed the detail in the `IOPMPowerSource` dictionary starting around iOS 10. The `Temperature` key may not be present on all devices/iOS versions.
-- **Mitigation:** `ThermalBridge` must return a sentinel value (-1.0) and the UI must handle "temperature unavailable" gracefully. Fall back to displaying `ProcessInfo.thermalState` (4-level enum) which is always available.
-
-`ProcessInfo.thermalState` + `thermalStateDidChangeNotification` (public API, iOS 11+) is the reliable fallback and should be treated as the primary data source for state-based alerting even if numeric readings work.
-
----
-
-## Scalability Considerations
-
-This app intentionally has no scalability requirements — it is a personal sideloaded tool. The following table exists only to confirm the architecture does not accidentally create constraints.
-
-| Concern | At current scope | Notes |
-|---------|-----------------|-------|
-| Memory | ~72 KB for 2 hr history | Negligible; ring buffer caps growth |
-| CPU | ~0.1% per 2 s poll | IOKit call is fast; no network |
-| Battery | Moderate (polling + screen on) | App is only useful with screen on; accepted |
-| Multiple devices | N/A (personal tool) | Not a concern |
-| Persistence | None required | Intentional v1 scope decision |
+No new files required for any of the three features.
 
 ---
 
 ## Sources
 
-- [ProcessInfo.ThermalState — Apple Developer Documentation](https://developer.apple.com/documentation/foundation/processinfo/thermalstate-swift.enum) — HIGH confidence
-- [thermalStateDidChangeNotification — Apple Developer Documentation](https://developer.apple.com/documentation/foundation/processinfo/thermalstatedidchangenotification) — HIGH confidence
-- [UNUserNotificationCenter — Apple Developer Documentation](https://developer.apple.com/documentation/usernotifications/unusernotificationcenter) — HIGH confidence
-- [Migrating from ObservableObject to @Observable — Apple Developer Documentation](https://developer.apple.com/documentation/swiftui/migrating-from-the-observable-object-protocol-to-the-observable-macro) — HIGH confidence
-- [AsyncSequence for Real-Time APIs — Wesley Matlock, Medium](https://medium.com/@wesleymatlock/asyncsequence-for-real-time-apis-from-legacy-polling-to-swift-6-elegance-c2b8139c21e0) — MEDIUM confidence
-- [iOS Background Execution Limits — AppsonAir](https://www.appsonair.com/blogs/background-execution-limits-in-ios-what-every-developer-must-know) — MEDIUM confidence
-- [Get iOS Battery Info and Temperature gist — leminlimez](https://gist.github.com/leminlimez/ed3e3ee3a287c503c5b834acdc0dfcdc) — LOW confidence (community gist, unverified against current iOS)
-- [Battery/device temperature no longer available to apps — MacRumors Forums](https://forums.macrumors.com/threads/battery-device-temperature-no-longer-available-to-apps.2399209/) — LOW confidence (community discussion)
-- [iOS cpu/gpu/battery temperature — Apple Developer Forums](https://developer.apple.com/forums/thread/696700) — MEDIUM confidence
+- `Termostato-Bridging-Header.h` (existing) — IOKit C declarations already in project; confirmed via file read 2026-05-13
+- `TemperatureViewModel.swift` (existing) — full source read 2026-05-13; `Timer.publish(every: 30)` at line 111, `maxHistory = 120` at line 49
+- `ContentView.swift` (existing) — chart sub-label at line 113
+- `Assets.xcassets/AppIcon.appiconset/Contents.json` (existing) — single-entry modern format confirmed
+- [IORegistryEntryCreateCFProperties — Apple Developer Documentation](https://developer.apple.com/documentation/kernel/1514293-ioregistryentrycreateproperties) — Create Rule (caller owns result), HIGH confidence
+- [IOObjectRelease — Apple Developer Documentation](https://developer.apple.com/documentation/kernel/1514627-ioobjectrelease) — required after IOServiceGetMatchingService, HIGH confidence
+- [Get iOS Battery Info and Temperature gist — leminlimez](https://gist.github.com/leminlimez/ed3e3ee3a287c503c5b834acdc0dfcdc) — "Temperature" key, divide-by-100, `systemgroup.com.apple.powerlog` entitlement; MEDIUM confidence (community gist)
+- [Configuring your app icon — Apple Developer Documentation](https://developer.apple.com/documentation/xcode/configuring-your-app-icon) — single 1024x1024 source in Xcode 14+; HIGH confidence
+- Swift 6 Migration Guide (swift.org) — C function actor isolation rules; HIGH confidence

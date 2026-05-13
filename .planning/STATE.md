@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: visual-improvements
 status: in_progress
-stopped_at: "v1.1 milestone started — defining requirements and roadmap"
+stopped_at: "v1.1 roadmap created — Phases 4-5 defined, ready to plan"
 last_updated: "2026-05-13T00:00:00.000Z"
 last_activity: 2026-05-13
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-13)
 
 **Core value:** The phone's thermal state, always visible at a glance — with an alert before it gets dangerously hot.
-**Current focus:** v1.1 Visual Improvements — app icon, numeric °C via TrollStore, 10s polling
+**Current focus:** v1.1 Visual Improvements — custom app icon + 10s polling interval
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 4 — Polling (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-13 — Milestone v1.1 started
+Status: Roadmap defined, ready to plan Phase 4
+Last activity: 2026-05-13 — v1.1 roadmap created (2 phases)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -59,17 +59,18 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- v1.1 explores TrollStore path for numeric °C temperature (IOKit `IOPMPowerSource`) — requires device on iOS 15.5–17.0; standard sideload path remains blocked by AMFI
-- **TrollStore iOS ceiling is 17.0** — iOS 17.0.1+ is permanently unsupported (CoreTrust CVE-2023-41991 patched). If target device is on iOS 18, TrollStore path is blocked.
-- Polling interval target: 10s (down from 30s) — one-line change in TemperatureViewModel.swift; `maxHistory` must also be updated (120 → 360) to preserve 60 min history
+- TrollStore numeric °C path permanently blocked — target device is iOS 18, TrollStore ceiling is iOS 17.0. Removed from v1.1 scope.
+- v1.1 scope is two small changes: ICON-01 (asset catalog PNG drop-in) and POLL-01 (two constant changes in TemperatureViewModel.swift + one label update in ContentView.swift)
+- Two phases chosen: Phase 4 (Polling — code-only, Simulator-verifiable) and Phase 5 (Visual Polish — icon asset, requires PNG to be prepared first)
 
 ### Pending Todos
 
-- Confirm target device iOS version before starting IOKit/TrollStore phase.
+- Plan Phase 4 (Polling) via `/gsd-plan-phase 4`
+- Prepare 1024×1024 PNG icon asset before executing Phase 5
 
 ### Blockers/Concerns
 
-- TrollStore numeric temp feasibility depends on device iOS version — must be iOS 14–17.0. Project context states "iOS 18+" — this needs clarification.
+None.
 
 ### Quick Tasks Completed
 
@@ -80,5 +81,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-05-13
-Stopped at: Started v1.1 milestone — research complete, defining requirements
+Stopped at: v1.1 roadmap created — Phase 4 defined
 Resume file: None

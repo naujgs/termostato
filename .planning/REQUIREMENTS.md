@@ -27,5 +27,5 @@
 
 | REQ-ID | Description | Phase | Plan |
 |--------|-------------|-------|------|
-| ICON-01 | Custom app icon | TBD | TBD |
-| POLL-01 | 10s polling, 60 min history | TBD | TBD |
+| POLL-01 | 10s polling, 60 min history | Phase 4 | TBD |
+| ICON-01 | Custom app icon | Phase 5 | TBD |

@@ -36,7 +36,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Plans**: 1 plan
 
 Plans:
-- [ ] 04-01-PLAN.md — Update polling interval (30s→10s) and ring-buffer capacity (120→360) in TemperatureViewModel.swift
+- [x] 04-01-PLAN.md — Update polling interval (30s→10s) and ring-buffer capacity (120→360) in TemperatureViewModel.swift
 
 ### Phase 5: Visual Polish
 **Goal**: App displays a custom icon on the home screen — the Xcode placeholder is replaced

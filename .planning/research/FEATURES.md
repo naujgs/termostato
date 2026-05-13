@@ -1,7 +1,7 @@
 # Feature Landscape
 
 **Domain:** iOS device internal temperature / thermal monitoring app (sideloaded, personal use)
-**Researched:** 2026-05-11
+**Researched:** 2026-05-11 (v1.0); updated 2026-05-13 (v1.1)
 **Confidence:** MEDIUM — App Store competitors surveyed; UX conventions from Swift Charts + HIG docs; some private-API specifics remain LOW confidence until implementation
 
 ---
@@ -135,10 +135,177 @@ Based on Swift Charts documentation and competitor app patterns:
 
 ---
 
+## v1.1 Feature Research: App Icon, Numeric Temperature, 10s Polling
+
+Research date: 2026-05-13. Covers the three features targeted in the v1.1 milestone.
+
+---
+
+### Feature 1: App Icon
+
+**Category:** Table stakes. Any production-feeling app must have a custom icon. The Xcode placeholder (white/gray default) signals "dev build" — even for a personal tool it degrades the experience.
+
+**How it works on iOS 18 sideloaded apps:**
+
+iOS applies the same icon pipeline to sideloaded and App Store apps. The home screen, Spotlight, and Settings all pull from the same `AppIcon` asset catalog entry. No special treatment for sideloaded installs.
+
+**Required sizes — Xcode 14+ (includes Xcode 26.4.1):**
+
+Since Xcode 14, the asset catalog supports a "Single Size" mode. You provide one 1024×1024 PNG and Xcode generates all sizes at build time. This is the correct approach for new projects and is what modern Xcode projects default to.
+
+| Mode | What you provide | What Xcode generates |
+|------|-----------------|---------------------|
+| Single Size (Xcode 14+) | One 1024×1024 PNG | All required sizes automatically |
+| Legacy multi-size | Individual PNGs for each slot | Nothing — you must provide each |
+
+The generated sizes that iOS 18 uses at runtime:
+- 180×180 px — Home screen @3x (Super Retina)
+- 120×120 px — Home screen @2x (older Retina)
+- 87×87 px — Settings @3x
+- 58×58 px — Settings @2x
+- 80×80 px — Spotlight @2x
+- 60×60 px — Notifications @3x
+- 40×40 px — Notifications @2x
+
+**Technical requirements:**
+- PNG format, no alpha channel (fully opaque)
+- No pre-applied rounded corners — iOS applies the squircle mask automatically
+- sRGB color space recommended
+
+**When no icon is set:** iOS displays a generic white square (or grey default icon). The app still installs and runs. Occasionally the icon fails to render after a fresh sideload and requires a device restart to appear — this is a known Xcode/iOS caching quirk, not a missing-icon bug.
+
+**Complexity:** Low. Drop one 1024×1024 PNG into the AppIcon asset catalog slot. No code changes needed.
+
+**Dependencies on existing architecture:** None. Pure asset change.
+
+**Confidence:** HIGH — Verified via official Apple documentation and Xcode 14 release notes from SwiftLee (avanderlee.com).
+
+---
+
+### Feature 2: Numeric Temperature via IOKit IOPMPowerSource (TrollStore Path)
+
+**Category:** Table stakes for this app's core value (the project's stated reason for v1.1). Without it the app shows only 4-level categorical state.
+
+**How IOKit temperature access works:**
+
+The relevant key is `"Temperature"` inside the `IOPMPowerSource` dictionary. The value is an integer in centidegrees Celsius (hundredths of a degree). Divide by 100 to get °C.
+
+```swift
+// The key and unit (verified from leminlimez gist and iOS-Battery-Info-Demo)
+let rawValue = batteryInfo["Temperature"] as? NSNumber  // e.g. 3150
+let celsius = (rawValue?.doubleValue ?? 0) / 100.0      // → 31.50 °C
+```
+
+**Entitlement required:** `systemgroup.com.apple.powerlog`
+
+Under a standard free Apple ID sideload, AMFI blocks this entitlement. The app compiles and installs but the IOKit call returns no temperature data (confirmed in Phase 1 research). TrollStore bypasses AMFI by exploiting the CoreTrust bug, allowing arbitrary entitlements — including `systemgroup.com.apple.powerlog` — to be preserved on install.
+
+**TrollStore compatibility — critical constraint:**
+
+TrollStore exploits a CoreTrust/AMFI vulnerability patched in iOS 17.0.1. Support matrix:
+
+| iOS Version | TrollStore supported? |
+|-------------|----------------------|
+| 14.0 beta 2 – 16.6.1 | Yes |
+| 16.7 RC (20H18) | Yes |
+| 17.0 | Yes (via TrollRestore tool) |
+| 17.0.1 and later | No — patch applied by Apple |
+| iOS 18.x | No |
+| iOS 26.x | No |
+
+**This is the single most important constraint for v1.1.** The target device must be on iOS 17.0 or earlier. The project's target device runs iOS 18+ (per PROJECT.md "Target device: iPhone (any model running iOS 18+)"). This means the TrollStore IOKit path is blocked on the current target device. The numeric temperature feature cannot be delivered via TrollStore on iOS 18.
+
+**What "Temperature" key actually returns:**
+
+The `IOPMPowerSource` `"Temperature"` key reflects battery temperature, not CPU die temperature. On iPhones the battery thermal sensor is located near the battery — it correlates with but is not identical to SoC temperature. This is still more useful than the 4-level `thermalState` enum. At idle the value is typically in the 28–35 °C range; under heavy load it reaches 38–45 °C before the thermal state transitions to Serious.
+
+**Confidence:** HIGH for the key name and unit (verified from leminlimez gist). HIGH for TrollStore iOS version cap (verified from official TrollStore GitHub and iDevice Central). HIGH for iOS 18 incompatibility.
+
+**UI pattern for displaying numeric temperature alongside the thermal badge:**
+
+The established pattern in thermal monitoring apps is to show the numeric °C reading as secondary text inside or directly below the badge, not as a replacement for the state label. Two sub-patterns:
+
+1. **Badge + subtitle** (recommended): Keep the large bold state label ("Serious") as the primary read. Place the numeric value as a smaller caption below it ("38.2 °C"). Preserves the at-a-glance color cue while adding the numeric precision.
+
+2. **Badge replaced by number** (not recommended): Show only "38.2 °C" in the badge. Loses the state name. Forces the user to remember thresholds to interpret the number.
+
+For this app's existing `RoundedRectangle` badge with `.overlay { Text(thermalStateLabel) }`, the natural extension is to add a `VStack` inside the overlay with two `Text` views: the state label at `.largeTitle` weight and the °C value at `.title3` or `.body` below it. The temperature text can be conditionally rendered — showing only when numeric data is available, so the badge degrades gracefully when IOKit returns nothing.
+
+**Complexity:** Medium. Requires:
+- Bridging header to import IOKit C headers
+- `getBatteryInfo()` function calling `IOServiceGetMatchingService` / `IORegistryEntryCreateCFProperties`
+- Entitlement added to the `.entitlements` file
+- `TemperatureViewModel` extended with `numericTemperature: Double?` published property
+- `ContentView` updated to render the secondary label inside the badge overlay
+- TrollStore install flow replacing the Xcode sideload (device must be on a compatible iOS version)
+
+**Blocker:** iOS 18 device is incompatible with TrollStore. This feature cannot ship to the current target device. Either accept this as a known limitation (the feature works when tested on an older device) or remove it from v1.1 scope.
+
+---
+
+### Feature 3: Polling Interval — 30s → 10s
+
+**Category:** Differentiator (UX responsiveness improvement), not table stakes. The app already works at 30s; 10s makes state transitions feel snappier.
+
+**How ProcessInfo.thermalState polling works:**
+
+`ProcessInfo.processInfo.thermalState` is a synchronous property read — no I/O, no syscall overhead comparable to network or disk. The Timer.publish call wakes the main thread, reads the property, updates the array, and returns. The entire operation is microseconds of CPU time.
+
+**Trade-offs: 10s vs 30s:**
+
+| Dimension | 10s interval | 30s interval |
+|-----------|-------------|-------------|
+| UI responsiveness | State shown within 10s of change | State shown within 30s of change |
+| Battery impact | Negligible — timer wake overhead is immeasurable at this frequency | Also negligible |
+| CPU overhead | Immeasurable for a single property read | Immeasurable |
+| Notification latency | 10s worst-case additional lag before polling path fires | 30s worst-case additional lag |
+| History resolution | 3× more data points per minute | Baseline |
+| Ring buffer fill rate | 120-entry buffer covers 20 minutes at 10s | Covers 60 minutes at 30s |
+
+**The notification path already catches state transitions in real time.** `thermalStateDidChangeNotification` fires immediately when iOS changes the thermal state — regardless of polling interval. The polling timer is a belt-and-suspenders fallback for the foreground UI update, not the primary alert mechanism.
+
+**Apple's guidance on timer energy:** Apple recommends against frequent polling in favor of event-driven approaches, and advises setting a tolerance of ~10% on repeating timers to allow system batching. For a 10s timer, set `tolerance` to 1.0 seconds. This allows the OS to batch the wakeup with other system activity, reducing energy impact further.
+
+**Ring buffer consequence:** At 10s polling, the existing 120-entry ring buffer covers 20 minutes of history (down from 60 minutes at 30s). If "session history" should still cover ~60 minutes, the buffer size should be increased to 360 entries. At one `ThermalReading` struct per entry (a UUID, Date, and enum value — roughly 80–100 bytes), 360 entries is ~36 KB — still trivially in memory.
+
+**Code change is a one-liner in TemperatureViewModel.swift:**
+
+```swift
+// Change in startPolling():
+Timer.publish(every: 10, on: .main, in: .common)   // was: every: 30
+```
+
+Plus optionally updating the comment on line 114 in `ContentView.swift` ("Session history (last 60 min)") to reflect the new coverage.
+
+**Complexity:** Low. One integer constant change. Optionally also resize the ring buffer.
+
+**Dependencies on existing architecture:** `Timer.publish(every:on:in:)` in `startPolling()`. The `.autoconnect().sink` pattern is unchanged.
+
+**Confidence:** HIGH for the change itself. HIGH that battery impact is negligible (Apple Energy Guide + community sources agree timer wakeup overhead at 10s frequency is unmeasurable). MEDIUM for the ring buffer recommendation (derived from arithmetic, not a verified constraint).
+
+---
+
+## v1.1 Feature Summary Table
+
+| Feature | Category | Complexity | Blocker? | Key Dependency |
+|---------|----------|------------|----------|----------------|
+| Custom app icon | Table stakes (visual) | Low | None | AppIcon asset catalog slot |
+| Numeric °C via TrollStore | Table stakes (core value) | Medium | iOS 18 incompatible with TrollStore | Device must be iOS ≤ 17.0 |
+| 10s polling interval | Differentiator (responsiveness) | Low | None | `startPolling()` in TemperatureViewModel |
+
+---
+
 ## Sources
 
 - App Store: [Thermals](https://apps.apple.com/us/app/thermals/id1567050762), [Status Monitor](https://apps.apple.com/us/app/status-monitor/id6743127438), [System Status & Device Monitor](https://apps.apple.com/us/app/system-status-device-monitor/id6760554255)
 - Apple Developer: [ProcessInfo.ThermalState](https://developer.apple.com/documentation/foundation/processinfo/thermalstate-swift.enum), [thermalState property](https://developer.apple.com/documentation/foundation/processinfo/thermalstate-swift.property)
 - Apple Developer: [Swift Charts](https://developer.apple.com/documentation/Charts), [Managing Notifications HIG](https://developer.apple.com/design/human-interface-guidelines/managing-notifications)
 - Apple Developer: [BGTaskScheduler](https://developer.apple.com/documentation/backgroundtasks/bgtaskscheduler)
+- Apple Developer: [Configuring your app icon using an asset catalog](https://developer.apple.com/documentation/xcode/configuring-your-app-icon)
+- Apple Developer: [Energy Efficiency Guide — Minimize Timer Use](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/MinimizeTimerUse.html)
 - Community: [Apple Developer Forums — iOS CPU/GPU/battery temperature](https://developer.apple.com/forums/thread/696700)
+- Community: [leminlimez gist — IOPMPowerSource Temperature key, systemgroup.com.apple.powerlog entitlement](https://gist.github.com/leminlimez/ed3e3ee3a287c503c5b834acdc0dfcdc)
+- Community: [SwiftLee — App Icon Generator no longer needed with Xcode 14](https://www.avanderlee.com/xcode/replacing-app-icon-generators/)
+- Community: [iDevice Central — TrollStore on iOS 17.0.1–26.2](https://idevicecentral.com/tweaks/can-you-install-trollstore-on-ios-17-0-1-ios-18-3/)
+- Community: [TrollStore GitHub (opa334)](https://github.com/opa334/TrollStore)
+- Community: [iOS Guide — Installing TrollStore](https://ios.cfw.guide/installing-trollstore/)

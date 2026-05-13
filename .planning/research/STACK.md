@@ -1,205 +1,237 @@
 # Technology Stack
 
 **Project:** Termostato
-**Researched:** 2026-05-11
+**Researched:** 2026-05-13 (v1.1 update — app icon, TrollStore IOKit, polling interval)
 **Mode:** Ecosystem
 
 ---
 
-## Recommended Stack
+## Established Stack (v1.0 — Do Not Change)
 
-### Toolchain
+| Technology | Version | Purpose | Status |
+|------------|---------|---------|--------|
+| Xcode | 26.4.1 (stable) | IDE, compiler, device install | Confirmed — do not upgrade to 26.5 beta |
+| Swift | 6.3 (ships with Xcode 26.4.1) | Language | Confirmed — strict concurrency on, `@MainActor` on ViewModel |
+| iOS SDK target | iOS 18.x (min deployment) | Runtime | Confirmed |
+| SwiftUI | bundled | UI framework | Confirmed |
+| Swift Charts | bundled (iOS 16+) | Session-length history chart | Confirmed |
+| Foundation | bundled | `ProcessInfo.thermalState`, timers | Confirmed |
+| UserNotifications | bundled | Local threshold alerts | Confirmed |
+| IOKit | bundled (via bridging header) | Private API access point | Header exists; call blocked under free Apple ID |
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Xcode | 26.4.1 (stable) | IDE, compiler, device install | Latest stable as of May 2026; Apple renamed from 16.x to 26.x at WWDC25. 26.4.1 released 2026-04-16. Do NOT use 26.5 — still in beta as of this writing. |
-| Swift | 6.3 (ships with Xcode 26.4.1) | Language | Required for Xcode 26.x. Swift 6 strict concurrency is default-on; use `@MainActor` on the ViewModel and let the compiler enforce it. |
-| iOS SDK target | iOS 18.x (min deployment) | Runtime | Broad device support; Swift Charts line charts, Observable macro, and all required APIs are available. Do not target iOS 26 — reduces eligible device pool significantly for a personal tool. |
-| SwiftUI | — (bundled) | UI framework | Use SwiftUI, not UIKit. This is a single-screen dashboard with a chart and two data labels — SwiftUI's declarative model is a better fit than UIKit's imperative callbacks. UIKit adds zero value here. |
-
-**Note on Xcode versioning:** Apple's versioning scheme changed at WWDC 2025 — Xcode 17 was skipped and the product jumped to Xcode 26 to align with the OS version numbers. "Xcode 26" is the current generation, not a future release.
-
----
-
-### Core Frameworks (Zero External Dependencies)
-
-| Framework | Source | Purpose | Notes |
-|-----------|--------|---------|-------|
-| SwiftUI | Apple, built-in | Dashboard UI, bindings, navigation | |
-| Swift Charts | Apple, built-in (iOS 16+) | Session-length history line chart | See charting section below |
-| Foundation | Apple, built-in | `ProcessInfo.thermalState`, timers, notifications | |
-| UserNotifications | Apple, built-in | Local threshold alerts | |
-| IOKit (private use) | Apple, built-in | Numeric temperature via `IOPMPowerSource` | Requires entitlement — see private API section |
-
-This app needs no Swift Package Manager dependencies. Every required API is in the system SDK.
+No external dependencies. No SPM, no CocoaPods, no Carthage.
 
 ---
 
-### Architecture Pattern
+## v1.1 Stack Changes
 
-| Pattern | Details |
-|---------|---------|
-| MVVM | Single `TemperatureViewModel` (`@Observable`, `@MainActor`). View files are dumb — they read from the ViewModel only. |
-| Combine / Timer | `Timer.publish(every:on:in:).autoconnect()` drives the polling loop. Use `onReceive` in SwiftUI. |
-| No persistence layer | Session data lives in a plain Swift array in the ViewModel. No CoreData, no SQLite, no UserDefaults. This is an explicit scope decision. |
+### 1. App Icon
 
----
+**What to do:** Add a single 1024x1024 PNG to the existing `AppIcon.appiconset` slot. No new tooling required — Xcode 26 already uses single-size mode.
 
-## Private API: Numeric Temperature
-
-This is the most research-intensive section because it directly affects feasibility.
-
-### What Works — and Why It Is Constrained
-
-**The mechanism:** `IOPMPowerSource` in IOKit exposes a `Temperature` key in its property dictionary. The raw value is an integer in units of 0.01 °C (e.g., 2800 = 28.00 °C). This is the battery/SoC thermal sensor — the same value used by tools like Battman and the doubleblak.com temperature page.
-
-**The entitlement problem:** Accessing `IOPMPowerSource` on iOS requires the private entitlement `systemgroup.com.apple.powerlog`. This entitlement is NOT in Apple's public entitlement catalog and cannot be granted by a standard development provisioning profile (free or paid $99/yr). Apple's AMFI (AppleMobileFileIntegrity) enforces this at runtime — the entitlement must be present in the provisioning profile, not just the binary.
-
-**Consequence for standard Xcode sideloading:** A standard Xcode sideload with a free Apple ID (or even a paid $99 Developer Program account) will NOT be able to attach this entitlement. The IOKit call will return no result or a sandboxed empty dictionary.
-
-### Tier Summary
-
-| Access Method | Gets Numeric Temp? | Feasible for This Project? |
-|--------------|-------------------|---------------------------|
-| `ProcessInfo.thermalState` | No — 4-level categorical only | Yes — always works |
-| IOKit `IOPMPowerSource` via standard Xcode sideload | No — blocked by AMFI/sandbox | No |
-| IOKit `IOPMPowerSource` via TrollStore | Yes | Maybe — iOS 15.5–17.0 only, requires device-side install tool |
-| Filesystem read of `knowledgeC.db` (`/private/var/mobile/Library/CoreDuet/Knowledge/`) | Yes — `batterytemperature` stream, value / 100 = °C | No — sandboxed path, requires jailbreak or TrollStore |
-| Jailbreak | Yes — full sensor access | Out of scope (stated in PROJECT.md) |
-
-### Decision
-
-**Use `ProcessInfo.thermalState` as the primary data source.** It is public, sandbox-safe, and always works with standard Xcode sideloading. It provides four levels: `.nominal`, `.fair`, `.serious`, `.critical`.
-
-**Attempt `IOPMPowerSource` as a best-effort secondary path.** Include the IOKit call in the codebase. If the entitlement is absent (standard sideload), the call returns empty data and the app gracefully degrades to showing "–°C". This design is honest: the v1 milestone should document that numeric temperature display requires TrollStore or an entitlement-granting mechanism.
-
-**Do not use TrollStore as a hard dependency for v1.** TrollStore support is capped at iOS 17.0 and requires a separate install flow. It should be a documented "optional enhancement path" after v1 ships.
-
-### Implementation Sketch
-
-```swift
-// Bridging header or inline C interop
-import IOKit
-
-func readBatteryTemperature() -> Double? {
-    let service = IOServiceGetMatchingService(
-        kIOMainPortDefault,
-        IOServiceMatching("IOPMPowerSource")
-    )
-    guard service != IO_OBJECT_NULL else { return nil }
-    defer { IOObjectRelease(service) }
-
-    var props: Unmanaged<CFMutableDictionary>?
-    let result = IORegistryEntryCreateCFProperties(service, &props, kCFAllocatorDefault, 0)
-    guard result == KERN_SUCCESS, let dict = props?.takeRetainedValue() as? [String: Any] else { return nil }
-
-    guard let rawTemp = dict["Temperature"] as? Int else { return nil }
-    return Double(rawTemp) / 100.0  // Returns °C
+**Current state of `AppIcon.appiconset/Contents.json`:**
+```json
+{
+  "images": [
+    {
+      "idiom": "universal",
+      "platform": "ios",
+      "size": "1024x1024"
+    }
+  ],
+  "info": { "author": "xcode", "version": 1 }
 }
 ```
 
-This code compiles and runs on any iOS target. It returns `nil` silently when sandboxed. No crash, no error, no user-visible issue.
+The slot is already configured for single-size (universal, ios, 1024x1024). It is missing a `"filename"` key because no image has been placed yet. Adding an image via Xcode's asset catalog editor writes the filename automatically.
+
+**Image requirements (HIGH confidence — Apple developer documentation + multiple sources):**
+- **Dimensions:** 1024x1024 pixels exactly
+- **Format:** PNG
+- **Alpha channel:** Must be absent (opaque). Transparent pixels appear black; Xcode warns on build
+- **Rounded corners:** Do not add — iOS applies superellipse mask automatically. Adding your own creates double-masking artifacts
+- **Color space:** sRGB recommended
+
+**Tooling options for generating the PNG (no installation required):**
+- Sketch, Figma, Affinity Designer, or any image editor that can export 1024x1024 PNG without alpha
+- macOS Preview: File > Export, format PNG, uncheck alpha if shown
+- SF Symbols-derived icon: use Xcode's SF Symbol renderer at 1024x1024 via a small SwiftUI view snapshot (requires a script or manual Simulator screenshot)
+
+**No third-party icon generator tools are needed.** Xcode 14+ single-size mode eliminates the need for tools like MakeAppIcon, IconGenerator, or Asset Catalog Creator. The `AppIcon.appiconset` in this project is already correctly configured — adding the PNG file is the only step.
+
+**How to add in Xcode:**
+1. Drag the 1024x1024 PNG onto the single slot in Assets.xcassets > AppIcon
+2. Xcode writes the filename into Contents.json and shows a preview
+3. Build — the icon appears on device after install
+
+**Confidence:** HIGH — single-size AppIcon has been the Xcode default for new iOS projects since Xcode 14 (released 2022). The project's existing Contents.json already matches the correct format.
 
 ---
 
-## Charting
+### 2. IOKit IOPMPowerSource Temperature via TrollStore
 
-**Use Apple's Swift Charts framework (built-in since iOS 16).** No third-party library needed.
+#### TrollStore Version Support
 
-### Why Swift Charts
+**Supported iOS range:** iOS 14.0 beta 2 through iOS 17.0 (inclusive)
+**Maximum iOS version:** 17.0
+**iOS 17.0.1 and all iOS 18.x: NOT supported and will never be supported** — Apple patched the CoreTrust vulnerability (CVE-2023-41991) in iOS 17.0.1, and this fix persists through iOS 18.x and iOS 26.x.
 
-- Zero additional dependency, no SPM integration, no version pinning.
-- `LineMark` with a rolling 60-second or session-length `[TemperatureReading]` array is ~20 lines of SwiftUI.
-- Smooth animated updates when the `@Observable` ViewModel's array changes.
-- Sufficient for a time-series temperature line chart.
+**Critical implication for this project:** The target device must be on iOS 14.0b2–16.6.1, 16.7 RC (20H18), or exactly iOS 17.0. The project currently targets iOS 18.x as its minimum deployment target. This means the TrollStore path is a **device-specific feature** that only works on a device meeting the above version constraint. The app must gracefully degrade on iOS 17.0.1+ (which includes the production v1.0 device running iOS 18.x).
 
-### What NOT to Use
+**Confidence:** HIGH — verified via TrollStore GitHub README and multiple corroborating sources.
 
-- **DGCharts (formerly Charts/MPAndroidChart):** Active library but adds a dependency for a use case Swift Charts handles natively.
-- **SciChart:** Commercial, heavyweight, designed for financial/scientific data at scale. Total overkill.
-- **SwiftCharts (ivnsch):** Unmaintained; last commit 2019.
+#### Entitlement
+
+**Required entitlement:** `systemgroup.com.apple.powerlog`
+**Type:** Boolean, value `true`
+**Verified by:** leminlimez GitHub Gist (primary source), corroborated by STACK.md v1.0 research
+
+This entitlement is a private Apple entitlement not in Apple's public entitlement catalog. TrollStore preserves it during its fake-root-certificate resign process — this is the core of what TrollStore enables.
+
+#### IOKit Key and Value
+
+**Service name:** `IOPMPowerSource`
+**Dictionary key:** `"Temperature"`
+**Raw value units:** Integer in hundredths of degrees Celsius (e.g., `2850` = 28.50°C)
+**Conversion:** `Double(rawValue) / 100.0`
+
+**Verified by:** leminlimez GitHub Gist (direct inspection of working code), apple/darwin-xnu IOPMPowerSource.h source.
+
+#### Bridging Header Status
+
+The project's `Termostato-Bridging-Header.h` already declares all required IOKit C functions:
+- `IOServiceGetMatchingService`
+- `IOServiceMatching`
+- `IORegistryEntryCreateCFProperties`
+- `IOObjectRelease`
+
+No changes to the bridging header are needed for v1.1.
+
+#### Xcode Project Configuration for TrollStore
+
+TrollStore requires the entitlement to be embedded in the binary before installation. Standard Xcode code signing strips non-provisioned entitlements at build time, so a two-part approach is needed:
+
+**Option A — ldid post-build script (recommended, no external tool on device needed):**
+
+1. Create `Termostato.entitlements` file in the project with:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>systemgroup.com.apple.powerlog</key>
+    <true/>
+    <key>application-identifier</key>
+    <string>$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>get-task-allow</key>
+    <true/>
+</dict>
+</plist>
+```
+
+2. Set build setting `CODE_SIGN_ENTITLEMENTS` to point to this file
+
+3. Add a Run Script build phase:
+```bash
+PATH="/opt/homebrew/bin:$PATH"
+if [ "$CODE_SIGNING_ALLOWED" = "NO" ]; then
+    ldid -S${CODE_SIGN_ENTITLEMENTS} "${CODESIGNING_FOLDER_PATH}"
+fi
+```
+
+4. Set build setting `CODE_SIGNING_ALLOWED = NO` for the TrollStore build configuration
+
+5. Export as IPA (Product > Archive > Distribute App) and install via TrollStore
+
+**ldid install (one-time, on dev Mac):** `brew install ldid`
+
+**Option B — retain standard Xcode signing, export IPA, inject entitlement manually:**
+Build normally (keep standard signing for Xcode USB installs), then for TrollStore distribution: export IPA, run `ldid -Sentitlements.plist Payload/Termostato.app/Termostato`, repackage as zip. More steps, less automatable.
+
+**Recommendation:** Option A. Keep two build configurations in Xcode: `Debug` (standard Xcode signing, USB install via `⌘R`) and `TrollStore` (`CODE_SIGNING_ALLOWED=NO`, ldid script, export IPA). This preserves the normal Xcode development workflow.
+
+**ldid version:** Use `ldid-procursus` via Homebrew — `brew install ldid`. Current stable as of May 2026 is sufficient; no specific version pinning needed.
+
+**Confidence:** MEDIUM — ldid + TrollStore entitlement workflow is well-documented in community sources (XcodeAnyTroll project, TrollStore README). The exact entitlement string `systemgroup.com.apple.powerlog` is HIGH confidence (verified via leminlimez gist). The Xcode build configuration workflow is MEDIUM because it is documented primarily via community tooling (XcodeAnyTroll) rather than Apple official docs.
+
+#### Swift Implementation
+
+The bridging header already exposes the necessary functions. Implementation in `TemperatureViewModel`:
+
+```swift
+func readBatteryTemperature() -> Double? {
+    let service = IOServiceGetMatchingService(
+        0,  // kIOMainPortDefault
+        IOServiceMatching("IOPMPowerSource")
+    )
+    guard service != 0 else { return nil }
+    defer { IOObjectRelease(service) }
+
+    var propsRef: Unmanaged<CFMutableDictionary>?
+    let result = IORegistryEntryCreateCFProperties(service, &propsRef, kCFAllocatorDefault, 0)
+    guard result == KERN_SUCCESS,
+          let dict = propsRef?.takeRetainedValue() as? [String: Any],
+          let rawTemp = dict["Temperature"] as? Int
+    else { return nil }
+
+    return Double(rawTemp) / 100.0
+}
+```
+
+Returns `nil` when entitlement is absent (standard sideload, iOS 18.x). No crash, no error thrown. UI shows "–°C" on `nil`. This is the same design from the v1.0 STACK.md and has been validated as safe.
+
+**Note on kIOMainPortDefault:** On iOS SDK, use `0` (the integer value of `kIOMainPortDefault`) rather than the symbol directly — the symbol is defined in IOKit headers that may not be fully accessible from the iOS SDK bridging header. This matches the v1.0 bridging header approach where `io_object_t` is `mach_port_t`.
 
 ---
 
-## Alerts / Notifications
+### 3. Polling Interval Change (30s → 10s)
 
-### Approach: Local Notifications via UserNotifications
+**Change required:** One line in `TemperatureViewModel.swift`, line 112:
+```swift
+// Before
+Timer.publish(every: 30, on: .main, in: .common)
 
-Termostato's alert strategy must work within iOS's strict background execution restrictions.
+// After
+Timer.publish(every: 10, on: .main, in: .common)
+```
 
-**The correct model for this app:**
+**Stack impact:** None. `Timer.publish` with a 10s interval uses the same Combine pipeline already in place. No new frameworks, no new APIs.
 
-1. The app is primarily a **foreground monitoring app**. The user opens it to watch temperature.
-2. When the app is in the foreground, use a `Timer`-driven polling loop to check the threshold in-process. When temperature exceeds the threshold, fire a `UNUserNotificationCenter` local notification immediately with `UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)`.
-3. When the app is backgrounded, the timer stops. Background execution cannot be relied upon for continuous monitoring with a standard sideloaded free-cert app.
+**Battery / performance consideration:** At 10s polling, `ProcessInfo.thermalState` is called 6x per minute vs 2x. `ProcessInfo.thermalState` is a lightweight system property read — not a sensor query — so the CPU overhead is negligible. The thermal state itself changes infrequently; most polls return the same value. No concern at 10s intervals.
 
-**Do NOT attempt:**
-- `BGAppRefreshTask` — system-scheduled, runs at Apple's discretion (may be minutes or hours later). Not suitable for thermal alerting.
-- `BGProcessingTask` — same problem, designed for long batch work, not sensor polling.
-- `BGContinuedProcessingTask` (iOS 26+) — requires iOS 26, requires user-initiated task start, designed for exports and uploads, not indefinite polling.
-- Remote push notifications — requires APNs server infrastructure. Out of scope for a personal sideloaded app.
+**Ring buffer capacity:** The existing `maxHistory = 120` entries now represents 20 minutes of history (120 × 10s) instead of 60 minutes (120 × 30s). This is an acceptable tradeoff for more responsive state updates. The constant can be adjusted separately if longer history is desired.
 
-**Entitlement needed:** `UNUserNotificationCenter` requires the app to request permission at runtime with `requestAuthorization(options:)`. No special entitlement is needed beyond the standard `UIBackgroundModes` key if audio or location is not used. Local notifications are fully available to sideloaded apps with a free Apple ID.
-
----
-
-## Code Signing / Sideloading
-
-### Free Apple ID Path (v1)
-
-| Parameter | Value |
-|-----------|-------|
-| Signing method | Xcode automatic signing, "Personal Team" |
-| Certificate type | iOS Development certificate (auto-created by Xcode) |
-| Provisioning profile | Xcode-managed free profile |
-| Certificate validity | 7 days from first install |
-| App validity on device | 7 days — must reinstall via Xcode each week |
-| Device limit | 3 unique UDIDs per 7-day rolling window |
-| Entitlements available | Standard sandbox entitlements only (no private `com.apple.*` entitlements) |
-| App ID | Must use a unique bundle ID, e.g., `com.yourname.termostato` |
-
-### How to Install
-
-1. Plug iPhone into Mac via USB.
-2. Open Xcode → Signing & Capabilities → select "Personal Team" from the team dropdown.
-3. Set a unique Bundle Identifier.
-4. Product → Run (or ⌘R with the iPhone as destination).
-5. On first install: Settings → General → VPN & Device Management → trust the developer certificate.
-6. Repeat step 4 every 7 days.
-
-### Entitlement Constraints
-
-The free developer profile grants only entitlements that Xcode can automatically provision. This explicitly excludes `systemgroup.com.apple.powerlog` and any other `com.apple.private.*` entitlements. A paid $99/yr Developer Program membership does not unlock private entitlements either — those require TrollStore or jailbreak.
+**Confidence:** HIGH — Timer.publish is a documented Combine API with no polling-rate restrictions. The performance assessment is based on the lightweight nature of ProcessInfo.thermalState (a cached kernel property, not a live sensor poll).
 
 ---
 
-## Alternatives Considered
-
-| Category | Recommended | Alternative | Why Not |
-|----------|-------------|-------------|---------|
-| UI framework | SwiftUI | UIKit | UIKit adds boilerplate with zero benefit for a single-screen dashboard |
-| Charting | Swift Charts (built-in) | DGCharts, SciChart | External dependency for functionality already in SDK |
-| Background alerts | In-process timer + local notification | BGAppRefreshTask | System-scheduled, unreliable for thermal threshold alerts |
-| Numeric temp | IOKit best-effort + ProcessInfo fallback | TrollStore-exclusive IOKit | Locks out standard sideload entirely |
-| Language | Swift 6.3 | Objective-C | No reason to use ObjC for a new greenfield app; Swift has full IOKit interop via bridging header |
-| Xcode version | 26.4.1 (latest stable) | 26.5 beta | Avoid beta toolchain for primary dev work |
-
----
-
-## Installation
-
-No external dependencies. The full dependency surface is:
+## Updated Dependency Surface
 
 ```
 Xcode 26.4.1 (from Mac App Store)
   └── Swift 6.3 (bundled)
-  └── iOS 26.5 SDK (bundled — but target iOS 18.x minimum deployment)
+  └── iOS 26 SDK (bundled — target iOS 18.x minimum deployment)
   └── Swift Charts (bundled in iOS 16+ SDK)
   └── UserNotifications (bundled)
-  └── IOKit (bundled; used via bridging header for private API call)
+  └── IOKit (bundled; used via bridging header, entitlement-gated)
+
+Dev tooling (v1.1 addition — TrollStore build path only):
+  └── ldid (brew install ldid) — fake-signs binary with custom entitlements for TrollStore IPA
 ```
 
-No `Package.swift`, no `Podfile`, no Carthage. Zero package manager setup.
+No new runtime frameworks. One new dev tool (ldid) required only for TrollStore distribution path.
+
+---
+
+## Alternatives Considered (v1.1)
+
+| Category | Recommended | Alternative | Why Not |
+|----------|-------------|-------------|---------|
+| App icon tooling | No tool — Xcode single-size | MakeAppIcon, Asset Catalog Creator | Xcode 14+ handles resizing natively; no external tool needed |
+| TrollStore signing | ldid + Run Script phase | XcodeAnyTroll tweak | XcodeAnyTroll requires installing a tweak on the dev Mac and a jailbroken device; ldid is simpler and more portable |
+| TrollStore signing | ldid + Run Script phase | Manual IPA repackage | Automating via Run Script is less error-prone than manual steps each build |
+| Polling interval | 10s Timer.publish | 5s | 5s has no measurable benefit — thermalState changes slowly; 10s is responsive without unnecessary reads |
+| Polling interval | 10s Timer.publish | thermalStateDidChangeNotification only (no timer) | Notification fires on change only; timer ensures UI stays live even when state is stable |
 
 ---
 
@@ -207,39 +239,24 @@ No `Package.swift`, no `Podfile`, no Carthage. Zero package manager setup.
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Xcode 26.4.1 as latest stable | HIGH | Verified via xcodereleases.com (2026-05-11) |
-| Swift 6.3 in Xcode 26.4.1 | MEDIUM | Verified via xcodereleases.com; 6.3.2 also referenced — minor point version |
-| SwiftUI over UIKit | HIGH | Universally recommended for new greenfield iOS apps |
-| Swift Charts sufficiency | HIGH | Official Apple framework; well-documented for line charts |
-| IOKit `IOPMPowerSource` blocked by AMFI on standard sideload | HIGH | Corroborated by multiple Apple Developer Forum threads, Battman docs, and analysis of the `systemgroup.com.apple.powerlog` entitlement requirement |
-| `ProcessInfo.thermalState` as reliable fallback | HIGH | Public, documented, sandbox-safe API |
-| Local notifications for threshold alerts | HIGH | Standard iOS API, no special entitlements, confirmed working in sideloaded apps |
-| BGAppRefreshTask unsuitability for this use case | HIGH | Documented system-discretionary behavior; wrong tool for real-time threshold monitoring |
-
----
-
-## Critical Findings Summary
-
-1. **Numeric temperature is blocked by AMFI on standard Xcode sideloads.** The `IOPMPowerSource` Temperature key requires `systemgroup.com.apple.powerlog` — a private entitlement unavailable to free or paid developer certificates. Code it as best-effort; display "–°C" when unavailable. Document TrollStore as the path to unlock it.
-
-2. **`ProcessInfo.thermalState` is the reliable data source.** It always works, is public and documented, and gives the four-level thermal classification that is genuinely useful.
-
-3. **No external libraries needed.** Swift Charts handles the history chart. UserNotifications handles alerts. IOKit (via bridging header) handles the best-effort numeric read. Total dependency count: zero.
-
-4. **Xcode versioning changed.** Xcode 17 does not exist. The current generation is Xcode 26.x (released WWDC 2025). Use 26.4.1 stable.
+| App icon — single-size Xcode workflow | HIGH | Xcode 14+ default for new iOS projects; project's Contents.json already correct format |
+| App icon — PNG requirements (no alpha, no rounded corners) | HIGH | Apple developer documentation + multiple corroborating sources |
+| TrollStore iOS version ceiling (17.0 max) | HIGH | TrollStore GitHub README, CoreTrust CVE-2023-41991 patch confirmed in 17.0.1+ |
+| TrollStore entitlement string | HIGH | Verified via leminlimez gist (primary source), corroborated by v1.0 research |
+| IOKit key name ("Temperature") and value units (÷100 = °C) | HIGH | leminlimez gist + darwin-xnu IOPMPowerSource.h source |
+| TrollStore Xcode build config (ldid + CODE_SIGNING_ALLOWED=NO) | MEDIUM | Community-documented via XcodeAnyTroll project; not in Apple official docs |
+| 10s polling — performance acceptability | HIGH | ProcessInfo.thermalState is a cached property read; 10s is well within reasonable polling frequency |
 
 ---
 
 ## Sources
 
-- [xcodereleases.com](https://xcodereleases.com/) — Xcode 26.4.1 confirmed latest stable, released 2026-04-16
-- [Apple Developer Forums: iOS cpu/gpu/battery temperature](https://developer.apple.com/forums/thread/696700) — confirms no public iOS temperature API
-- [Apple Developer Forums: Find out battery temperature of iPhone](https://developer.apple.com/forums/thread/47341) — private API discussion
-- [Get iOS Battery Info and Temperature (GitHub Gist by leminlimez)](https://gist.github.com/leminlimez/ed3e3ee3a287c503c5b834acdc0dfcdc) — `IOPMPowerSource` Temperature key usage, `systemgroup.com.apple.powerlog` entitlement requirement
-- [doubleblak.com/temperature](https://doubleblak.com/temperature) — alternative filesystem approach via `knowledgeC.db`
-- [Battman IPA (iDevice Central)](https://idevicecentral.com/jailbreak-tweaks/battman-ipa-advanced-battery-management-cycle-count-for-jailbroken-trollstore-ios-devices/) — confirms TrollStore required for private battery APIs
-- [Swift Charts Documentation](https://developer.apple.com/documentation/charts) — official Apple framework
-- [BGContinuedProcessingTask (Apple Developer Documentation)](https://developer.apple.com/documentation/backgroundtasks/bgcontinuedprocessingtask) — iOS 26 only, not suited for persistent monitoring
-- [ProcessInfo.ThermalState (Apple Developer Documentation)](https://developer.apple.com/documentation/foundation/processinfo/thermalstate-swift.enum) — public API, 4 levels
-- [Swift 6.2 Released (swift.org)](https://www.swift.org/blog/swift-6.2-released/) — September 2025 release context
-- [How iOS Sideloading Actually Works in 2025 (DEV Community)](https://dev.to/1_king_0b1e1f8bfe6d1/how-ios-sideloading-actually-works-in-2025-dev-certs-altstore-and-the-eu-exception-1m2h) — free Apple ID, 7-day cert mechanics
+- [Get iOS Battery Info and Temperature (GitHub Gist, leminlimez)](https://gist.github.com/leminlimez/ed3e3ee3a287c503c5b834acdc0dfcdc) — `"Temperature"` key, `÷100` conversion, `systemgroup.com.apple.powerlog` entitlement string
+- [apple/darwin-xnu IOPMPowerSource.h](https://github.com/apple/darwin-xnu/blob/main/iokit/IOKit/pwr_mgt/IOPMPowerSource.h) — kernel-level source for IOPMPowerSource property keys
+- [TrollStore GitHub (opa334)](https://github.com/opa334/TrollStore) — iOS version support range, entitlement handling mechanism ("TrollStore will preserve entitlements when resigning")
+- [TrollStore on iOS 17.0.1–26.2 (iDevice Central)](https://idevicecentral.com/tweaks/can-you-install-trollstore-on-ios-17-0-1-ios-18-3/) — confirms no support on iOS 17.0.1+
+- [XcodeAnyTroll (Lessica)](https://github.com/Lessica/XcodeAnyTroll) — Xcode TrollStore build workflow: CODE_SIGNING_ALLOWED=NO + ldid Run Script
+- [Xcode 14 Single Size App Icon (Use Your Loaf)](https://useyourloaf.com/blog/xcode-14-single-size-app-icon/) — single-size AppIcon workflow, iOS 12+ requirement
+- [App Icon Generator no longer needed with Xcode 14 (SwiftLee)](https://www.avanderlee.com/xcode/replacing-app-icon-generators/) — confirms Xcode handles resizing; no third-party tool needed
+- [Configuring your app icon (Apple Developer Documentation)](https://developer.apple.com/documentation/xcode/configuring-your-app-icon) — official reference
+- [ios.cfw.guide — Installing TrollStore](https://ios.cfw.guide/installing-trollstore/) — TrollStore supported version range confirmed

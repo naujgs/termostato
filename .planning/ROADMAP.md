@@ -21,7 +21,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 ### v1.1 Visual Improvements
 
 - [ ] **Phase 4: Polling** — Reduce Timer.publish from 30s → 10s, update maxHistory from 120 → 360, update chart label
-- [ ] **Phase 5: Visual Polish** — Add custom app icon (1024×1024 PNG asset drop-in)
+- [x] **Phase 5: Visual Polish** — Add custom app icon (1024×1024 PNG asset drop-in) (completed 2026-05-13)
 
 ## Phase Details
 
@@ -56,4 +56,4 @@ Plans:
 | 2. Dashboard UI | v1.0 | 1/1 | Complete | 2026-05-12 |
 | 3. Alerts & Notification System | v1.0 | 2/2 | Complete | 2026-05-13 |
 | 4. Polling | v1.1 | 0/1 | Not started | - |
-| 5. Visual Polish | v1.1 | 0/1 | Not started | - |
+| 5. Visual Polish | v1.1 | 1/1 | Complete    | 2026-05-13 |

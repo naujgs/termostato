@@ -465,17 +465,19 @@ func refreshNotificationStatus() async {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Will thermalStateDidChangeNotification fire before iOS suspends the process?**
    - What we know: The notification is posted by the OS when thermal state changes. Background apps are in "Background execution state" for a finite time before suspension. The exact window is non-deterministic.
    - What's unclear: Whether the OS guarantees notification delivery during the background execution window, or whether the process may already be suspended when the thermal event fires.
    - Recommendation: Physical-device test is mandatory (STATE.md explicitly flags this). Success criterion 3 is the acceptance gate.
+   - RESOLVED: Physical device test is the acceptance gate. Plan 02 Task 3 provides the manual verification step (deploy to device, background app, trigger thermal change, confirm notification). No code change needed — the architecture is sound; delivery timing is validated empirically.
 
 2. **Does Swift 6.3 compiler accept `queue: .main` as `@MainActor`-safe in the observer closure without an explicit Task?**
    - What we know: `queue: .main` routes the closure to the main queue. `@MainActor` operations are confined to the main actor, which runs on the main queue.
    - What's unclear: Whether the Swift 6.3 concurrency checker treats `queue: .main` as equivalent to `@MainActor` isolation for the purposes of accessing actor-isolated properties inside the closure.
    - Recommendation: If the compiler warns, add `Task { @MainActor in self?.handleBackgroundThermalChange() }` inside the closure. Both are valid; the Task form is always safe.
+   - RESOLVED: The fallback `Task { @MainActor in }` pattern is pre-coded in Plan 01 Task 1 action as the explicit compiler-warning branch. If `queue: .main` is accepted (A1 assumption), the simpler form is used. If the compiler warns, the Task wrapper replaces it. Either way the plan ships a compiling, concurrency-safe implementation.
 
 ---
 

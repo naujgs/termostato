@@ -33,7 +33,10 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
   1. Thermal state reading visibly updates every 10 seconds (observable via chart density vs. the previous 30s cadence)
   2. Step-chart history retains 360 data points — history window remains 60 minutes at the new 10s interval
   3. Chart label reflects the correct 60-minute window description (no stale "2 hour" or "120-entry" text)
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 04-01-PLAN.md — Update polling interval (30s→10s) and ring-buffer capacity (120→360) in TemperatureViewModel.swift
 
 ### Phase 5: Visual Polish
 **Goal**: App displays a custom icon on the home screen — the Xcode placeholder is replaced

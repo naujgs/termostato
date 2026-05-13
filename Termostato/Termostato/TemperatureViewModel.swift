@@ -45,8 +45,8 @@ final class TemperatureViewModel {
     /// Current thermal state. Observers (SwiftUI Views) read this directly.
     private(set) var thermalState: ProcessInfo.ThermalState = .nominal
 
-    /// Session history ring buffer — max 120 readings (D-05). Session-only, never persisted (D-06).
-    private static let maxHistory = 120
+    /// Session history ring buffer — max 360 readings (D-05). Session-only, never persisted (D-06).
+    private static let maxHistory = 360
     private(set) var history: [ThermalReading] = []
 
     // MARK: - Private polling state
@@ -98,7 +98,7 @@ final class TemperatureViewModel {
 
     // MARK: - Lifecycle (called by ContentView scenePhase observer — D-06)
 
-    /// Start the 30-second polling timer. Call when scenePhase becomes .active.
+    /// Start the 10-second polling timer. Call when scenePhase becomes .active.
     /// D-07: Always creates a fresh timer — does NOT resume a stored reference.
     func startPolling() {
         // End any background task — app is active again.
@@ -108,12 +108,12 @@ final class TemperatureViewModel {
         }
         // Guard: don't double-start.
         timerCancellable?.cancel()
-        timerCancellable = Timer.publish(every: 30, on: .main, in: .common)
+        timerCancellable = Timer.publish(every: 10, on: .main, in: .common)
             .autoconnect()
             .sink { [self] _ in
                 self.updateThermalState()
             }
-        // Immediately read on start so the UI shows data without a 30-second delay.
+        // Immediately read on start so the UI shows data without a 10-second delay.
         updateThermalState()
         Task { await requestNotificationPermission() }   // D-09
         Task { await refreshNotificationStatus() }        // D-13

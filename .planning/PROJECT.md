@@ -8,6 +8,16 @@ Termostato is a personal iOS app (sideloaded, not App Store) that monitors the i
 
 The phone's thermal state, always visible at a glance — with an alert before it gets dangerously hot.
 
+## Current Milestone: v1.2 Sensor Research & Data Expansion
+
+**Goal:** Systematically map every thermal/system data source accessible on iOS 18 under free sideload, then build a richer health dashboard from whatever proves accessible.
+
+**Target features:**
+- Research phase: probe every relevant iOS API and data path for temperature, CPU load, memory, and battery info
+- Document what's accessible vs blocked with reproducible evidence
+- Implement all confirmed-accessible data sources in the UI
+- Possible gains: CPU usage %, memory pressure, battery level/state, richer thermal state context
+
 ## Current State
 
 **v1.1 shipped — 2026-05-13**
@@ -36,7 +46,12 @@ The phone's thermal state, always visible at a glance — with an alert before i
 - ✓ Custom app icon — 1024×1024 opaque RGB PNG, wired into asset catalog — *Phase 5*
 - ✓ Polling interval reduced from 30s → 10s (+ maxHistory 120 → 360, chart label updated) — *Phase 4*
 
-### Future (v1.2+)
+### Active (v1.2)
+
+- [ ] Research all iOS thermal/system data sources accessible under free Apple ID sideload on iOS 18
+- [ ] Implement confirmed-accessible data sources in the dashboard UI
+
+### Future (v1.3+)
 
 - [ ] State duration display ("Serious for 4 min")
 - [ ] "Back to Nominal" recovery notification
@@ -84,4 +99,4 @@ The phone's thermal state, always visible at a glance — with an alert before i
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-05-13 — v1.1 milestone complete*
+*Last updated: 2026-05-14 — v1.2 milestone started*

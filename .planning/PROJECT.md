@@ -76,7 +76,8 @@ The phone's thermal state, always visible at a glance — with an alert before i
 | `beginBackgroundTask` for background execution | Keeps process alive ~30s after backgrounding so observer can fire | ✓ Confirmed on device — notifications fire within window |
 | Local notifications over APNs | No server infrastructure needed for personal sideloaded app | ✓ Confirmed — `UNUserNotificationCenter` works correctly |
 | TrollStore for numeric °C | TrollStore requires iOS ≤17.0; target device is iOS 18 — path permanently blocked | ✗ Blocked — deferred indefinitely (device on iOS 18) |
-| 10s polling interval | 30s felt sluggish; 10s gives responsive updates without significant battery impact | ⏳ Planned for v1.1 |
+| 10s polling interval | 30s felt sluggish; 10s gives responsive updates without significant battery impact | ✓ Confirmed — verified on device, no perceptible battery impact |
+| Opaque RGB icon PNG | iOS icons must be fully opaque — alpha channel causes Xcode warnings and App Store rejection | ✓ Confirmed — alpha stripped via ffmpeg before commit |
 
 ## Evolution
 

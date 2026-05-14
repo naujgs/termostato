@@ -51,13 +51,58 @@
 
 ---
 
+## Milestone: v1.1 — Visual Improvements
+
+**Shipped:** 2026-05-13
+**Phases:** 2 | **Plans:** 2 | **Commits:** 8
+**Timeline:** 2026-05-13 → 2026-05-13 (1 day)
+
+### What Was Built
+
+- Polling cadence reduced from 30s to 10s; ring buffer expanded from 120 to 360 entries — 60-minute history preserved at 3× resolution
+- Custom app icon (1024×1024 opaque RGB PNG) wired into Xcode asset catalog via `Contents.json` `filename` field
+- Alpha channel stripped from PNG before commit (ffmpeg `format=rgb24`) — iOS icons must be fully opaque
+
+### What Worked
+
+- **Asset-only delivery for the icon** — no Swift code changes required; the single `filename` field addition to `Contents.json` was sufficient for Xcode to pick up the icon and generate all size variants.
+- **Code review catching the alpha issue** — the `gsd-code-reviewer` agent flagged the RGBA alpha channel before verification, preventing a silent Xcode warning. Fixed cleanly in one commit.
+- **Two-literal change for polling** — Phase 4 was two numeric literal edits (`30→10`, `120→360`) with zero logic changes. Planning and execution were proportionally lightweight.
+
+### What Was Inefficient
+
+- **Phase 5 directory missing at execute time** — `/gsd-execute-phase 5` was invoked with no phase directory or PLAN.md. The orchestrator had to create both inline before execution could proceed. The planning step (`/gsd-plan-phase 5`) was either skipped or its artifacts weren't committed.
+- **REQUIREMENTS.md checkboxes again unchecked** — same issue as v1.0. Both POLL-01 and ICON-01 were done but unchecked at milestone close. Traceability table also showed "TBD" for phase assignments.
+- **`sips --deleteProperty hasAlpha` failed on macOS** — the reviewer's suggested fix didn't work; required ffmpeg workaround. Should be documented for future icon work.
+
+### Patterns Established
+
+- Xcode 13+ asset catalog universal format: a single `1024×1024` entry with `"idiom": "universal"` and `"platform": "ios"` is sufficient — Xcode derives all size variants at build time. No need for explicit size entries.
+- iOS app icons must be opaque RGB PNG. `sips --deleteProperty hasAlpha` does not work on macOS; use `ffmpeg -vf "format=rgb24" -frames:v 1 -update 1` instead.
+- Verify `sips -g hasAlpha <file>` returns `no` before committing icon assets.
+
+### Key Lessons
+
+1. Run `/gsd-plan-phase` before `/gsd-execute-phase` — or confirm the phase directory and PLAN.md exist first.
+2. Always check PNG alpha channel when dropping icon assets; `ffmpeg format=rgb24` is the reliable strip method on macOS.
+3. Tick REQUIREMENTS.md traceability table entries immediately after phase verification — this is the second milestone this was deferred.
+
+### Cost Observations
+
+- Sessions: 1 session
+- Model: Sonnet 4.6 throughout
+- Notable: Both phases were trivially small (2 LOC changed + 1 file edited). Overhead from GSD scaffolding was disproportionate to the change size — reasonable for maintaining audit trail, but worth noting for future micro-phases.
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v1.0 |
-|--------|------|
-| Phases | 3 |
-| Plans | 6 |
-| Swift LOC | 494 |
-| Timeline | 2 days |
-| Device verified | ✓ all phases |
-| Blocking bugs found in UAT | 1 (background process suspension) |
+| Metric | v1.0 | v1.1 |
+|--------|------|------|
+| Phases | 3 | 2 |
+| Plans | 6 | 2 |
+| Swift LOC | 494 | 494 (no change) |
+| Timeline | 2 days | 1 day |
+| Device verified | ✓ all phases | ✓ all phases |
+| Blocking bugs found in UAT | 1 (background process suspension) | 0 |
+| Recurring issue | REQUIREMENTS.md checkboxes not ticked | REQUIREMENTS.md checkboxes not ticked |

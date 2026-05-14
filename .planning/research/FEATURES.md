@@ -1,7 +1,7 @@
 # Feature Landscape
 
 **Domain:** iOS device internal temperature / thermal monitoring app (sideloaded, personal use)
-**Researched:** 2026-05-11 (v1.0); updated 2026-05-13 (v1.1)
+**Researched:** 2026-05-11 (v1.0); updated 2026-05-13 (v1.1); updated 2026-05-14 (v1.2)
 **Confidence:** MEDIUM — App Store competitors surveyed; UX conventions from Swift Charts + HIG docs; some private-API specifics remain LOW confidence until implementation
 
 ---
@@ -295,6 +295,244 @@ Plus optionally updating the comment on line 114 in `ContentView.swift` ("Sessio
 
 ---
 
+## v1.2 Feature Research: System Health Metrics (CPU, Memory, Battery)
+
+Research date: 2026-05-14. Covers features being considered after the user asked: "Are we able to access temperature data of more than one component/area? Like CPU, GPU, battery?"
+
+**Context:** IOKit numeric temperature APIs are confirmed blocked under free Apple ID on iOS 18. Numeric °C for any component is out of reach. However, three categories of system health data ARE accessible via public sandbox-safe APIs: CPU usage (app process only), system memory pressure, and battery level/state. This section defines what to build from these.
+
+---
+
+### API Accessibility Map
+
+Before defining features, confirm what each candidate API can actually return:
+
+| Metric | API | Scope | Sandboxed? | Confidence |
+|--------|-----|-------|------------|------------|
+| CPU usage % (this app's process) | `task_threads()` + `thread_info()` with `THREAD_BASIC_INFO` | Per-process (app only) | Yes — works in sandbox | MEDIUM — widely used in open-source iOS monitors; sandbox restrictions affect cross-process reads, not self-reads |
+| System-wide CPU % | `host_processor_info()` / `host_statistics()` | Whole device | Uncertain — may be blocked by sandbox on iOS 18 | LOW — Apple forums note sandbox may block mach host APIs; "works from user space but not sandbox" |
+| System memory (used / free / wired) | `host_statistics64()` with `HOST_VM_INFO64` | Whole device | Uncertain — same sandbox concern as host CPU | LOW — gist author noted "probably works on iOS but haven't tried"; not confirmed in sandbox |
+| App memory footprint | `task_info()` with `TASK_VM_INFO` → `phys_footprint` | Per-process (app only) | Yes — Apple-recommended approach | HIGH — documented, Apple uses this in Instruments |
+| Battery level (0.0–1.0) | `UIDevice.current.batteryLevel` | Device | Yes — public API | HIGH — documented public UIKit API |
+| Battery charge state | `UIDevice.current.batteryState` (.unknown / .unplugged / .charging / .full) | Device | Yes — public API | HIGH — documented public UIKit API |
+| Battery time remaining | No public API | — | N/A | HIGH — confirmed not available via any public API |
+| Memory pressure level | `ProcessInfo.processInfo.isLowMemoryWarning` notification | System | Yes — public | HIGH — `UIApplication.didReceiveMemoryWarningNotification` is public |
+| Per-core CPU breakdown | `host_processor_info()` per-processor flavor | Whole device | Uncertain / likely blocked | LOW |
+| GPU temperature / load | No public API | — | N/A | HIGH — confirmed not available |
+
+**Conclusion:** Build features around the HIGH-confidence APIs. Treat LOW-confidence mach host APIs as implementation-time experiments that may or may not work — do not promise them to users.
+
+---
+
+### Feature A: App Process CPU Usage %
+
+**Category:** Differentiator — adds meaningful context to thermal state. If the device is at "Serious" thermal and CPU is pegged at 95%, the user understands why.
+
+**What it shows:** The percentage of one CPU core being consumed by the Termostato process itself. This is honest about its scope — it is not "the device's CPU load," it is "how hard this app is working." On a monitoring app the value will typically be low (1–5%), which is itself useful signal (the monitor itself is not the problem).
+
+**API approach:** Sum `cpu_usage` fields across all of the app's threads via `task_threads()` + `thread_info(thread, THREAD_BASIC_INFO, ...)`. Divide by `TH_USAGE_SCALE` (1000) to get 0.0–1.0. This is the approach used by GDPerformanceView-Swift and every iOS in-app performance overlay library. It is self-scoped (reads only this process's threads) and confirmed sandbox-safe.
+
+```swift
+// Sketch — add to TemperatureViewModel
+var appCPUUsage: Double {
+    var threadList: thread_act_array_t?
+    var threadCount = mach_msg_type_number_t(0)
+    guard task_threads(mach_task_self_, &threadList, &threadCount) == KERN_SUCCESS,
+          let threads = threadList else { return 0 }
+    defer { vm_deallocate(mach_task_self_, vm_address_t(bitPattern: threads),
+                          vm_size_t(threadCount) * vm_size_t(MemoryLayout<thread_t>.size)) }
+    var total = 0.0
+    for i in 0..<Int(threadCount) {
+        var info = thread_basic_info()
+        var count = mach_msg_type_number_t(THREAD_INFO_MAX)
+        let result = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                thread_info(threads[i], thread_flavor_t(THREAD_BASIC_INFO), $0, &count)
+            }
+        }
+        if result == KERN_SUCCESS && (info.flags & TH_FLAGS_IDLE) == 0 {
+            total += Double(info.cpu_usage) / Double(TH_USAGE_SCALE)
+        }
+    }
+    return total
+}
+```
+
+**Limitation:** This only reflects Termostato's own process. It will not tell you that a game running in the foreground is consuming 80% CPU. For a personal thermal dashboard this is a reasonable limitation — the primary signal is still `thermalState`.
+
+**Display recommendation:** A single numeric percentage label ("CPU: 3.2%") in a secondary row below the thermal badge. A SwiftUI `Gauge` view (iOS 16+, `.accessoryCircular` style) works well for an at-a-glance ring showing 0–100%. No chart needed for v1.2 — the existing thermalState chart already provides the session history narrative.
+
+**Update cadence:** Same 10s polling as thermalState. CPU usage for a monitoring app changes slowly. More frequent polling (e.g. 1s) would produce noisy values with no user benefit.
+
+**Complexity:** Low-Medium. The Mach C API requires a bridging header or `import Darwin`. Wrapping it cleanly in a `@MainActor` method on the ViewModel is straightforward. No additional permissions or entitlements needed.
+
+**Dependencies:** None on existing architecture beyond adding a computed property to `TemperatureViewModel`.
+
+**Confidence:** MEDIUM — The per-process thread approach is well-established in the iOS developer community (GDPerformanceView-Swift, numerous Apple Forum answers). The sandbox restriction applies to reading OTHER processes' thread info, not the app's own. The Swift 6 strict concurrency requirement means the Mach call must happen off the main actor or be explicitly `nonisolated`.
+
+---
+
+### Feature B: App Memory Footprint
+
+**Category:** Table stakes for a health dashboard. Every competitor app (System Status, System Monitor & Device Info) shows memory. Users expect it.
+
+**What it shows:** How much physical memory (RAM) Termostato is consuming, in MB. This is the `phys_footprint` value from `TASK_VM_INFO` — the same number Xcode's memory gauge shows.
+
+**API approach:** Apple recommends `task_info()` with `TASK_VM_INFO` and reading `task_vm_info.phys_footprint`. This is a documented, sanctioned API for reading one's own process memory. Apple's own engineers posted this in the developer forums.
+
+```swift
+var appMemoryMB: Double {
+    var info = task_vm_info_data_t()
+    var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size)
+    let result = withUnsafeMutablePointer(to: &info) {
+        $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+            task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
+        }
+    }
+    guard result == KERN_SUCCESS else { return 0 }
+    return Double(info.phys_footprint) / 1_048_576  // bytes → MB
+}
+```
+
+**Limitation:** This is the app's own memory footprint, not system-wide free/used memory. System-wide memory requires `host_statistics64()` which has uncertain sandbox behavior on iOS 18. Do not promise system-wide memory until it is confirmed working on device.
+
+**Display recommendation:** A label showing "Memory: 42 MB" is sufficient. A `ProgressView` (linear bar) against a fixed upper bound (e.g. 500 MB for context) provides visual intuition. Alternatively, pair it with the CPU gauge in a two-column row of `Gauge` views.
+
+**Update cadence:** Same 10s polling. App memory for a passive monitoring app changes slowly and smoothly — no need for faster updates.
+
+**Complexity:** Low. Same Mach import as CPU feature. One additional computed property.
+
+**Dependencies:** If built alongside Feature A (CPU), they share the same Darwin/Mach import infrastructure.
+
+**Confidence:** HIGH — `TASK_VM_INFO` / `phys_footprint` is explicitly documented and recommended by Apple for reading own-process memory. Not a gray-area API.
+
+---
+
+### Feature C: Battery Level and Charge State
+
+**Category:** Table stakes. Every system health monitor shows battery. The data is available via a clean, public UIKit API with zero risk.
+
+**What it shows:**
+- Battery level as a percentage (0–100%)
+- Charge state: Unplugged / Charging / Full / Unknown
+
+**API:** `UIDevice.current.batteryLevel` (returns Float 0.0–1.0; multiply by 100 for %) and `UIDevice.current.batteryState` (4-case enum). Requires `UIDevice.current.isBatteryMonitoringEnabled = true` set once on app launch. Without this, `batteryLevel` returns -1.0 and `batteryState` returns `.unknown`.
+
+**Notification-based updates:** Register for `UIDevice.batteryLevelDidChangeNotification` and `UIDevice.batteryStateDidChangeNotification`. Level notifications fire at most once per minute (Apple's rate limit). State notifications fire immediately on plug/unplug events.
+
+**Battery time remaining:** No public API exists. `UIDevice` does not expose it. This is confirmed not available.
+
+**Display recommendation:** Show level as a percentage label ("Battery: 78%") and state as an icon or short label ("Charging" / "On battery"). A `Gauge` view with a battery-appropriate 0–100 range and a green/yellow/red tint (below 20% = red, 20–50% = yellow, above 50% = green) is the natural SwiftUI pattern. The existing thermal state color convention primes the user to read color as severity.
+
+**Update cadence:** Notification-driven, not polling. Set `isBatteryMonitoringEnabled = true` once and subscribe to notifications. No timer needed. The ViewModel adds two published properties (`batteryLevel: Float` and `batteryState: UIDevice.BatteryState`) and updates them in the notification handler.
+
+**Complexity:** Low. Pure UIKit public API, no bridging header needed, no entitlements. Two `NotificationCenter` observers added to the existing ViewModel pattern.
+
+**Dependencies:** Must set `isBatteryMonitoringEnabled = true` before reading. This is a per-session setting — not persisted.
+
+**Confidence:** HIGH — `UIDevice.batteryLevel` and `batteryState` are documented public APIs. Confirmed working in sideloaded apps (no special entitlements required). Rate-limited to ~1 min for level notifications, immediate for state changes.
+
+---
+
+### Feature D: System-Wide Memory (Exploratory — Implement and Verify)
+
+**Category:** Differentiator if it works; drop if sandbox blocks it.
+
+**What it shows:** Device-wide RAM broken down as: used, wired (kernel-reserved), free/available. This is the data shown by apps like System Status and Activity Monitor.
+
+**API:** `host_statistics64(mach_host_self(), HOST_VM_INFO64, ...)` with `vm_statistics64_t`. Multiply page counts by `vm_kernel_page_size` to get bytes.
+
+**Sandbox risk:** This API reads host-level kernel statistics. On iOS, the sandbox philosophy restricts apps to information about themselves. Multiple Apple Forum posts from 2016–2020 note that mach host APIs "may run afoul of the sandbox at some point." The exact current behavior on iOS 18 under a free sideload is not confirmed in public sources as of May 2026.
+
+**Recommendation:** Implement behind a safe guard — wrap the call to return nil on failure. Test on device. If it returns valid data, ship it. If KERN_SUCCESS is not returned or values are obviously wrong, drop the feature and note it in project docs. Do not block the milestone on this feature.
+
+**Display if it works:** Three-segment horizontal bar (wired / used / free) with byte counts. This is the conventional display in all competitor apps surveyed.
+
+**Update cadence:** Same 10s polling as other metrics. System memory changes slowly.
+
+**Complexity:** Medium — requires bridging header, pointer manipulation similar to Feature A. Risk is the API silently returning garbage or failing on iOS 18 sandbox.
+
+**Confidence:** LOW for sandbox compatibility on iOS 18 sideload. HIGH for the API call itself being correct if the sandbox permits it.
+
+---
+
+### Feature E: SwiftUI Gauge for Metric Display
+
+**Category:** UI pattern — not a standalone feature, but the recommended display primitive for all new metrics.
+
+**What it is:** `Gauge` is a native SwiftUI view added in iOS 16 (available in this project's deployment target). It supports both linear and circular styles. The `.accessoryCircular` style renders as a partial arc ring — ideal for a compact dashboard showing multiple metrics at once.
+
+**Why use it instead of custom views:**
+- Zero dependencies, pure SwiftUI
+- Tintable with `.tint(Color)` — use the same color convention as the thermal badge (green / yellow / orange / red)
+- Scales automatically across Dynamic Type sizes
+- Supports a `currentValueLabel` in the center of the ring
+- Reads as a standard iOS UI element — users understand it immediately
+
+**Recommended layout:** Two `Gauge` views side by side in an `HStack` (CPU % and battery %) with the app memory footprint as a text label below. This keeps the screen single-screen without requiring a scroll view. The existing thermalState chart fills the lower half of the screen unchanged.
+
+**Complexity:** Low. SwiftUI declarative, no new state management needed beyond the ViewModel properties from Features A–C.
+
+---
+
+### v1.2 Feature Summary Table
+
+| Feature | Category | API | Sandbox Safety | Complexity | Priority |
+|---------|----------|-----|---------------|------------|----------|
+| App CPU % | Differentiator | `task_threads` + `thread_info` | Confirmed safe (self-read) | Low-Med | P1 — implement |
+| App memory footprint | Table stakes | `task_info` TASK_VM_INFO | HIGH — Apple-recommended | Low | P1 — implement |
+| Battery level + state | Table stakes | `UIDevice.batteryLevel` / `batteryState` | HIGH — public API | Low | P1 — implement |
+| System-wide memory | Differentiator | `host_statistics64` | LOW — uncertain on iOS 18 sandbox | Medium | P2 — implement and verify on device |
+| Gauge display layout | UI pattern | SwiftUI `Gauge` (iOS 16+) | N/A | Low | P1 — use for all new metrics |
+| Per-core CPU breakdown | Anti-feature | `host_processor_info` per-processor | LOW — likely sandbox-blocked | N/A | Drop — not worth the risk |
+| Battery time remaining | Anti-feature | No public API | N/A | N/A | Drop — API does not exist |
+| GPU temperature/load | Anti-feature | No public API (IOKit blocked) | N/A | N/A | Drop — confirmed blocked |
+
+---
+
+### v1.2 Anti-Features (What NOT to Build)
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| System-wide CPU % | `host_processor_info` is likely sandbox-blocked on iOS 18; returning wrong values is worse than not showing the metric | Show app CPU only; label it clearly as "App CPU" |
+| Battery time remaining | No public API. Implementing an estimate from level-change rate is complex and inaccurate. | Show level % and state only |
+| Per-core CPU bars | `host_processor_info` per-processor flavor has same sandbox uncertainty as system-wide CPU | Not worth the risk for a personal tool |
+| Rolling CPU/memory charts | The existing thermalState chart already owns that screen real estate. Adding three more charts creates a cluttered multi-scroll interface. | Use Gauge rings for current value; no chart for new metrics in v1.2 |
+| Memory warning alert | `didReceiveMemoryWarning` fires only under extreme conditions; almost never actionable for the user of a monitoring app | Omit; thermal alerts are the primary notification mechanism |
+
+---
+
+### v1.2 Feature Dependencies
+
+```
+UIDevice.isBatteryMonitoringEnabled = true (set in ViewModel.init)
+    └─> batteryLevel display
+    └─> batteryState display
+    └─> UIDevice.batteryLevelDidChangeNotification
+    └─> UIDevice.batteryStateDidChangeNotification
+
+Darwin/Mach bridging (import Darwin or bridging header)
+    └─> app CPU % (task_threads + thread_info)
+    └─> app memory footprint (task_info TASK_VM_INFO)
+    └─> system-wide memory (host_statistics64) [optional / verify on device]
+
+SwiftUI Gauge (iOS 16+, in deployment target)
+    └─> CPU gauge display
+    └─> battery gauge display
+```
+
+---
+
+### Design References for v1.2
+
+**System Status (techet.net/sysstat):** The reference app for this genre on iOS. Uses separate pages per metric category (CPU, Memory, Battery, Storage, Network). Not appropriate to copy — Termostato should remain a single-screen dashboard, not a multi-page system inspector. Take: the visual convention of real-time graphs per metric. Reject: the paginated navigation structure.
+
+**GDPerformanceView-Swift:** Open-source overlay showing CPU %, memory, FPS above the status bar. Confirms that the per-process `task_threads` approach works in a standard iOS app context (though it targets in-app dev overlays, not sideloaded monitors). Design reference for compact metric display.
+
+**SwiftUI Gauge (Apple HIG):** The `.accessoryCircular` gauge style is explicitly documented for widgets and compact UI. Its circular ring design is immediately legible for percentage metrics. Color gradient via `.tint()` matches the existing thermal badge color language.
+
+---
+
 ## Sources
 
 - App Store: [Thermals](https://apps.apple.com/us/app/thermals/id1567050762), [Status Monitor](https://apps.apple.com/us/app/status-monitor/id6743127438), [System Status & Device Monitor](https://apps.apple.com/us/app/system-status-device-monitor/id6760554255)
@@ -303,9 +541,20 @@ Plus optionally updating the comment on line 114 in `ContentView.swift` ("Sessio
 - Apple Developer: [BGTaskScheduler](https://developer.apple.com/documentation/backgroundtasks/bgtaskscheduler)
 - Apple Developer: [Configuring your app icon using an asset catalog](https://developer.apple.com/documentation/xcode/configuring-your-app-icon)
 - Apple Developer: [Energy Efficiency Guide — Minimize Timer Use](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/MinimizeTimerUse.html)
+- Apple Developer: [UIDevice.batteryLevel](https://developer.apple.com/documentation/uikit/uidevice/batterylevel), [UIDevice.BatteryState](https://developer.apple.com/documentation/uikit/uidevice/batterystate)
+- Apple Developer: [Gauge view documentation](https://developer.apple.com/documentation/swiftui/gauge)
 - Community: [Apple Developer Forums — iOS CPU/GPU/battery temperature](https://developer.apple.com/forums/thread/696700)
+- Community: [Apple Developer Forums — Obtaining CPU usage by process](https://developer.apple.com/forums/thread/655349)
+- Community: [Apple Developer Forums — Swift 3 iOS Memory Usage](https://developer.apple.com/forums/thread/64665)
+- Community: [Apple Developer Forums — how to overall cpu utilization of iphone device](https://developer.apple.com/forums/thread/11393)
 - Community: [leminlimez gist — IOPMPowerSource Temperature key, systemgroup.com.apple.powerlog entitlement](https://gist.github.com/leminlimez/ed3e3ee3a287c503c5b834acdc0dfcdc)
+- Community: [algal gist — Get virtual memory usage on iOS or macOS (vm_statistics64)](https://gist.github.com/algal/cd3b5dfc16c9d577846d96713f7fba40)
+- Community: [GDPerformanceView-Swift — per-process CPU/memory overlay](https://github.com/dani-gavrilov/GDPerformanceView-Swift)
 - Community: [SwiftLee — App Icon Generator no longer needed with Xcode 14](https://www.avanderlee.com/xcode/replacing-app-icon-generators/)
 - Community: [iDevice Central — TrollStore on iOS 17.0.1–26.2](https://idevicecentral.com/tweaks/can-you-install-trollstore-on-ios-17-0-1-ios-18-3/)
 - Community: [TrollStore GitHub (opa334)](https://github.com/opa334/TrollStore)
 - Community: [iOS Guide — Installing TrollStore](https://ios.cfw.guide/installing-trollstore/)
+- Reference app: [System Status by Techet](https://techet.net/sysstat/)
+- Reference app: [System Monitor & Device Info (App Store)](https://apps.apple.com/us/app/system-monitor-device-info/id6741153865)
+- SwiftUI: [Gauge — accessoryCircular style (useyourloaf.com)](https://useyourloaf.com/blog/swiftui-gauges/)
+- SwiftUI: [SwiftUI Gauge — appcoda.com](https://www.appcoda.com/swiftui-gauge/)

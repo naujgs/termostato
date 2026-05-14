@@ -1,285 +1,400 @@
-# Domain Pitfalls — v1.1 Visual Improvements
+# Pitfalls Research
 
-**Domain:** iOS internal temperature monitoring app (sideloaded, private APIs)
-**Researched:** 2026-05-13
-**Milestone:** v1.1 — app icon, TrollStore IOKit numeric temperature, 10s polling
-**Confidence:** HIGH for TrollStore version constraints (official repo confirms); HIGH for app icon behavior (official Apple docs + Xcode 14+ release notes); MEDIUM for polling / ring buffer impact (codebase analysis + Apple Energy Guide)
+**Domain:** iOS system metrics — Mach kernel APIs, UIDevice battery, SwiftUI display in a Swift 6.3 @MainActor sideloaded app
+**Researched:** 2026-05-14
+**Milestone:** v1.2 — CPU usage, memory pressure, battery level added to existing Termostato dashboard
+**Confidence:** HIGH (Mach API behavior, Swift 6.3 concurrency, UIDevice battery API); MEDIUM (energy impact thresholds — Apple does not publish specific interval guidelines)
 
-> This file extends the original PITFALLS.md written for v1.0. It focuses exclusively on pitfalls
-> introduced by the three v1.1 features: TrollStore IOKit access, custom app icon, and 10s polling.
-> v1.0 pitfalls (Pitfalls 1-9 in the original file) remain valid and are not repeated here.
+> This file replaces v1.1 PITFALLS.md for the v1.2 milestone. v1.2 adds Mach kernel API calls for
+> CPU/memory, UIDevice battery monitoring, and SwiftUI display of rapidly-updating scalar values to an
+> existing Swift 6.3 @MainActor @Observable ViewModel. Pitfalls focus exclusively on these new
+> surfaces — v1.0/v1.1 pitfalls (icon, TrollStore, timer RunLoop) are not repeated.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall A: TrollStore Hard-Caps at iOS 17.0 — Target Device Running iOS 18 Cannot Use This Feature
+### Pitfall 1: Zero-Initialized `previousLoad` Produces a Since-Boot Delta on First Sample
 
-**What goes wrong:** The plan adds IOKit numeric temperature via TrollStore. TrollStore supports iOS 14.0 beta 2 through 16.6.1, iOS 16.7 RC (20H18), and iOS 17.0. It does not support iOS 17.0.1 or any later version, including all of iOS 18. Apple patched the CoreTrust bug (CVE-2023-41991) in iOS 17.0.1, and the TrollStore project has officially stated that iOS 17.0.1+ will never be supported unless a new CoreTrust bug is discovered.
+**What goes wrong:**
+`host_cpu_load_info` returns cumulative tick counts since device boot — not per-interval activity. To compute a meaningful CPU %, you must subtract the previous sample from the current sample. If `previousLoad` is stored as `host_cpu_load_info_data_t()` (zero-initialized struct), the first "delta" is actually the total ticks since boot. On a device that has been running for hours, this produces a first reading of 5–40% CPU when the device is idle — wrong and misleading. It does not crash. It silently displays incorrect data on the very first screen the user sees.
 
-**Why it happens:** TrollStore works by exploiting a CoreTrust signature validation bug that allows apps with arbitrary entitlements to be installed permanently without App Store review. That bug was patched by Apple and the fix is present in every iOS version after 17.0.
+**Why it happens:**
+Swift struct initialization requires an initial value. Developers write `var previousLoad = host_cpu_load_info_data_t()` because it compiles cleanly. The since-boot corruption is only visible at runtime.
 
-**Consequences:** The project's current context states the target device runs iOS 18.x (PROJECT.md: "Target device: iPhone (any model running iOS 18+)"). TrollStore cannot be installed on iOS 18. The numeric temperature feature as planned is not achievable on the intended target device.
-
-**Additional constraint:** Even on a device where TrollStore can be installed (iOS 17.0 or earlier), TrollStore must be installed on the device *before* the Termostato IPA is installed through it. TrollStore is a device-side tool — it cannot be applied from Xcode on the dev machine. The workflow is: install TrollStore on device → build a signed IPA with the required entitlement → install IPA via TrollStore on device. This is a different install flow than the current Xcode USB sideload path.
-
-**Prevention:**
-
-1. Verify the exact iOS version on the target device before planning any work around TrollStore. If it is iOS 17.0.1 or higher, TrollStore is unavailable and the numeric temperature feature must be deferred or redesigned.
-2. If the device is on a compatible version (17.0 or lower), plan explicitly for the two-install-path problem: the development install path (Xcode USB) is incompatible with the TrollStore install path. Maintaining both paths simultaneously is complex.
-3. Treat the numeric temperature feature as an optional enhancement guarded by a runtime check: if the IOKit call returns nil or fails, the UI falls back to the thermal state display already shipping in v1.0.
-
-**Detection (warning signs):**
-- TrollStore installation instructions fail with device iOS version
-- TrollStore releases page shows your device iOS version is not listed
-- App installed via TrollStore crashes at launch (entitlement banned on A12+ — see Pitfall B)
-
-**Phase that must address this:** Whichever phase adds numeric temperature — this is the first thing to validate, before any IOKit code is written. Concrete check: confirm device iOS version, check TrollStore's supported list.
-
----
-
-### Pitfall B: Entitlement Injection — `systemgroup.com.apple.powerlog` Must Be in the Entitlements File, Not Just the Info.plist
-
-**What goes wrong:** The IOKit temperature path requires the `systemgroup.com.apple.powerlog` entitlement. Developers sometimes confuse entitlements with Info.plist entries or provisioning profile capabilities. The entitlement must be present in the app's `.entitlements` file at build time and must be preserved by TrollStore during installation.
-
-**Why it happens:** TrollStore preserves entitlements that are embedded in the IPA at build time. But if the entitlement is not in the Xcode `.entitlements` file, it will not be embedded in the binary, and TrollStore cannot inject it after the fact. The build must include it explicitly.
-
-**Mechanics:**
-- In Xcode: add an `.entitlements` file to the target (Signing & Capabilities → All → + Capability is not enough for private entitlements; you must manually edit the `.entitlements` plist).
-- Set the key `systemgroup.com.apple.powerlog` with value `true` (Boolean).
-- When building for TrollStore distribution, build as unsigned or with a development cert; TrollStore replaces the signature during install and preserves the entitlement.
-- Note: if using standard Xcode code signing, Xcode may strip or reject unrecognized entitlements during signing. Building an unsigned IPA (or using the `ldid` tool to sign with entitlements directly) is the standard TrollStore developer workflow.
-
-**Additional banned entitlements on A12+ (iOS 15+):** Three entitlements are completely banned and cause crash on launch:
-- `com.apple.private.cs.debugger`
-- `dynamic-codesigning`
-- `com.apple.private.skip-library-validation`
-
-These are not needed for temperature access, but adding them accidentally (e.g., copying an entitlements file from another project) causes an immediate crash on A12+ devices.
-
-**Prevention:**
-- Keep the entitlements file minimal: only `systemgroup.com.apple.powerlog`. Do not add speculative entitlements.
-- Build the IPA through the TrollStore-compatible workflow (unsigned or ldid-signed with entitlements) rather than a standard Xcode archive, which will sign out the private entitlement.
-- Test on device immediately after TrollStore install with a minimal IOKit probe before adding any UI.
-
-**Detection (warning signs):**
-- `IOServiceGetMatchingService` returns `IO_OBJECT_NULL` (entitlement missing or not preserved)
-- App crashes on launch with no console output (banned entitlement present)
-- Console shows `AMFI: Entitlement com.apple.private.powerlog.battery is not allowed`
-- Xcode archive warns or strips the entitlement during signing
-
-**Phase that must address this:** Numeric temperature phase, step 1 — before any other code is written.
-
----
-
-### Pitfall C: IOKit Call Returns Nil or Zero Without Error — Silent Failure Path Must Be Handled
-
-**What goes wrong:** When the `systemgroup.com.apple.powerlog` entitlement is missing or the service is unavailable, `IOServiceGetMatchingService("IOPMPowerSource")` returns `IO_OBJECT_NULL` (a C constant representing 0). Code that does not check for this will either crash when passing `IO_OBJECT_NULL` to subsequent IOKit calls, or return a dictionary with no `Temperature` key, producing a silent zero value displayed as "0.0°C" in the UI.
-
-**The specific failure chain:**
-1. `IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPMPowerSource"))` → returns 0 if sandbox denies or entitlement absent
-2. Passing 0 to `IORegistryEntryCreateCFProperties` → undefined behavior; may crash, may return empty dict
-3. If dict is returned, `dict["Temperature"]` → nil
-4. Dividing nil by 100 → crash in non-optional Swift, or silent zero in optional Swift
-5. UI displays "0.0°C" with no indication that the reading is invalid
-
-**Why it happens:** IOKit is a C framework. Its error returns are C conventions (IO_OBJECT_NULL, kern_return_t codes). Swift does not automatically bridge these to thrown errors or optionals. Callers must implement the checks explicitly.
-
-**Prevention:**
+**How to avoid:**
+Store `previousLoad` as an `Optional` initialized to `nil`. Return `nil` (display as "—") on the first call:
 
 ```swift
-// Correct defensive pattern
-func readBatteryTemperature() -> Double? {
-    let service = IOServiceGetMatchingService(
-        kIOMainPortDefault,
-        IOServiceMatching("IOPMPowerSource")
-    )
-    guard service != IO_OBJECT_NULL else {
-        // Entitlement missing or service unavailable — expected on iOS 18 / non-TrollStore path
-        return nil
-    }
-    defer { IOObjectRelease(service) }
+private var previousLoad: host_cpu_load_info_data_t?
 
-    var props: Unmanaged<CFMutableDictionary>?
-    let result = IORegistryEntryCreateCFProperties(service, &props, kCFAllocatorDefault, 0)
-    guard result == KERN_SUCCESS, let dict = props?.takeRetainedValue() as? [String: Any] else {
+func fetchCPUPercent() -> Double? {
+    // ... call host_statistics, get current load ...
+    guard let prev = previousLoad else {
+        previousLoad = load   // first call — store, don't report
         return nil
     }
-    guard let rawTemp = dict["Temperature"] as? Int else {
-        // Key absent — entitlement present but key not available on this device/iOS version
-        return nil
-    }
-    return Double(rawTemp) / 100.0
+    previousLoad = load
+    // compute delta from prev
 }
 ```
 
-- Always `IOObjectRelease` the service handle. Leaking it causes resource exhaustion over repeated calls.
-- Display nil as "--" or "N/A" in the UI, never as "0.0°C".
-- Log the failure reason so it is diagnosable without Xcode attached.
+**Warning signs:**
+- First CPU reading is suspiciously high (10–60%) then drops sharply on the second tick
+- `previousLoad` declared as `host_cpu_load_info_data_t()` (zero struct, not Optional)
+- The problem disappears after the app has run for 10 seconds — making it easy to miss in short test sessions
 
-**Detection (warning signs):**
-- Temperature always reads 0.0°C despite device being warm
-- No console error from the IOKit call (silent C return code failure)
-- `IOObjectRelease` is missing → memory/handle leak visible in Instruments Allocations
+**Phase to address:**
+Research / proof-of-concept. This is the first thing to get right before writing any UI code.
 
-**Phase that must address this:** Numeric temperature phase — the nil handling and fallback display must be designed at the data model level, not patched in the view layer.
+---
+
+### Pitfall 2: CPU Percentage Formula Includes Idle in the Numerator
+
+**What goes wrong:**
+The correct CPU-in-use percentage formula is:
+
+```
+active = user + sys + nice
+total  = user + sys + nice + idle
+pct    = active / total * 100
+```
+
+A common mistake is including `idle` in both numerator and denominator, producing a number that is always near 100%. Another mistake is using only `user` in the numerator and omitting `sys`, undercounting by 10–30% under load. A third mistake is dividing `active` by total-ticks-since-boot rather than delta-ticks-over-the-polling-interval — producing a slow-moving rolling average that never reflects current load.
+
+**Why it happens:**
+Online examples vary. Some show per-core percentages (divide by core count), some show system-wide (no division). Some include `nice` in the denominator only. Copy-paste without understanding propagates the error.
+
+**The correct delta formula in Swift:**
+```swift
+let userDiff = Double(load.cpu_ticks.0 &- prev.cpu_ticks.0)   // CPU_STATE_USER
+let sysDiff  = Double(load.cpu_ticks.1 &- prev.cpu_ticks.1)   // CPU_STATE_SYSTEM
+let idleDiff = Double(load.cpu_ticks.2 &- prev.cpu_ticks.2)   // CPU_STATE_IDLE
+let niceDiff = Double(load.cpu_ticks.3 &- prev.cpu_ticks.3)   // CPU_STATE_NICE
+
+let total = userDiff + sysDiff + idleDiff + niceDiff
+guard total > 0 else { return 0 }
+return (userDiff + sysDiff + niceDiff) / total * 100.0
+```
+
+Use Swift's wrapping subtraction operator `&-` on `natural_t` (UInt32) before casting to Double. This correctly handles the theoretical UInt32 wraparound (occurs after ~497 days at 100 ticks/sec — unlikely but defensively correct).
+
+Note: `host_cpu_load_info` tick counts are aggregate across ALL cores. The result is already normalized to 0–100% of total device capacity. Do not multiply or divide by core count.
+
+**Warning signs:**
+- CPU displays 95–100% when device is clearly idle
+- CPU displays 1–5% during an intensive workload (omitting sys or nice)
+- CPU does not respond to a sudden workload spike for 30+ seconds (using cumulative ticks not deltas)
+
+**Phase to address:**
+Research. Validate the formula on physical device against Xcode's CPU Gauge before integrating into the ViewModel.
+
+---
+
+### Pitfall 3: Non-Sendable C Struct Triggers Swift 6.3 Concurrency Compiler Errors — Wrong Fix Is to Use a Background Task
+
+**What goes wrong:**
+`host_cpu_load_info_data_t` and `vm_statistics64_data_t` are C structs imported into Swift. They are not `Sendable`. When a `@MainActor`-isolated function uses `withUnsafeMutablePointer` to pass a pointer to one of these structs to a C function, the compiler may emit:
+
+```
+Capture of 'load' with non-sendable type 'host_cpu_load_info_data_t' in a @Sendable closure
+```
+
+The instinctive "fix" is to move the Mach call off the main actor into a background `Task`. This is wrong for two reasons: (1) Mach calls complete in under 100 microseconds — they do not need to be async, (2) moving the call off `@MainActor` makes the type-crossing problem worse because the C struct result must now cross actor boundaries to get back to the ViewModel, which requires it to be `Sendable`.
+
+**Why it happens:**
+Swift 6 strict concurrency aggressively flags C struct captures in closures. The natural instinct is "make it async / background," which is the correct fix for I/O-bound work but the wrong fix for in-process C calls.
+
+**How to avoid:**
+Keep all Mach calls synchronous and on `@MainActor`. The struct is created, used, and discarded within one function call — the compiler error is a false alarm caused by the closure capture analysis. Annotate the closure explicitly with `@MainActor` to confirm isolation:
+
+```swift
+@MainActor
+private func fetchCPULoad() -> host_cpu_load_info_data_t? {
+    var load = host_cpu_load_info_data_t()
+    var size = mach_msg_type_number_t(
+        MemoryLayout<host_cpu_load_info_data_t>.size / MemoryLayout<integer_t>.size
+    )
+    let kr = withUnsafeMutablePointer(to: &load) { ptr in
+        ptr.withMemoryRebound(to: integer_t.self, capacity: Int(size)) { intPtr in
+            host_statistics(machHost, HOST_CPU_LOAD_INFO, intPtr, &size)
+        }
+    }
+    return kr == KERN_SUCCESS ? load : nil
+}
+```
+
+For stored intermediate state (`previousLoad: host_cpu_load_info_data_t?`), mark the property `@ObservationIgnored` to prevent the `@Observable` macro from generating tracking accessors for a non-Sendable C struct.
+
+**Warning signs:**
+- `Task { }` wrapping a Mach call — unnecessary and creates new actor-crossing problems
+- `nonisolated(unsafe)` on `previousLoad` — wrong annotation; this property is on MainActor and should be `@ObservationIgnored`
+- Second round of compiler errors after "fixing" the first error by adding a Task
+
+**Phase to address:**
+Research phase. All compiler warnings must be zero before wiring metrics into the ViewModel.
+
+---
+
+### Pitfall 4: `host_statistics` Count Argument Calculated from Raw `sizeof` — Struct-Integer Mismatch Causes KERN_INVALID_ARGUMENT
+
+**What goes wrong:**
+`host_statistics` and `host_statistics64` take a `mach_msg_type_number_t` count argument representing the number of `integer_t`-sized units in the info struct. Developers often pass `MemoryLayout<host_cpu_load_info_data_t>.size` directly. This is wrong — it passes the byte count, not the integer_t count. The call returns `KERN_INVALID_ARGUMENT` (error code 4) and the struct is left in an undefined state. The `KERN_SUCCESS` guard then catches this, but the real bug is the wrong count formula.
+
+**Why it happens:**
+In C, the idiom `HOST_CPU_LOAD_INFO_COUNT` is a macro defined as `sizeof(host_cpu_load_info_data_t) / sizeof(integer_t)`. Swift developers reproduce this as `MemoryLayout<host_cpu_load_info_data_t>.size` without the division, which is half the idiom.
+
+**How to avoid:**
+Always divide by `MemoryLayout<integer_t>.size`:
+
+```swift
+var size = mach_msg_type_number_t(
+    MemoryLayout<host_cpu_load_info_data_t>.size / MemoryLayout<integer_t>.size
+)
+```
+
+For `vm_statistics64_data_t`:
+```swift
+var size = mach_msg_type_number_t(
+    MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size
+)
+```
+
+**Warning signs:**
+- `host_statistics` returns a non-zero value (not KERN_SUCCESS)
+- CPU or memory reading is always nil after adding the KERN_SUCCESS guard
+- Adding a print on kr reveals `4` (KERN_INVALID_ARGUMENT)
+
+**Phase to address:**
+Research / proof-of-concept. Add a `precondition(kr == KERN_SUCCESS)` during development to catch this immediately rather than silently returning nil.
+
+---
+
+### Pitfall 5: `vm_statistics64` `free_count` Alone Understates Available Memory by 20–50%
+
+**What goes wrong:**
+`host_statistics64` with `HOST_VM_INFO64` returns a `vm_statistics64_data_t`. Using `free_count` alone as "available memory" produces a figure 20–50% lower than what Instruments / Xcode Memory Report shows. The missing component is `speculative_count` — pages that have been read ahead by the kernel and not yet dirtied. These pages are immediately reclaimable and functionally equivalent to free memory from the app's perspective. Reporting only `free_count` makes the device appear more memory-constrained than it is.
+
+**How to avoid:**
+Use the Activity Monitor formula:
+```swift
+let pageSize = UInt64(vm_kernel_page_size)   // 16384 on modern iPhones; do NOT use 4096
+let freeBytes = UInt64(stats.free_count + stats.speculative_count) * pageSize
+let totalBytes = ProcessInfo.processInfo.physicalMemory
+let usedBytes = totalBytes > freeBytes ? totalBytes - freeBytes : 0
+```
+
+Always multiply page counts by `vm_kernel_page_size` (not 1024, not 4096). On iPhones with A9+ the page size is 16384 bytes. Using 4096 produces numbers 4× too small.
+
+**Warning signs:**
+- Displayed "free memory" is consistently 30–50% lower than Xcode's Memory Report gauge
+- Raw page count displayed without multiplication by page size (numbers like "24,576 free")
+- `vm_kernel_page_size` not used — `4096` or `1024` hardcoded instead
+
+**Phase to address:**
+Research. Validate displayed figure against Xcode Memory Report on physical device before shipping.
 
 ---
 
 ## Moderate Pitfalls
 
-### Pitfall D: App Icon — Xcode Single-Image Mode vs. All-Sizes Mode Mismatch
+### Pitfall 6: `UIDevice.isBatteryMonitoringEnabled` Left `true` After App Backgrounds
 
-**What goes wrong:** Xcode 14+ introduced a "Single Size" app icon mode where one 1024x1024 image auto-generates all required sizes. However, if an existing project was created before Xcode 14, or was manually configured with "All Sizes" mode, switching to a new icon requires either replacing files in the correct mode or the asset catalog ends up with mixed content — some slots filled from the old icon, some from the new — producing the old icon on certain screen sizes and the new icon on others.
+**What goes wrong:**
+`isBatteryMonitoringEnabled = true` activates a system-level monitoring process. Leaving it permanently enabled — even when the app is backgrounded and battery metrics are not being displayed — runs that process during periods when the app produces no value from the data. This is a minor but real energy cost and signals a lifecycle mismatch.
 
-**Why it happens:** The `AppIcon.appiconset/Contents.json` file maps each size slot to a filename. If you drag a new image into the catalog root without understanding the current mode, Xcode may: (a) ignore it, (b) place it in only one slot, or (c) create a new unnamed icon set that the build target does not reference.
+**How to avoid:**
+Mirror the existing `startPolling()` / `stopPolling()` pattern in the ViewModel:
 
-**The correct approach for Xcode 14+ (Single-Image mode):**
-1. In the asset catalog, select the AppIcon set.
-2. In the Attributes Inspector (right panel), confirm "iOS" is the platform and the single-image slot is shown.
-3. Drag a 1024x1024 PNG into the single slot. No transparency. No rounded corners. PNG format.
-4. Xcode generates all sizes at build time.
+```swift
+// In startPolling():
+UIDevice.current.isBatteryMonitoringEnabled = true
 
-**Common mistakes:**
-- Dragging the icon file into the Finder folder for the asset catalog instead of into Xcode's asset catalog editor — the `Contents.json` is not updated, so the image is never referenced.
-- Using a JPEG or HEIC instead of PNG — Xcode may accept it but produce incorrect output on older iOS.
-- Including an alpha channel in the iOS icon — iOS rejects icons with transparency. The simulator may show them; device install may fail or show a black box.
-- Designing with pre-applied rounded corners — iOS applies a squircle mask at the OS level; a manually rounded icon will appear double-rounded.
-- Using a 1024x1024 image that is not exactly 1024x1024 pixels (e.g., 1023x1024 from an export rounding error) — causes a validation error or a blurry icon.
+// In stopPolling():
+UIDevice.current.isBatteryMonitoringEnabled = false
+```
 
-**Prevention:**
-- Start from a 1024x1024 pixel, RGB (no alpha), PNG master image.
-- Use "Single Size" mode in Xcode 14+. Do not manually populate size slots unless supporting iOS 11 or earlier (not relevant here — deployment target is iOS 18).
-- After install on device, verify the icon appears on the home screen in the correct size and aspect ratio. The simulator icon and the device icon can differ.
-- Clean build (`Product → Clean Build Folder`) after replacing an icon. Xcode caches asset catalog output and an old icon can persist through incremental builds.
+Register `UIDeviceBatteryLevelDidChange` and `UIDeviceBatteryStateDidChange` observers in `startPolling()` and remove them in `stopPolling()`. Do not rely on `deinit` alone — the ViewModel stays alive in memory while the app is backgrounded.
 
-**Detection (warning signs):**
-- Icon looks correct in Xcode preview but shows placeholder on device home screen
-- Clean build solves an icon display problem (confirms caching issue)
-- Icon appears rounded twice (pre-rounded source + OS mask applied again)
-- Build log shows "App Icon not found" or "Icon file not listed in CFBundleIconFiles"
+**Warning signs:**
+- `isBatteryMonitoringEnabled = true` in `init()` with no matching `false`
+- Battery notification observers added without paired `removeObserver` calls
+- `UIDevice.current.batteryLevel` returns `-1.0` — monitoring was not enabled before reading
 
-**Phase that must address this:** App icon phase — the issue is entirely in asset catalog configuration, no code changes required. Takes minutes to fix if caught early; easy to miss until final device install.
+**Phase to address:**
+Implementation — lifecycle pairing is required before merging the battery feature.
 
 ---
 
-### Pitfall E: App Icon Not Referenced by Build Target After Asset Catalog Changes
+### Pitfall 7: `UIDeviceBatteryLevelDidChange` Fires Infrequently — Do Not Rely on It for Live Display
 
-**What goes wrong:** Termostato's `Info.plist` or build settings must reference the asset catalog icon set by name. If the icon set in the asset catalog is renamed (e.g., from `AppIcon` to `AppIcon-v2`), the build target continues to look for `AppIcon` and silently falls back to no icon (blank placeholder on home screen).
+**What goes wrong:**
+Developers register for `UIDeviceBatteryLevelDidChange` expecting it to fire on every 1% battery change. It does not. iOS fires this notification at system-determined intervals (documentation says "when battery level changes" but in practice the threshold is multiple percentage points or significant time). Building the battery level display to update only on this notification results in a label that appears frozen between updates.
 
-**Why it happens:** The build setting `ASSETCATALOG_COMPILER_APPICON_NAME` specifies which icon set name to compile. Xcode sets this to `AppIcon` by default. If the asset catalog's icon set has a different name, the setting must be updated or the icons will not be embedded.
+**How to avoid:**
+Poll `UIDevice.current.batteryLevel` on the existing 10-second timer tick (same as the thermal state poll). Use `UIDeviceBatteryStateDidChange` only for charging state changes (plugged in / unplugged), which fire reliably. Display format: multiply by 100, round to Int, show as "73%". Guard for `-1.0` (monitoring not enabled or simulator) — display "—".
 
-**Prevention:**
-- Keep the icon set named `AppIcon` (the default). Do not rename it.
-- If a rename is necessary, update the target's build setting `ASSETCATALOG_COMPILER_APPICON_NAME` to match.
-- After any icon change, verify by archiving and inspecting the `.app` bundle: `Payload/Termostato.app/` should contain `AppIcon60x60@2x.png` (or equivalent generated files).
+**Warning signs:**
+- Battery level label not updating despite obvious battery drain
+- `UIDeviceBatteryLevelDidChange` handler contains the only battery level read in the codebase
 
-**Detection (warning signs):**
-- Home screen shows blank/placeholder icon after a Xcode rebuild
-- `find Termostato.app -name "AppIcon*"` finds no files in the built product
-- Build log shows `actool: warning: No app icon set named 'AppIcon'`
-
----
-
-### Pitfall F: Polling Interval Change From 30s to 10s Shrinks History Window by 3x
-
-**What goes wrong:** The existing ViewModel uses a ring buffer with `maxHistory = 120` entries. At 30s polling, 120 entries cover 60 minutes of session history. At 10s polling, the same 120 entries cover only 20 minutes. The history chart silently becomes a 20-minute window instead of a 60-minute window. No code change triggers this — it is a pure behavioral consequence of the interval change.
-
-**Why it matters:** If the user interprets the chart as showing "the session so far" (as originally designed), they will now see only the last 20 minutes. For a thermal monitor, losing 40 minutes of history could obscure the onset of a heating event.
-
-**The math:**
-- 30s × 120 entries = 3,600s = 60 minutes
-- 10s × 120 entries = 1,200s = 20 minutes
-
-**Prevention options (choose one):**
-
-1. **Increase `maxHistory` to 360** to preserve 60 minutes of history at 10s polling.
-   - 360 `ThermalReading` structs × ~64 bytes each ≈ 23 KB. Negligible memory cost.
-   - No other code changes required; ring buffer behavior is unchanged.
-
-2. **Decide 20 minutes is sufficient** and document the intent explicitly in a comment. Update any UI copy that implies "session-length" history.
-
-3. **Make history duration fixed (e.g., always 60 minutes) regardless of polling interval** by computing `maxHistory = Int(3600 / pollingInterval)` dynamically. This is clean but adds complexity.
-
-**Recommended:** Option 1 — increase `maxHistory` to 360. It is one line change, preserves the original behavior, and has zero performance cost at this scale (see below).
-
-**Performance note:** At 10s polling, the chart receives one new data point every 10 seconds — not every tick. This is 6 per minute, 360 per hour. Swift Charts handles 360 `LineMark` data points comfortably with no perceptible lag. The existing Pitfall 4 (from v1.0 PITFALLS.md) about unbounded array growth does not apply as long as the cap is maintained.
-
-**Phase that must address this:** Polling interval phase — the `maxHistory` constant must be updated in the same commit as the timer interval change.
+**Phase to address:**
+Implementation — wire battery level into the existing polling update function.
 
 ---
 
-### Pitfall G: Combine Timer RunLoop Mode — Interaction Pauses Timer at 30s, Surfaces at 10s
+### Pitfall 8: Displaying Raw CPU % in SwiftUI — Visible Jitter From Natural Variance
 
-**What goes wrong:** `Timer.publish(every: 30, on: .main, in: .common)` uses `.common` RunLoop mode, which fires timers even during scroll interactions. However, if this were `.default` mode, touch events (scrolling the chart, tapping UI elements) would pause timer delivery. At 30s intervals, a missed tick is barely noticeable. At 10s intervals, a single missed tick produces a visible gap in the chart and a stale display for 10+ seconds during interaction.
+**What goes wrong:**
+`host_cpu_load_info` at 10-second intervals produces delta percentages that naturally vary 5–15 points between polls even under stable workloads. The label jumps visibly every tick, making the display look broken even when the formula is correct. This is a readability problem, not a correctness problem — but it erodes user trust.
 
-**Current code check:** The existing `TemperatureViewModel` uses `.common` (confirmed in line 111 of `TemperatureViewModel.swift`). This is the correct choice and must not be changed to `.default` during the interval update.
+**How to avoid:**
+Apply a 3-sample Exponential Moving Average (EMA) for the display value. Keep the raw value for diagnostics:
 
-**Why this matters at 10s:** The risk is that a developer modifying the Timer line to change `every: 30` to `every: 10` accidentally changes the RunLoop mode at the same time (e.g., copying from a different code sample that uses `.default`). The regression is subtle: timers appear to fire correctly until the user interacts with the chart, at which point readings stop updating for the duration of the touch.
+```swift
+private var cpuEMA: Double = 0.0
+private let cpuAlpha: Double = 0.4   // weight for newest sample
 
-**Prevention:**
-- When changing the interval, change only the `every:` argument. Leave `on: .main, in: .common` unchanged.
-- Code review the Timer line specifically after the interval change.
+// After computing rawCPU:
+cpuEMA = cpuAlpha * rawCPU + (1.0 - cpuAlpha) * cpuEMA
+// Publish cpuEMA to the UI, not rawCPU
+```
 
-**Detection (warning signs):**
-- Chart stops updating when user scrolls or taps
-- Readings resume immediately after touch ends
-- Changing `in: .common` to `in: .default` in the Timer call reproduces the behavior exactly
+Alpha of 0.4 gives a ~3-sample weighted average. Do not use a window larger than 5 samples (50 seconds at 10s polling) — genuine spikes will appear slow to respond.
 
----
+**Warning signs:**
+- CPU label visibly jumping 10+ points between stable-load ticks
+- User reports "the number looks random" on an idle device
+- Instruments Core Animation trace shows view redraws exactly coinciding with timer ticks with large delta values
 
-## Minor Pitfalls
-
-### Pitfall H: TrollStore Install Path Conflicts With Xcode USB Install Path
-
-**What goes wrong:** Apps installed via TrollStore and apps installed via Xcode (USB sideload) are treated as different installs by iOS, even if they share the same bundle identifier. Installing the TrollStore version of Termostato will not update the Xcode-installed version — it installs a second copy under the same bundle ID. iOS may show one app on the home screen while the other's data container persists. Switching back to Xcode install will not automatically remove the TrollStore install.
-
-**Prevention:**
-- When testing the TrollStore path, remove the Xcode-installed version first (`Hold icon → Remove App` on device).
-- After TrollStore testing, to return to Xcode development builds, the TrollStore version must be removed explicitly through TrollStore's own uninstall UI.
-- The app's data container is deleted when the app is removed, so any session state is lost on every path switch.
-
-**Phase that must address this:** Numeric temperature phase — document the install path clearly in the phase plan so context is not lost mid-session.
+**Phase to address:**
+Polish — after formula correctness is established and verified. Do not smooth during research; raw values are needed to diagnose the formula.
 
 ---
 
-### Pitfall I: Battery Impact at 10s Is Manageable but Not Zero — Do Not Increase Further Without Profiling
+### Pitfall 9: Adding Multiple `@Observable` Properties That All Change on One Timer Tick
 
-**What goes wrong:** Apple's Energy Efficiency Guide for iOS Apps states explicitly that timers prevent the CPU from returning to idle. At 10s intervals, the CPU wakes 6 times per minute instead of 2. For a thermal monitoring app that is useful precisely when the device is under load, this additional wakeup frequency is acceptable. However, if the interval is further reduced (to 5s or 1s) without profiling, the timer itself becomes a meaningful battery drain contributor — paradoxical for a tool that monitors device temperature.
+**What goes wrong:**
+Adding `cpuPercent`, `memoryUsedBytes`, `memoryFreeBytes`, `batteryLevel`, and `batteryState` as individual `@Observable` properties causes SwiftUI to re-evaluate every body that reads any of these properties, separately, on each timer tick. With 5 new observable properties all changing simultaneously, a view reading all five triggers 5 separate diff cycles — not 1.
 
-**Context for 10s specifically:** `ProcessInfo.thermalState` is a property read — no network, no disk I/O, minimal CPU. The additional cost of reading it every 10s vs. every 30s is negligible. The timer overhead itself (wakeup from idle) is the dominant cost, and at 10s intervals it remains within acceptable range for a foreground app. This is not a blocking concern for v1.1 but is a ceiling to be aware of for v1.2.
+**How to avoid:**
+Bundle all system health metrics into a single value type:
 
-**Prevention:**
-- Do not reduce below 10s without running Instruments Energy Log on a physical device.
-- Adding a timer tolerance of 1-2s (`Timer.publish` does not directly expose tolerance; use `Timer.scheduledTimer(withTimeInterval:repeats:block:).tolerance = 1.0` if lower-level control is needed) allows the system to coalesce wakeups and reduces battery impact at the cost of slightly variable polling precision.
+```swift
+struct SystemMetrics {
+    var cpuPercent: Double?
+    var memoryUsedMB: Int
+    var memoryFreeMB: Int
+    var batteryPercent: Int?   // nil when monitoring not enabled
+    var batteryState: UIDevice.BatteryState
+}
 
-**Phase that must address this:** Polling interval phase — this is informational, not a blocking concern at 10s.
+// In ViewModel:
+private(set) var metrics = SystemMetrics(...)
+```
+
+SwiftUI diff now runs once per tick on the `metrics` property, not once per sub-property. Mark sub-properties that SwiftUI does not need to observe directly as non-`@Observable` if using the struct bundle pattern.
+
+**Warning signs:**
+- Instruments SwiftUI trace shows multiple body re-evaluations per timer tick for the same view
+- Adding 4+ new scalar properties to the ViewModel without grouping them
+
+**Phase to address:**
+Implementation — decide on the grouping structure before writing any new ViewModel properties.
 
 ---
 
-## Phase-Specific Warnings — v1.1
+## Technical Debt Patterns
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|---|---|---|
-| Numeric temperature (TrollStore) | Target device on iOS 18 — TrollStore incompatible | Verify device iOS version before writing any IOKit code |
-| Numeric temperature (TrollStore) | Entitlement not embedded in built IPA | Add `systemgroup.com.apple.powerlog` to `.entitlements` file; build via TrollStore workflow, not standard Xcode archive |
-| Numeric temperature (IOKit) | `IO_OBJECT_NULL` returned silently, displayed as 0.0°C | Guard on `IO_OBJECT_NULL`; display nil as "--"; release service handle in defer block |
-| App icon | Icon not showing on device after replacing asset | Clean build after every icon change; verify asset catalog slot is filled, not just file on disk |
-| App icon | Icon set name mismatch vs. build setting | Keep icon set named `AppIcon`; do not rename |
-| App icon | Source image has alpha channel or wrong size | Use 1024x1024 RGB PNG, no transparency |
-| 10s polling | History window shrinks from 60 min to 20 min | Update `maxHistory` from 120 to 360 in same commit |
-| 10s polling | Timer RunLoop mode accidentally changed to `.default` | Only change `every:` argument; leave `on: .main, in: .common` |
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Displaying raw (unsmoothed) CPU % | Simpler code during research | Label jitter; looks broken at 10s interval | Research/proof-of-concept only — add EMA before Polish is done |
+| Storing `previousLoad` as zero-struct instead of Optional | No nil-check in caller | First sample always corrupted; silent wrong data | Never — one-line fix |
+| Calling `mach_host_self()` inline each poll tick instead of caching | Fewer stored properties | Harmless for host port (it is a special non-destructible port) but establishes a misleading pattern that will be wrong if applied to other ports | Acceptable in minimal personal app; prefer caching for clarity |
+| Leaving `isBatteryMonitoringEnabled = true` permanently | No lifecycle teardown code | Minor energy cost; slight battery monitoring overhead when backgrounded | Acceptable in a personal foreground monitoring tool — document the decision |
+| Individual scalar `@Observable` properties for each metric | Easier to add one at a time | SwiftUI runs multiple diff cycles per tick; adds boilerplate as metrics grow | Acceptable for 1–2 metrics; prefer struct grouping at 3+ |
+
+---
+
+## Performance Traps
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Polling at 1–2s interval "for better resolution" | App appears in Xcode Energy report as High impact; CPU reading includes its own polling overhead (self-reinforcing) | Keep 10s for display; if 1s data is needed for research, collect silently without publishing to UI | Immediately — visible in Instruments Energy Log on first test |
+| Rolling CPU + memory + battery all into the session chart at 10s resolution | 360 entries × 3 metrics = 1080 chart points at 1-hour session; Swift Charts redraws all on each tick | Cap chart at 120–180 entries for the new metrics; use same ring buffer pattern as thermal history | Perceptible chart redraw lag after 20–30 minutes of continuous use |
+| `UIDeviceBatteryLevelDidChange` observer doing synchronous heavy work | Battery state changes occasionally but handler runs on unspecified queue; data race in Swift 6 strict mode | Register observer with `queue: .main`; keep handler lightweight | Silent data race — detected by Thread Sanitizer, not crash at runtime |
+| Using `host_statistics` (32-bit) instead of `host_statistics64` for memory | Correct on iOS 17 and earlier; `host_statistics64` is required for accurate stats on 64-bit devices and current iOS | Use `host_statistics64` with `HOST_VM_INFO64` — the 64-bit version has been available since iOS 6 | Silent numeric truncation on large-RAM devices (4GB+ iPhones) |
+
+---
+
+## "Looks Done But Isn't" Checklist
+
+- [ ] **CPU % formula:** Verify idle ticks are in the denominator but NOT the numerator. Including idle in the numerator yields 95–100% at idle.
+- [ ] **First-sample guard:** UI shows "—" or "Warming up" for CPU on first display tick. A reading of 20–60% on first render is the zero-struct initialization bug.
+- [ ] **KERN_SUCCESS guard:** Every call to `host_statistics` and `host_statistics64` is guarded. Return value 4 means KERN_INVALID_ARGUMENT — the count formula is wrong.
+- [ ] **`vm_kernel_page_size` multiplication:** Memory bytes = page count × `vm_kernel_page_size` (16384), not × 4096 or × 1024.
+- [ ] **`free_count + speculative_count`:** Available memory uses both fields, not `free_count` alone. Validate within 10% of Xcode Memory Report.
+- [ ] **Battery monitoring lifecycle:** `isBatteryMonitoringEnabled = false` is called in `stopPolling()`. Background the app and verify Console shows no ongoing battery monitoring activity.
+- [ ] **`batteryLevel` guard:** UI displays "—" when `batteryLevel == -1.0` (monitoring not started or Simulator).
+- [ ] **Swift 6 clean build:** Zero non-sendable or actor-isolation warnings in the new metrics code path. `Product > Build` must be clean.
+- [ ] **Energy impact baseline:** Xcode Energy Gauge shows no more than one tier increase (Low → Fair acceptable; Low → High is not) after adding metrics polling to the existing 10s timer.
+- [ ] **EMA alpha tuning on device:** Under an artificial load spike, the smoothed CPU % responds visibly within 2 poll ticks (20 seconds). If it takes longer, alpha is too low.
+
+---
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Zero-struct `previousLoad` producing inflated first sample | LOW | Change type to `host_cpu_load_info_data_t?`, return nil on first call — 3 lines |
+| Background Task wrapping Mach call causes new actor-crossing errors | MEDIUM | Remove Task wrapper; move Mach call back to synchronous `@MainActor` path — 15–30 min |
+| Memory figure 30–50% below Instruments | LOW | Add `speculative_count` to free_count in the available-memory calculation — 1 line |
+| CPU % at 95–100% idle | LOW | Audit formula numerator; remove idle from numerator; verify subtraction uses previous sample not boot-cumulative |
+| `KERN_INVALID_ARGUMENT` from host_statistics | LOW | Fix count formula: add `/ MemoryLayout<integer_t>.size` to the size calculation |
+| Battery monitoring leaving energy footprint in background | LOW | Add `UIDevice.current.isBatteryMonitoringEnabled = false` to `stopPolling()` — 1 line |
+| UI thrashing / visible CPU label jitter | MEDIUM | Add EMA smoothing to display value; separate display cadence from data-collection cadence — 1–2 hours |
+| 5 new scalar `@Observable` properties causing redundant SwiftUI diffs | MEDIUM | Refactor into a `SystemMetrics` struct; update ViewModel and View reads — 2–4 hours |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+v1.2 phases: **Research** (probe all APIs, validate formulas on device), **Implement** (wire confirmed metrics into ViewModel and dashboard UI), **Polish** (smoothing, UX, energy validation).
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| Zero-struct `previousLoad` / inflated first sample | Research | First displayed CPU reading is "—", not a suspicious high value |
+| CPU formula numerator includes idle | Research | CPU label shows ~2–5% on an idle device, not 95%+ |
+| `KERN_SUCCESS` guard / wrong count formula | Research | `precondition(kr == KERN_SUCCESS)` passes on every call during development |
+| Non-sendable C struct / Swift 6 concurrency errors | Research | `Product > Build` zero concurrency warnings before any ViewModel integration |
+| `vm_statistics64` field misinterpretation | Research | Displayed available memory within 10% of Xcode Memory Report on physical device |
+| `vm_kernel_page_size` not used | Research | Memory in MB/GB, not in pages; cross-checked with Instruments |
+| `isBatteryMonitoringEnabled` lifecycle mismatch | Implement | stopPolling() sets it false; verified by Console log after backgrounding |
+| `UIDeviceBatteryLevelDidChange` for live display | Implement | Battery label updates every 10s alongside thermal state update |
+| Multiple `@Observable` scalars causing redundant diffs | Implement | All new metrics bundled in `SystemMetrics` struct before merging |
+| UI thrashing from raw CPU variance | Polish | CPU label does not jump more than 4 points between ticks under stable load |
+| EMA lag hiding genuine spikes | Polish | Simulated load spike (video encode) visible in CPU reading within 2 ticks (20s) |
+| Multi-metric chart performance at long sessions | Polish | Chart updates without perceptible lag after 30 minutes of continuous use on device |
 
 ---
 
 ## Sources
 
-- TrollStore GitHub (opa334): https://github.com/opa334/TrollStore — supported iOS versions, entitlement behavior, banned entitlements on A12+
-- TrollStore iOS 17.0.1+ compatibility statement: https://idevicecentral.com/tweaks/can-you-install-trollstore-on-ios-17-0-1-ios-18-3/
-- leminlimez IOPMPowerSource gist (entitlement + Temperature key): https://gist.github.com/leminlimez/ed3e3ee3a287c503c5b834acdc0dfcdc
-- Xcode 14 Single Size App Icon — Use Your Loaf: https://useyourloaf.com/blog/xcode-14-single-size-app-icon/
-- Apple — Configuring your app icon using an asset catalog: https://developer.apple.com/documentation/xcode/configuring-your-app-icon
-- Apple Energy Efficiency Guide for iOS Apps — Minimize Timer Use: https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/MinimizeTimerUse.html
-- Combine Timer RunLoop mode pitfall: https://www.kodeco.com/books/combine-asynchronous-programming-with-swift/v2.0/chapters/11-timers
-- IOKit error handling — Apple Developer Documentation: https://developer.apple.com/library/archive/documentation/DeviceDrivers/Conceptual/AccessingHardware/AH_Handling_Errors/AH_Handling_Errors.html
-- IOPMPowerSource header (darwin-xnu): https://github.com/apple/darwin-xnu/blob/main/iokit/IOKit/pwr_mgt/IOPMPowerSource.h
+- [Apple Developer Forums — Do we need to release the reference count on host port](https://developer.apple.com/forums/thread/725854) — confirms `mach_host_self()` is a special non-destructible port; `mach_port_deallocate` not required
+- [SystemKit/System.swift (beltex/SystemKit)](https://github.com/beltex/SystemKit/blob/master/SystemKit/System.swift) — reference implementation: tick delta pattern, struct allocation/deallocation, `processorLoadInfo` showing `mach_port_deallocate` on non-host ports
+- [CPU.swift gist (paalgyula)](https://gist.github.com/paalgyula/47c8e37f6785bed6634d1cc1fb5697bc) — CPU percentage formula: `(user + sys + nice) / (user + sys + nice + idle) * 100`
+- [Apple Developer Documentation — host_statistics64](https://developer.apple.com/documentation/kernel/1502863-host_statistics64) — official API docs
+- [Apple Developer Documentation — vm_statistics64_data_t](https://developer.apple.com/documentation/kernel/vm_statistics64_data_t) — memory struct fields including `speculative_count`
+- [Apple Developer Documentation — isBatteryMonitoringEnabled](https://developer.apple.com/documentation/uikit/uidevice/isbatterymonitoringenabled) — battery monitoring lifecycle; default is NO
+- [Apple Developer Documentation — Understanding and improving SwiftUI performance](https://developer.apple.com/documentation/Xcode/understanding-and-improving-swiftui-performance) — view redraw cost guidance
+- [Swift Forums — How to update SwiftUI many times a second while being performant](https://forums.swift.org/t/how-to-update-swiftui-many-times-a-second-while-being-performant/71249) — UI thrashing and debounce patterns
+- [Apple Energy Efficiency Guide for iOS Apps — Fundamental Concepts](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/FundamentalConcepts.html) — polling and energy cost principles; no specific interval thresholds published
+- [Swift.org — Common Swift 6 concurrency migration problems](https://www.swift.org/migration/documentation/swift-6-concurrency-migration-guide/commonproblems/) — non-sendable types, actor isolation, C interop patterns
+- [Hacking With Swift — Swift 6.0 complete concurrency](https://www.hackingwithswift.com/swift/6.0/concurrency) — Sendable enforcement and non-sendable closure captures
+- [Get virtual memory usage on iOS — gist (algal)](https://gist.github.com/algal/cd3b5dfc16c9d577846d96713f7fba40) — `vm_statistics64` usage pattern including `speculative_count`
+- [Apple Developer Documentation — host_cpu_load_info_t](https://developer.apple.com/documentation/kernel/host_cpu_load_info_t) — official struct reference
+- [Apple Developer Forums — how to get overall CPU utilization of iPhone](https://developer.apple.com/forums/thread/11393) — Apple engineer notes on `host_statistics` vs process-specific APIs
+
+---
+*Pitfalls research for: Termostato v1.2 — Mach kernel CPU/memory APIs, UIDevice battery, SwiftUI metrics display*
+*Researched: 2026-05-14*

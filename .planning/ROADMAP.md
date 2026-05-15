@@ -64,9 +64,9 @@ Plans:
   4. TabView with Thermal, CPU, Memory tabs is implemented (DASH-01, DASH-02 satisfied here per D-03)
 **Plans**: 3 plans
 Plans:
-- [ ] 07-01-PLAN.md — Register new Swift files in pbxproj + create MetricsViewModel.swift + reduce TemperatureViewModel polling to 5s
-- [ ] 07-02-PLAN.md — Create ThermalView.swift, CPUView.swift, MemoryView.swift
-- [ ] 07-03-PLAN.md — Restructure ContentView to TabView container + on-device human verification
+- [x] 07-01-PLAN.md — Register new Swift files in pbxproj + create MetricsViewModel.swift + reduce TemperatureViewModel polling to 5s
+- [x] 07-02-PLAN.md — Create ThermalView.swift, CPUView.swift, MemoryView.swift
+- [x] 07-03-PLAN.md — Restructure ContentView to TabView container + on-device human verification
 
 ### Phase 8: Dashboard Tabs
 **Goal**: Users can navigate between Thermal, CPU, and Memory views using a TabView, with no regression to existing thermal functionality

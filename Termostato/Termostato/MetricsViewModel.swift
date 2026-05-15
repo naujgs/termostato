@@ -51,14 +51,18 @@ final class MetricsViewModel {
                 await self.tick()
             }
         }
+        #if DEBUG
         print("[Termostato] MetricsViewModel polling started.")
+        #endif
     }
 
     /// Cancel polling task. Call when scenePhase becomes .background.
     func stopPolling() {
         pollingTask?.cancel()
         pollingTask = nil
+        #if DEBUG
         print("[Termostato] MetricsViewModel polling stopped.")
+        #endif
     }
 
     // MARK: - Tick (D-11)

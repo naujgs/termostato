@@ -117,7 +117,9 @@ final class TemperatureViewModel {
         updateThermalState()
         Task { await requestNotificationPermission() }   // D-09
         Task { await refreshNotificationStatus() }        // D-13
+        #if DEBUG
         print("[Termostato] Polling started.")
+        #endif
     }
 
     /// Cancel the polling timer. Call when scenePhase becomes .background.
@@ -133,7 +135,9 @@ final class TemperatureViewModel {
             self.backgroundTaskID = .invalid
         }
         backgroundTaskID = task
+        #if DEBUG
         print("[Termostato] Polling stopped. Background task \(task.rawValue) started.")
+        #endif
     }
 
     // MARK: - Private
@@ -145,7 +149,9 @@ final class TemperatureViewModel {
             history.removeFirst()
         }
         history.append(reading)
+        #if DEBUG
         print("[Termostato] thermalState = \(thermalStateDescription)")
+        #endif
         checkAndFireNotification()   // Phase 3 foreground notification gate
     }
 
@@ -169,10 +175,14 @@ final class TemperatureViewModel {
                 .requestAuthorization(options: [.alert, .sound])
             notificationsAuthorized = granted
             if !granted {
+                #if DEBUG
                 print("[Termostato] Notification permission denied.")
+                #endif
             }
         } catch {
+            #if DEBUG
             print("[Termostato] Notification auth error: \(error)")
+            #endif
             notificationsAuthorized = false
         }
     }
@@ -213,7 +223,9 @@ final class TemperatureViewModel {
             }
             lastAlertedState = state          // set cooldown (D-04)
             guard notificationsAuthorized else {
+                #if DEBUG
                 print("[Termostato] Notification skipped — permission not granted.")
+                #endif
                 return
             }
             let levelName = (state == .serious) ? "Serious" : "Critical"
@@ -227,7 +239,9 @@ final class TemperatureViewModel {
     /// Reads current state, applies D-06 gate, schedules notification.
     /// Does NOT call updateThermalState() — must not corrupt session history ring buffer.
     private func handleBackgroundThermalChange() {
+        #if DEBUG
         print("[Termostato] Background thermal change received.")
+        #endif
         // Re-read from ProcessInfo (D-08) — do not use self.thermalState which reflects last foreground read.
         let state = ProcessInfo.processInfo.thermalState
         let isElevated = (state == .serious || state == .critical)
@@ -260,7 +274,9 @@ final class TemperatureViewModel {
         )
         Task {
             try? await UNUserNotificationCenter.current().add(request)
+            #if DEBUG
             print("[Termostato] Overheating notification scheduled for \(level).")
+            #endif
         }
     }
 

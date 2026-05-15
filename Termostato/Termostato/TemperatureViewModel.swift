@@ -108,7 +108,7 @@ final class TemperatureViewModel {
         }
         // Guard: don't double-start.
         timerCancellable?.cancel()
-        timerCancellable = Timer.publish(every: 10, on: .main, in: .common)
+        timerCancellable = Timer.publish(every: 5, on: .main, in: .common)
             .autoconnect()
             .sink { [self] _ in
                 self.updateThermalState()

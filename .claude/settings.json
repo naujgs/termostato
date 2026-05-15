@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); path=$(echo \"$input\" | jq -r '.path'); branch=$(echo \"$input\" | jq -r '.branch // empty'); git -C /Users/jgs/workspace/Termostato worktree add \"$path\" ${branch:+-b \"$branch\"} 2>/dev/null || git -C /Users/jgs/workspace/Termostato worktree add \"$path\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "WorktreeRemove": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); path=$(echo \"$input\" | jq -r '.path'); git -C /Users/jgs/workspace/Termostato worktree remove --force \"$path\" 2>/dev/null || true",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

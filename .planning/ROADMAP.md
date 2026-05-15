@@ -50,8 +50,8 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
   4. If system-wide APIs are blocked, the graceful-fallback path (hide system-wide gauge, show per-process only) is confirmed as the design decision
 **Plans**: 2 plans
 Plans:
-- [ ] 06-01-PLAN.md — Build probe engine (SystemMetrics.swift) and debug sheet UI (MachProbeDebugView.swift)
-- [ ] 06-02-PLAN.md — On-device probe checkpoint and verdict documentation (06-VERDICTS.md)
+- [x] 06-01-PLAN.md — Build probe engine (SystemMetrics.swift) and debug sheet UI (MachProbeDebugView.swift)
+- [x] 06-02-PLAN.md — On-device probe checkpoint and verdict documentation (06-VERDICTS.md)
 
 ### Phase 7: Metrics Integration
 **Goal**: Users can see live CPU and memory readings from all confirmed-accessible data sources

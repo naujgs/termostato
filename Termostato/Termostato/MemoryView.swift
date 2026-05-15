@@ -2,45 +2,46 @@ import SwiftUI
 
 struct MemoryView: View {
 
-    // Received from ContentView — MetricsViewModel owned at ContentView level (D-07).
     var metrics: MetricsViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        ZStack {
+            Color.tmBg.ignoresSafeArea()
 
-            Text("Memory")
-                .font(.title2)
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
+            VStack(alignment: .leading, spacing: TMSpacing.s4) {
+                Text(LocalizedStringKey("tab.memory"))
+                    .font(.system(size: 26, weight: .semibold))
+                    .tracking(-0.5)
+                    .foregroundStyle(Color.tmFg1)
+                    .padding(.horizontal, TMSpacing.s5)
+                    .padding(.top, TMSpacing.s4)
 
-            // App memory card (D-05, MEM-01) — resident_size in MB
-            MetricCardView(
-                label: "App Memory",
-                value: metrics.appMemoryMB > 0
-                    ? "\(metrics.appMemoryMB) MB"
-                    : "—",
-                tooltip: "tooltip.app_memory"
-            )
+                MetricCardView(
+                    label: "metric.app_memory",
+                    value: metrics.appMemoryMB > 0
+                        ? "\(metrics.appMemoryMB) MB"
+                        : "—",
+                    tooltip: "tooltip.app_memory"
+                )
 
-            // System memory — free GB (D-05, MEM-02)
-            MetricCardView(
-                label: "Memory Free",
-                value: metrics.sysMemoryFreeGB > 0
-                    ? String(format: "%.1f GB", metrics.sysMemoryFreeGB)
-                    : "—",
-                tooltip: "tooltip.memory_free"
-            )
+                MetricCardView(
+                    label: "metric.memory_free",
+                    value: metrics.sysMemoryFreeGB > 0
+                        ? String(format: "%.1f GB", metrics.sysMemoryFreeGB)
+                        : "—",
+                    tooltip: "tooltip.memory_free"
+                )
 
-            // System memory — used GB (D-05, MEM-02)
-            MetricCardView(
-                label: "Memory Used",
-                value: metrics.sysMemoryUsedGB > 0
-                    ? String(format: "%.1f GB", metrics.sysMemoryUsedGB)
-                    : "—",
-                tooltip: "tooltip.memory_used"
-            )
+                MetricCardView(
+                    label: "metric.memory_used",
+                    value: metrics.sysMemoryUsedGB > 0
+                        ? String(format: "%.1f GB", metrics.sysMemoryUsedGB)
+                        : "—",
+                    tooltip: "tooltip.memory_used"
+                )
 
-            Spacer()
+                Spacer()
+            }
         }
     }
 }

@@ -17,17 +17,17 @@ struct ContentView: View {
         TabView(selection: $selectedTab) {
             ThermalView(viewModel: vm)
                 .tabItem {
-                    Label("Thermal", systemImage: "thermometer.medium")
+                    Label(LocalizedStringKey("tab.thermal"), systemImage: "thermometer.medium")
                 }
                 .tag(0)
             CPUView(metrics: metrics)
                 .tabItem {
-                    Label("CPU", systemImage: "cpu")
+                    Label(LocalizedStringKey("tab.cpu"), systemImage: "cpu")
                 }
                 .tag(1)
             MemoryView(metrics: metrics)
                 .tabItem {
-                    Label("Memory", systemImage: "memorychip")
+                    Label(LocalizedStringKey("tab.memory"), systemImage: "memorychip")
                 }
                 .tag(2)
         }

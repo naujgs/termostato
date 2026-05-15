@@ -1,172 +1,142 @@
+//
+//  ThermalView.swift
+//  Termostato
+//
+
 import SwiftUI
 import Charts
 import UIKit
 
 struct ThermalView: View {
 
-    // Received from ContentView — @Observable class passed by value reference (Pitfall 4 mitigation).
-    // ContentView owns TemperatureViewModel as @State; ThermalView reads it without re-owning.
     var viewModel: TemperatureViewModel
 
-    // Debug sheet state lives here per D-02 — trigger is the long-press on "Termostato" title.
     @State private var showDebugSheet = false
-    @State private var showThermalTooltip = false
     @Environment(\.openURL) private var openURL
 
+    private var currentTime: String {
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm"
+        return f.string(from: Date())
+    }
+
+    private var currentLevel: ThermalLevel {
+        ThermalLevel(viewModel.thermalState)
+    }
+
+    /// Bridge from TemperatureViewModel's ThermalReading ring buffer to the chart's Sample type.
+    private var samples: [Sample] {
+        viewModel.history.enumerated().map { i, r in
+            Sample(id: i, timestamp: r.timestamp, level: ThermalLevel(r.state))
+        }
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        ZStack {
+            Color.tmBg.ignoresSafeArea()
 
-            // App title — long press to open Mach API debug sheet (D-02, D-05)
-            Text("Termostato")
-                .font(.title2)
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .padding(.bottom, 16)
-                .onLongPressGesture {
-                    showDebugSheet = true
+            VStack(alignment: .leading, spacing: 0) {
+
+                // Header: wordmark + point count
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Termostato")
+                        .font(.system(size: 26, weight: .semibold))
+                        .tracking(-0.5)
+                        .foregroundStyle(Color.tmFg1)
+                        .onLongPressGesture { showDebugSheet = true }
+                        .sensoryFeedback(.impact, trigger: showDebugSheet)
+                    Spacer()
+                    Text("\(viewModel.history.count) \(String(localized: "label.pts", table: "Localizable"))")
+                        .font(.tmLabelMono)
+                        .tracking(0.6)
+                        .monospacedDigit()
+                        .foregroundStyle(Color.tmFg3)
                 }
-                .sensoryFeedback(.impact, trigger: showDebugSheet)
+                .padding(.horizontal, TMSpacing.s5)
+                .padding(.top, TMSpacing.s2)
+                .padding(.bottom, TMSpacing.s4)
 
-            // MARK: - Thermal State Badge
-            RoundedRectangle(cornerRadius: 20)
-                .fill(badgeColor)
-                .overlay(alignment: .topTrailing) {
+                // Hero badge
+                ThermalBadgeView(state: currentLevel, secondary: nil, time: currentTime)
+                    .padding(.horizontal, TMSpacing.s5)
+
+                // Permission-denied banner
+                if !viewModel.notificationsAuthorized {
                     Button {
-                        showThermalTooltip = true
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            openURL(url)
+                        }
                     } label: {
-                        Image(systemName: "info.circle")
-                            .foregroundStyle(badgeTextColor.opacity(0.7))
+                        HStack(spacing: 8) {
+                            Image(systemName: "bell.slash")
+                            Text(LocalizedStringKey("banner.notifications_disabled"))
+                                .font(.tmFootnote)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.footnote)
+                        }
+                        .foregroundStyle(Color.tmFg3)
+                        .padding(.horizontal, TMSpacing.s5)
+                        .padding(.vertical, 10)
                     }
-                    .padding(12)
-                    .popover(isPresented: $showThermalTooltip) {
-                        Text("tooltip.thermal_state" as LocalizedStringKey)
-                            .font(.footnote)
-                            .padding()
-                            .presentationCompactAdaptation(.popover)
-                    }
+                    .buttonStyle(.plain)
                 }
-                .overlay {
-                    Text(thermalStateLabel)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundStyle(badgeTextColor)
-                }
-                .padding(.horizontal, 16)
-                .frame(minHeight: 100)
 
-            // MARK: - Permission-denied banner
-            if !viewModel.notificationsAuthorized {
-                Button {
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
-                        openURL(url)
+                // Chart section
+                if viewModel.history.isEmpty {
+                    VStack(spacing: TMSpacing.s2) {
+                        Text(LocalizedStringKey("chart.warming_up"))
+                            .font(.headline)
+                            .foregroundStyle(Color.tmFg2)
+                        Text(LocalizedStringKey("chart.empty_hint"))
+                            .font(.caption)
+                            .foregroundStyle(Color.tmFg3)
+                            .multilineTextAlignment(.center)
                     }
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "bell.slash")
-                        Text("Notifications disabled — tap to open Settings")
-                            .font(.footnote)
+                    .frame(maxWidth: .infinity, minHeight: 200)
+                    .padding(.horizontal, TMSpacing.s5)
+                    .padding(.top, TMSpacing.s6)
+                } else {
+                    // Chart header
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(LocalizedStringKey("chart.header"))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.tmFg2)
                         Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.footnote)
+                        Text(LocalizedStringKey("chart.resolution"))
+                            .font(.tmMonoCallout)
+                            .monospacedDigit()
+                            .foregroundStyle(Color.tmFg4)
                     }
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                }
-                .buttonStyle(.plain)
-            }
+                    .padding(.horizontal, TMSpacing.s5)
+                    .padding(.top, TMSpacing.s6)
+                    .padding(.bottom, TMSpacing.s2)
 
-            Spacer().frame(height: 32)
+                    // Chart
+                    SessionChartView(samples: samples)
+                        .padding(.horizontal, TMSpacing.s5)
+                        .frame(maxHeight: 160)
 
-            // MARK: - Session History Step-Chart
-            if viewModel.history.isEmpty {
-                VStack(spacing: 8) {
-                    Text("Warming up...")
-                        .font(.headline)
-                    Text("Thermal data will appear here once the first reading arrives.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity, minHeight: 200)
-                .padding(.horizontal, 16)
-            } else {
-                Chart(viewModel.history) { reading in
-                    LineMark(
-                        x: .value("Time", reading.timestamp),
-                        y: .value("Level", reading.yValue),
-                        series: .value("History", "all")
-                    )
-                    .interpolationMethod(.stepEnd)
-                    .foregroundStyle(by: .value("State", reading.stateName))
-                }
-                .chartForegroundStyleScale([
-                    "Nominal":  Color.green,
-                    "Fair":     Color.yellow,
-                    "Serious":  Color.orange,
-                    "Critical": Color.red
-                ])
-                .chartYScale(domain: 0...3)
-                .chartYAxis {
-                    AxisMarks(values: [0, 1, 2, 3]) { value in
-                        AxisGridLine()
-                        AxisValueLabel {
-                            switch value.as(Int.self) {
-                            case 0: Text("Nominal").font(.caption)
-                            case 1: Text("Fair").font(.caption)
-                            case 2: Text("Serious").font(.caption)
-                            case 3: Text("Critical").font(.caption)
-                            default: EmptyView()
+                    // Legend
+                    HStack(spacing: TMSpacing.s4) {
+                        ForEach(ThermalLevel.allCases) { lvl in
+                            HStack(spacing: 6) {
+                                Circle().fill(lvl.color).frame(width: 7, height: 7)
+                                Text(lvl.label)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(Color.tmFg2)
                             }
                         }
                     }
+                    .padding(.horizontal, TMSpacing.s5)
+                    .padding(.top, TMSpacing.s3)
                 }
-                .chartXAxis(.hidden)
-                .frame(minHeight: 200)
-                .padding(.horizontal, 16)
-                .animation(.easeInOut(duration: 0.3), value: viewModel.history.count)
 
-                Text("Session history (last 60 min)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 4)
+                Spacer(minLength: 0)
             }
-
-            Spacer()
         }
         .sheet(isPresented: $showDebugSheet) {
             MachProbeDebugView()
-        }
-    }
-
-    // MARK: - Badge helpers (verbatim from ContentView)
-
-    private var badgeColor: Color {
-        switch viewModel.thermalState {
-        case .nominal:   return .green
-        case .fair:      return .yellow
-        case .serious:   return .orange
-        case .critical:  return .red
-        @unknown default: return .green
-        }
-    }
-
-    private var badgeTextColor: Color {
-        switch viewModel.thermalState {
-        case .nominal, .fair:      return .primary
-        case .serious, .critical:  return .white
-        @unknown default:          return .primary
-        }
-    }
-
-    private var thermalStateLabel: String {
-        switch viewModel.thermalState {
-        case .nominal:   return "Nominal"
-        case .fair:      return "Fair"
-        case .serious:   return "Serious"
-        case .critical:  return "Critical"
-        @unknown default: return "Unknown"
         }
     }
 }

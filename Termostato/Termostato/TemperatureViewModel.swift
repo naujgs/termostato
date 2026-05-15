@@ -198,7 +198,7 @@ final class TemperatureViewModel {
     private func registerNotificationCategories() {
         let dismissAction = UNNotificationAction(
             identifier: "dismissAlert",
-            title: "Dismiss",
+            title: String(localized: "notification.action_dismiss"),
             options: [.destructive]
         )
         let thermalCategory = UNNotificationCategory(
@@ -262,8 +262,8 @@ final class TemperatureViewModel {
     /// rather than stacking (belt-and-suspenders alongside the D-06 cooldown gate).
     private func scheduleOverheatNotification(level: String) {
         let content = UNMutableNotificationContent()
-        content.title = "iPhone Overheating"                                     // D-01
-        content.body = "Thermal state: \(level) — performance may be limited"   // D-02
+        content.title = String(localized: "notification.title")                                            // D-01
+        content.body = String(format: String(localized: "notification.body"), level)  // D-02
         content.sound = .default
         content.categoryIdentifier = "thermalAlert"                              // D-03
 

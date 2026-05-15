@@ -20,6 +20,10 @@
 		AA000013100000000000000A /* CPUView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000013100000000000000B /* CPUView.swift */; };
 		AA000014100000000000000A /* MemoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000014100000000000000B /* MemoryView.swift */; };
 		AA000015100000000000000A /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AA000015100000000000000B /* Localizable.xcstrings */; };
+		AA000016100000000000000A /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000016100000000000000B /* DesignTokens.swift */; };
+		AA000017100000000000000A /* ThermalState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000017100000000000000B /* ThermalState.swift */; };
+		AA000018100000000000000A /* ThermalBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000018100000000000000B /* ThermalBadgeView.swift */; };
+		AA000019100000000000000A /* SessionChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000019100000000000000B /* SessionChartView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +42,10 @@
 		AA000013100000000000000B /* CPUView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUView.swift; sourceTree = "<group>"; };
 		AA000014100000000000000B /* MemoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryView.swift; sourceTree = "<group>"; };
 		AA000015100000000000000B /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		AA000016100000000000000B /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+		AA000017100000000000000B /* ThermalState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalState.swift; sourceTree = "<group>"; };
+		AA000018100000000000000B /* ThermalBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalBadgeView.swift; sourceTree = "<group>"; };
+		AA000019100000000000000B /* SessionChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionChartView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +90,10 @@
 				AA000013100000000000000B /* CPUView.swift */,
 				AA000014100000000000000B /* MemoryView.swift */,
 				AA000015100000000000000B /* Localizable.xcstrings */,
+				AA000016100000000000000B /* DesignTokens.swift */,
+				AA000017100000000000000B /* ThermalState.swift */,
+				AA000018100000000000000B /* ThermalBadgeView.swift */,
+				AA000019100000000000000B /* SessionChartView.swift */,
 				AA000003000000000000000B /* Assets.xcassets */,
 				AA000006000000000000000B /* Termostato-Bridging-Header.h */,
 			);
@@ -178,6 +190,10 @@
 				AA000012100000000000000A /* ThermalView.swift in Sources */,
 				AA000013100000000000000A /* CPUView.swift in Sources */,
 				AA000014100000000000000A /* MemoryView.swift in Sources */,
+				AA000016100000000000000A /* DesignTokens.swift in Sources */,
+				AA000017100000000000000A /* ThermalState.swift in Sources */,
+				AA000018100000000000000A /* ThermalBadgeView.swift in Sources */,
+				AA000019100000000000000A /* SessionChartView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

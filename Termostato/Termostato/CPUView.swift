@@ -2,67 +2,67 @@ import SwiftUI
 
 struct CPUView: View {
 
-    // Received from ContentView — MetricsViewModel owned at ContentView level (D-07).
     var metrics: MetricsViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        ZStack {
+            Color.tmBg.ignoresSafeArea()
 
-            Text("CPU")
-                .font(.title2)
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
+            VStack(alignment: .leading, spacing: TMSpacing.s4) {
+                Text(LocalizedStringKey("tab.cpu"))
+                    .font(.system(size: 26, weight: .semibold))
+                    .tracking(-0.5)
+                    .foregroundStyle(Color.tmFg1)
+                    .padding(.horizontal, TMSpacing.s5)
+                    .padding(.top, TMSpacing.s4)
 
-            // App CPU card (D-04, CPU-01)
-            MetricCardView(
-                label: "App CPU",
-                value: metrics.appCPUPercent > 0
-                    ? String(format: "%.1f%%", metrics.appCPUPercent)
-                    : "—",
-                tooltip: "tooltip.app_cpu"
-            )
+                MetricCardView(
+                    label: "metric.app_cpu",
+                    value: metrics.appCPUPercent > 0
+                        ? String(format: "%.1f%%", metrics.appCPUPercent)
+                        : "—",
+                    tooltip: "tooltip.app_cpu"
+                )
 
-            // System CPU card (D-04, CPU-02)
-            MetricCardView(
-                label: "System CPU",
-                value: metrics.sysCPUPercent > 0
-                    ? String(format: "%.1f%%", metrics.sysCPUPercent)
-                    : "—",
-                tooltip: "tooltip.sys_cpu"
-            )
+                MetricCardView(
+                    label: "metric.sys_cpu",
+                    value: metrics.sysCPUPercent > 0
+                        ? String(format: "%.1f%%", metrics.sysCPUPercent)
+                        : "—",
+                    tooltip: "tooltip.sys_cpu"
+                )
 
-            Spacer()
+                Spacer()
+            }
         }
     }
 }
 
 // MARK: - MetricCardView
-// Reusable card component. Matches thermal badge aesthetic (D-04, D-05):
-// RoundedRectangle cornerRadius 20, systemGray6 fill, label above value.
-// Shared by CPUView and MemoryView (same Swift module — no duplicate symbol).
+// Shared by CPUView and MemoryView. Uses design tokens.
 struct MetricCardView: View {
-    let label: String
+    let label: LocalizedStringKey
     let value: String
     var tooltip: LocalizedStringKey? = nil
 
     @State private var showTooltip = false
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 20)
-            .fill(Color(.systemGray6))
+        RoundedRectangle(cornerRadius: TMRadius.panel, style: .continuous)
+            .fill(Color.tmSurface1)
             .overlay(alignment: .topTrailing) {
                 if tooltip != nil {
                     Button {
                         showTooltip = true
                     } label: {
                         Image(systemName: "info.circle")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.tmFg3)
                     }
-                    .padding(12)
+                    .padding(TMSpacing.s3)
                     .popover(isPresented: $showTooltip) {
                         if let tooltip {
                             Text(tooltip)
-                                .font(.footnote)
+                                .font(.tmFootnote)
                                 .padding()
                                 .presentationCompactAdaptation(.popover)
                         }
@@ -70,17 +70,18 @@ struct MetricCardView: View {
                 }
             }
             .overlay {
-                VStack(spacing: 4) {
+                VStack(spacing: TMSpacing.s1) {
                     Text(label)
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
+                        .font(.tmLabelMono)
+                        .tracking(0.6)
+                        .foregroundStyle(Color.tmFg3)
                     Text(value)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                        .font(.system(size: 34, weight: .bold, design: .monospaced))
+                        .foregroundStyle(Color.tmFg1)
                         .monospacedDigit()
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, TMSpacing.s5)
             .frame(minHeight: 100)
     }
 }

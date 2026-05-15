@@ -102,6 +102,329 @@
           }
         }
       }
+    },
+    "tab.thermal" : {
+      "comment" : "Tab bar label for thermal state tab",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thermal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Térmica"
+          }
+        }
+      }
+    },
+    "tab.cpu" : {
+      "comment" : "Tab bar label for CPU tab",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU"
+          }
+        }
+      }
+    },
+    "tab.memory" : {
+      "comment" : "Tab bar label for memory tab",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memory"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memoria"
+          }
+        }
+      }
+    },
+    "label.live" : {
+      "comment" : "Live indicator pip inside the thermal badge",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LIVE"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EN VIVO"
+          }
+        }
+      }
+    },
+    "label.pts" : {
+      "comment" : "Abbreviation for data points count in chart header",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PTS"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PTS"
+          }
+        }
+      }
+    },
+    "chart.header" : {
+      "comment" : "Chart section header label",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "📊 Your Last Hour At A Glance"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "📊 Tu última hora de un vistazo"
+          }
+        }
+      }
+    },
+    "chart.resolution" : {
+      "comment" : "Chart time window and polling interval label",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "60 min · 10 s"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "60 min · 10 s"
+          }
+        }
+      }
+    },
+    "chart.warming_up" : {
+      "comment" : "Headline shown while waiting for first thermal reading",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warming up..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calentando..."
+          }
+        }
+      }
+    },
+    "chart.empty_hint" : {
+      "comment" : "Subtext shown while waiting for first thermal reading",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thermal data will appear here once the first reading arrives."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los datos térmicos aparecerán aquí cuando llegue la primera lectura."
+          }
+        }
+      }
+    },
+    "chart.caption" : {
+      "comment" : "Caption below the session history chart",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session history (last 60 min)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Historial de sesión (últimos 60 min)"
+          }
+        }
+      }
+    },
+    "banner.notifications_disabled" : {
+      "comment" : "Banner shown when notification permission is denied",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications disabled — tap to open Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notificaciones desactivadas — toca para abrir Ajustes"
+          }
+        }
+      }
+    },
+    "metric.app_cpu" : {
+      "comment" : "Label for App CPU metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App CPU"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU de la app"
+          }
+        }
+      }
+    },
+    "metric.sys_cpu" : {
+      "comment" : "Label for System CPU metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System CPU"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU del sistema"
+          }
+        }
+      }
+    },
+    "metric.app_memory" : {
+      "comment" : "Label for App Memory metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Memory"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memoria de la app"
+          }
+        }
+      }
+    },
+    "metric.memory_free" : {
+      "comment" : "Label for Memory Free metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memory Free"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memoria libre"
+          }
+        }
+      }
+    },
+    "metric.memory_used" : {
+      "comment" : "Label for Memory Used metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memory Used"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memoria usada"
+          }
+        }
+      }
+    },
+    "notification.title" : {
+      "comment" : "Local notification title when device overheats",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iPhone Overheating"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iPhone sobrecalentándose"
+          }
+        }
+      }
+    },
+    "notification.body" : {
+      "comment" : "Local notification body (%@ is the thermal level name, e.g. Serious)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thermal state: %@ — performance may be limited"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estado térmico: %@ — el rendimiento puede estar limitado"
+          }
+        }
+      }
+    },
+    "notification.action_dismiss" : {
+      "comment" : "Dismiss action on the thermal alert notification",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dismiss"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descartar"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

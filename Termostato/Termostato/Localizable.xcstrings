@@ -11,16 +11,6 @@
         }
       }
     },
-    "%lld %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld %2$@"
-          }
-        }
-      }
-    },
     "banner.notifications_disabled" : {
       "comment" : "Banner shown when notification permission is denied",
       "localizations" : {
@@ -146,6 +136,7 @@
     },
     "label.pts" : {
       "comment" : "Abbreviation for data points count in chart header",
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -372,6 +363,74 @@
     "Termostato" : {
 
     },
+    "thermal.level.critical" : {
+      "comment" : "Localized display label for the Critical thermal state",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Critical"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crítico"
+          }
+        }
+      }
+    },
+    "thermal.level.fair" : {
+      "comment" : "Localized display label for the Fair thermal state",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fair"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regular"
+          }
+        }
+      }
+    },
+    "thermal.level.nominal" : {
+      "comment" : "Localized display label for the Nominal thermal state",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nominal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Normal"
+          }
+        }
+      }
+    },
+    "thermal.level.serious" : {
+      "comment" : "Localized display label for the Serious thermal state",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serious"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serio"
+          }
+        }
+      }
+    },
     "tooltip.app_cpu" : {
       "comment" : "Tooltip for App CPU metric card",
       "localizations" : {
@@ -472,50 +531,6 @@
             "state" : "translated",
             "value" : "Nivel de calor del dispositivo según iOS. Normal = frío, Regular = templado, Serio = caliente (rendimiento reducido), Crítico = muy caliente (riesgo de apagado)."
           }
-        }
-      }
-    },
-    "thermal.level.nominal" : {
-      "comment" : "Localized display label for the Nominal thermal state",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : { "state" : "translated", "value" : "Nominal" }
-        },
-        "es" : {
-          "stringUnit" : { "state" : "translated", "value" : "Normal" }
-        }
-      }
-    },
-    "thermal.level.fair" : {
-      "comment" : "Localized display label for the Fair thermal state",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : { "state" : "translated", "value" : "Fair" }
-        },
-        "es" : {
-          "stringUnit" : { "state" : "translated", "value" : "Regular" }
-        }
-      }
-    },
-    "thermal.level.serious" : {
-      "comment" : "Localized display label for the Serious thermal state",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : { "state" : "translated", "value" : "Serious" }
-        },
-        "es" : {
-          "stringUnit" : { "state" : "translated", "value" : "Serio" }
-        }
-      }
-    },
-    "thermal.level.critical" : {
-      "comment" : "Localized display label for the Critical thermal state",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : { "state" : "translated", "value" : "Critical" }
-        },
-        "es" : {
-          "stringUnit" : { "state" : "translated", "value" : "Crítico" }
         }
       }
     }

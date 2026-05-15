@@ -2,21 +2,15 @@
 
 ## What This Is
 
-Termostato is a personal iOS app (sideloaded, not App Store) that monitors the iPhone's thermal state in real time. It displays the current thermal state (Nominal / Fair / Serious / Critical) on a color-coded badge, a session-length step-chart history, and delivers local push-notification alerts when the device overheats — whether the app is foregrounded or backgrounded.
+Termostato is a personal iOS app (sideloaded, not App Store) that monitors iPhone health in real time. It shows thermal state (Nominal / Fair / Serious / Critical) with a color-coded badge and session history chart, plus live CPU usage (per-app and system-wide) and memory metrics (app footprint, system free/used) in a three-tab dashboard. It delivers local push-notification alerts when the device overheats, whether the app is foregrounded or backgrounded.
 
 ## Core Value
 
-The phone's thermal state, always visible at a glance — with an alert before it gets dangerously hot.
+The phone's actual health — thermal state, CPU load, and memory pressure — always visible at a glance, with an alert before it gets dangerously hot.
 
-## Current Milestone: v1.2 Sensor Research & Data Expansion
+## Current State: v1.2 Shipped — Planning v1.3
 
-**Goal:** Systematically map every thermal/system data source accessible on iOS 18 under free sideload, then build a richer health dashboard from whatever proves accessible.
-
-**Target features:**
-- Research phase: probe every relevant iOS API and data path for temperature, CPU load, memory, and battery info
-- Document what's accessible vs blocked with reproducible evidence
-- Implement all confirmed-accessible data sources in the UI
-- Possible gains: CPU usage %, memory pressure, battery level/state, richer thermal state context
+All three milestones shipped. v1.2 added the full sensor dashboard (CPU + memory via Mach APIs) and confirmed all data sources accessible under free Apple ID sideload on iOS 18. Next milestone (v1.3) TBD — see Future requirements below.
 
 ## Current State
 

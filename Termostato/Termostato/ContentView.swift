@@ -6,25 +6,30 @@ struct ContentView: View {
     // ThermalView, CPUView, MemoryView receive them as parameters — they do not re-own.
     @State private var vm = TemperatureViewModel()
     @State private var metrics = MetricsViewModel()
+    @State private var selectedTab: Int = 0
 
     // D-06: SwiftUI scenePhase drives lifecycle for both ViewModels.
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         // D-01: TabView container with three tabs: Thermal, CPU, Memory.
-        TabView {
+        // D-03: Explicit selectedTab binding so SC5 (tab selection persists within session) is testable.
+        TabView(selection: $selectedTab) {
             ThermalView(viewModel: vm)
                 .tabItem {
                     Label("Thermal", systemImage: "thermometer.medium")
                 }
+                .tag(0)
             CPUView(metrics: metrics)
                 .tabItem {
                     Label("CPU", systemImage: "cpu")
                 }
+                .tag(1)
             MemoryView(metrics: metrics)
                 .tabItem {
                     Label("Memory", systemImage: "memorychip")
                 }
+                .tag(2)
         }
         // D-10: Both ViewModels start/stop together on scene transitions.
         .onChange(of: scenePhase) { _, newPhase in

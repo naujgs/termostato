@@ -95,14 +95,68 @@
 
 ---
 
+---
+
+## Milestone: v1.2 — Sensor Research & Data Expansion
+
+**Shipped:** 2026-05-15
+**Phases:** 3 (06–08) | **Plans:** 8 | **Commits:** 45
+**Timeline:** 2026-05-15 → 2026-05-15 (1 day)
+
+### What Was Built
+
+- `SystemMetrics.swift` — Mach API probe engine with `host_statistics`, `host_statistics64`, `task_info`, `task_threads` calls bridged from C; 3-sample verdict sequencing; `MachProbeDebugView` debug sheet (long-press title to open)
+- `06-VERDICTS.md` — on-device evidence that all 4 Mach APIs return `KERN_SUCCESS` under free Apple ID sideload on iOS 18; graceful-fallback design confirmed unnecessary
+- `MetricsViewModel` — `@Observable @MainActor` class polling App CPU%, System CPU%, App Memory MB, System Memory free/used GB every 5s via `Task.detached` + nonisolated Mach calls
+- `ThermalView`, `CPUView`, `MemoryView` — three dedicated tab content views with metric cards
+- `ContentView` refactored from single-screen VStack to `TabView(selection: $selectedTab)` container — explicit `@State private var selectedTab: Int = 0` binding with `.tag(0/1/2)` per tab
+- SC5 verified on device: tab selection persists within session, no metric resets, no chart clears, no debug sheet regression
+- `#if DEBUG` guards around all `print` statements in both ViewModels; `onChange(of: scenePhase)` guarded on `oldPhase == .background`
+
+### What Worked
+
+- **Proof-of-concept-first for Mach APIs** — Phase 6 ran a dedicated probe before committing to implementation. Discovering that all 4 APIs return `KERN_SUCCESS` (vs the expected graceful-fallback) was a positive surprise that simplified Phase 7 significantly.
+- **Human checkpoint for UAT** — the `autonomous: false` checkpoint plan for on-device verification (Phases 07-03 and 08-02) worked well as a forcing function. Having a structured 7-step test sequence prevented vague "it looks fine" approvals.
+- **Code review catching real issues post-execution** — `gsd-code-reviewer` found the `onChange` false-positive (firing on `inactive→active` not just `background→active`). Not a regression, but a pre-existing behaviour worth fixing before it caused a bug report.
+- **REQUIREMENTS.md checkboxes correct at milestone close** — for the first time across all three milestones, traceability was correct without manual correction. Phase 08-03's doc-close plan handled it atomically.
+
+### What Was Inefficient
+
+- **Worktree contention on Wave 1** — parallel worktree dispatch for a single-plan wave caused a lock collision (`null` branch artifact left behind). Single-plan waves don't need parallelism; the overhead added friction with no benefit.
+- **`One-liner:` placeholder in MILESTONES.md** — Phases 06 and 07 summaries used a different heading format than expected by `summary-extract`. Required manual fix at milestone close. Consistent one-liner frontmatter in all summaries would prevent this.
+- **DASH-01/02 traceability confusion** — these requirements were initially attributed to Phase 8 in REQUIREMENTS.md but actually satisfied in Phase 7 (per 07-CONTEXT.md D-03). Required a correction commit in 08-03. A clearer rule about where requirements get credited at plan time would avoid this.
+
+### Patterns Established
+
+- **Mach API access under free Apple ID sideload on iOS 18:** `host_statistics`, `host_statistics64`, `task_info`, `task_threads` all return `KERN_SUCCESS`. No special entitlements required. `host_statistics` tick counter reads 0 on Apple Silicon — compute CPU% from `user + idle + nice` fields only.
+- **`MemoryLayout<T>.size` instead of C macros:** `MACH_TASK_BASIC_INFO_COUNT` and `THREAD_BASIC_INFO_COUNT` don't bridge to Swift — use `MemoryLayout<mach_task_basic_info>.size / MemoryLayout<natural_t>.size`.
+- **Explicit `TabView(selection:)` is the testable pattern:** implicit SwiftUI tab selection is hard to verify; `@State private var selectedTab: Int = 0` + `.tag(N)` makes SC criteria concrete.
+- **`onChange(of:)` two-argument form:** use `onChange(of: scenePhase) { old, new in }` and guard on `old == .background` to avoid firing `startPolling()` on transient inactive→active transitions.
+
+### Key Lessons
+
+1. Single-plan waves should skip worktree isolation — the overhead is pure friction with no parallelism benefit.
+2. Every SUMMARY.md should include a `**One-liner:**` field in its body (not just the heading) so `summary-extract` can find it reliably.
+3. Attribute requirements to the phase where they are *first satisfied*, not the phase where they are *closed in docs*. Decide this at plan time, not closeout time.
+4. The Mach API probe-first pattern is reusable: whenever a private or undocumented API is involved, build a debug-sheet probe in its own phase before wiring it into production code.
+
+### Cost Observations
+
+- Sessions: 1 focused session
+- Model: Sonnet 4.6 throughout
+- Notable: The proof-of-concept phase (Phase 6) resolved the highest-risk unknown (API access) before any production code was written — same pattern that paid off in v1.0 with IOKit. Front-loading unknowns continues to be the highest-ROI planning decision.
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v1.0 | v1.1 |
-|--------|------|------|
-| Phases | 3 | 2 |
-| Plans | 6 | 2 |
-| Swift LOC | 494 | 494 (no change) |
-| Timeline | 2 days | 1 day |
-| Device verified | ✓ all phases | ✓ all phases |
-| Blocking bugs found in UAT | 1 (background process suspension) | 0 |
-| Recurring issue | REQUIREMENTS.md checkboxes not ticked | REQUIREMENTS.md checkboxes not ticked |
+| Metric | v1.0 | v1.1 | v1.2 |
+|--------|------|------|------|
+| Phases | 3 | 2 | 3 |
+| Plans | 6 | 2 | 8 |
+| Swift LOC | 494 | 494 | 1,369 |
+| Timeline | 2 days | 1 day | 1 day |
+| Device verified | ✓ all phases | ✓ all phases | ✓ all phases |
+| Blocking bugs found in UAT | 1 (background process suspension) | 0 | 0 |
+| REQUIREMENTS.md correct at close | ✗ manual fix needed | ✗ manual fix needed | ✓ first time clean |
+| Recurring pattern | Spike high-risk APIs first | — | Spike high-risk APIs first |

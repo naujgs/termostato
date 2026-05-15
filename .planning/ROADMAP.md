@@ -42,57 +42,7 @@ Full details: `.planning/milestones/v1.2-ROADMAP.md`
 
 </details>
 
-## Phase Details
-
-### Phase 6: Mach API Proof-of-Concept
-**Goal**: Determine which Mach system APIs (host_statistics, host_statistics64, task_info) return valid data on iOS 18 under free Apple ID sideload
-**Depends on**: Phase 5
-**Requirements**: CPU-02, MEM-02
-**Success Criteria** (what must be TRUE):
-  1. A minimal SystemMetrics.swift file exists with C-bridged Mach API calls for host_statistics (CPU) and host_statistics64 (memory)
-  2. Running the app on a physical iOS 18 device logs whether each Mach call succeeds or returns KERN_FAILURE / zeroed data
-  3. A clear per-API verdict (accessible / blocked / degraded) is documented so Phase 7 knows what to integrate
-  4. If system-wide APIs are blocked, the graceful-fallback path (hide system-wide gauge, show per-process only) is confirmed as the design decision
-**Plans**: 2 plans
-Plans:
-- [x] 06-01-PLAN.md — Build probe engine (SystemMetrics.swift) and debug sheet UI (MachProbeDebugView.swift)
-- [x] 06-02-PLAN.md — On-device probe checkpoint and verdict documentation (06-VERDICTS.md)
-
-### Phase 7: Metrics Integration
-**Goal**: Users can see live CPU and memory readings from all confirmed-accessible data sources
-**Depends on**: Phase 6
-**Requirements**: CPU-01, MEM-01, CPU-02, MEM-02, DASH-01, DASH-02
-**Success Criteria** (what must be TRUE):
-  1. User can see Termostato's own CPU usage displayed as a percentage, updating on the polling interval
-  2. User can see Termostato's own memory footprint displayed in MB, updating on the polling interval
-  3. System-wide CPU % and memory (used/free) are displayed (Phase 6 confirmed all 4 APIs KERN_SUCCESS)
-  4. TabView with Thermal, CPU, Memory tabs is implemented (DASH-01, DASH-02 satisfied here per D-03)
-**Plans**: 3 plans
-Plans:
-- [x] 07-01-PLAN.md — Register new Swift files in pbxproj + create MetricsViewModel.swift + reduce TemperatureViewModel polling to 5s
-- [x] 07-02-PLAN.md — Create ThermalView.swift, CPUView.swift, MemoryView.swift
-- [x] 07-03-PLAN.md — Restructure ContentView to TabView container + on-device human verification
-
-### Phase 8: Dashboard Tabs
-**Goal**: Users can navigate between Thermal, CPU, and Memory views using a TabView, with no regression to existing thermal functionality
-**Depends on**: Phase 7
-**Requirements**: DASH-01, DASH-02
-**Success Criteria** (what must be TRUE):
-  1. User can switch between Thermal, CPU, and Memory tabs via a TabView at the bottom of the screen
-  2. The Thermal tab displays the existing color-coded badge and session-history step-chart exactly as before (no visual or behavioral regression)
-  3. The CPU tab displays per-process CPU usage (and system-wide if accessible) with appropriate labeling
-  4. The Memory tab displays per-process memory footprint (and system-wide if accessible) with appropriate labeling
-  5. Tab selection persists during a session -- switching away and back does not reset data or scroll position
-**Plans**: 3 plans
-Plans:
-- [x] 08-01-PLAN.md — Add selectedTab @State binding to ContentView (SC5)
-- [x] 08-02-PLAN.md — On-device SC5 tab persistence UAT checkpoint
-- [x] 08-03-PLAN.md — Requirements and milestone close-out docs
-
 ## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 6 -> 7 -> 8
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -103,4 +53,6 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | 5. Visual Polish | v1.1 | 1/1 | Complete | 2026-05-13 |
 | 6. Mach API Proof-of-Concept | v1.2 | 2/2 | Complete | 2026-05-14 |
 | 7. Metrics Integration | v1.2 | 3/3 | Complete | 2026-05-15 |
-| 8. Dashboard Tabs | v1.2 | 3/3 | Complete   | 2026-05-15 |
+| 8. Dashboard Tabs | v1.2 | 3/3 | Complete | 2026-05-15 |
+
+*Full phase details archived in `.planning/milestones/`*

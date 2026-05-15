@@ -2,13 +2,14 @@
 
 ## Milestones
 
-- ✅ **v1.0 MVP** — Phases 1–3 (shipped 2026-05-13)
-- ✅ **v1.1 Visual Improvements** — Phases 4–5 (shipped 2026-05-13)
+- ✅ **v1.0 MVP** — Phases 1-3 (shipped 2026-05-13)
+- ✅ **v1.1 Visual Improvements** — Phases 4-5 (shipped 2026-05-13)
+- 🚧 **v1.2 Sensor Research & Data Expansion** — Phases 6-8 (in progress)
 
 ## Phases
 
 <details>
-<summary>✅ v1.0 MVP (Phases 1–3) — SHIPPED 2026-05-13</summary>
+<summary>✅ v1.0 MVP (Phases 1-3) — SHIPPED 2026-05-13</summary>
 
 - [x] **Phase 1: Foundation & Device Validation** — 3/3 plans — confirmed thermalState pipeline + IOKit decision on physical device
 - [x] **Phase 2: Dashboard UI** — 1/1 plan — SwiftUI badge + step-chart dashboard verified on device
@@ -19,7 +20,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 </details>
 
 <details>
-<summary>✅ v1.1 Visual Improvements (Phases 4–5) — SHIPPED 2026-05-13</summary>
+<summary>✅ v1.1 Visual Improvements (Phases 4-5) — SHIPPED 2026-05-13</summary>
 
 - [x] **Phase 4: Polling** — 1/1 plan — polling reduced to 10s, ring buffer expanded to 360 (60 min history)
 - [x] **Phase 5: Visual Polish** — 1/1 plan — custom app icon wired into asset catalog, alpha-stripped
@@ -28,7 +29,55 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 
 </details>
 
+### 🚧 v1.2 Sensor Research & Data Expansion (In Progress)
+
+**Milestone Goal:** Systematically probe Mach system APIs on iOS 18 under free sideload, implement all confirmed-accessible CPU and memory metrics, and present them in a tabbed dashboard alongside existing thermal state.
+
+- [ ] **Phase 6: Mach API Proof-of-Concept** — Validate system-wide CPU and memory APIs on physical device
+- [ ] **Phase 7: Metrics Integration** — Wire per-process and system-wide metrics into the ViewModel
+- [ ] **Phase 8: Dashboard Tabs** — Refactor single-screen layout into TabView with Thermal, CPU, and Memory tabs
+
+## Phase Details
+
+### Phase 6: Mach API Proof-of-Concept
+**Goal**: Determine which Mach system APIs (host_statistics, host_statistics64, task_info) return valid data on iOS 18 under free Apple ID sideload
+**Depends on**: Phase 5
+**Requirements**: CPU-02, MEM-02
+**Success Criteria** (what must be TRUE):
+  1. A minimal SystemMetrics.swift file exists with C-bridged Mach API calls for host_statistics (CPU) and host_statistics64 (memory)
+  2. Running the app on a physical iOS 18 device logs whether each Mach call succeeds or returns KERN_FAILURE / zeroed data
+  3. A clear per-API verdict (accessible / blocked / degraded) is documented so Phase 7 knows what to integrate
+  4. If system-wide APIs are blocked, the graceful-fallback path (hide system-wide gauge, show per-process only) is confirmed as the design decision
+**Plans**: TBD
+
+### Phase 7: Metrics Integration
+**Goal**: Users can see live CPU and memory readings from all confirmed-accessible data sources
+**Depends on**: Phase 6
+**Requirements**: CPU-01, MEM-01
+**Success Criteria** (what must be TRUE):
+  1. User can see Termostato's own CPU usage displayed as a percentage, updating on the polling interval
+  2. User can see Termostato's own memory footprint displayed in MB, updating on the polling interval
+  3. If Phase 6 confirmed system-wide APIs as accessible, system-wide CPU % and memory (used/free) are also displayed
+  4. If Phase 6 confirmed system-wide APIs as blocked, those gauges are absent (not zeroed, not errored -- simply hidden)
+**Plans**: TBD
+
+### Phase 8: Dashboard Tabs
+**Goal**: Users can navigate between Thermal, CPU, and Memory views using a TabView, with no regression to existing thermal functionality
+**Depends on**: Phase 7
+**Requirements**: DASH-01, DASH-02
+**Success Criteria** (what must be TRUE):
+  1. User can switch between Thermal, CPU, and Memory tabs via a TabView at the bottom of the screen
+  2. The Thermal tab displays the existing color-coded badge and session-history step-chart exactly as before (no visual or behavioral regression)
+  3. The CPU tab displays per-process CPU usage (and system-wide if accessible) with appropriate labeling
+  4. The Memory tab displays per-process memory footprint (and system-wide if accessible) with appropriate labeling
+  5. Tab selection persists during a session -- switching away and back does not reset data or scroll position
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 6 -> 7 -> 8
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -37,3 +86,6 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 | 3. Alerts & Notification System | v1.0 | 2/2 | Complete | 2026-05-13 |
 | 4. Polling | v1.1 | 1/1 | Complete | 2026-05-13 |
 | 5. Visual Polish | v1.1 | 1/1 | Complete | 2026-05-13 |
+| 6. Mach API Proof-of-Concept | v1.2 | 0/? | Not started | - |
+| 7. Metrics Integration | v1.2 | 0/? | Not started | - |
+| 8. Dashboard Tabs | v1.2 | 0/? | Not started | - |

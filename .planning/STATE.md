@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Sensor Research & Data Expansion
-status: defining_requirements
-stopped_at: v1.2 milestone started — defining requirements
+status: ready_to_plan
+stopped_at: v1.2 roadmap created — ready to plan Phase 6
 last_updated: "2026-05-14T00:00:00.000Z"
 last_activity: 2026-05-14
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,36 +21,37 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** The phone's thermal state, always visible at a glance — with an alert before it gets dangerously hot.
-**Current focus:** v1.2 — Sensor Research & Data Expansion
+**Current focus:** Phase 6 — Mach API Proof-of-Concept
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-14
+Phase: 6 of 8 (Mach API Proof-of-Concept)
+Plan: 0 of ? in current phase
+Status: Ready to plan
+Last activity: 2026-05-14 — v1.2 roadmap created
 
 Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
-
-- Total plans completed: 2 (v1.1)
-- Average duration: —
-- Total execution time: 0.0 hours
+- Total plans completed: 8 (v1.0: 6, v1.1: 2)
+- Average duration: not tracked pre-v1.2
+- Total execution time: not tracked pre-v1.2
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 04 | 1 | - | - |
-| 5 | 1 | - | - |
+| 1. Foundation | 3 | — | — |
+| 2. Dashboard UI | 1 | — | — |
+| 3. Alerts | 2 | — | — |
+| 4. Polling | 1 | — | — |
+| 5. Visual Polish | 1 | — | — |
 
 **Recent Trend:**
-
-- Last 5 plans: —
-- Trend: —
+- Last 5 plans: durations not tracked
+- Trend: Stable
 
 *Updated after each plan completion*
 
@@ -61,18 +62,17 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- TrollStore numeric °C path permanently blocked — target device is iOS 18, TrollStore ceiling is iOS 17.0. Removed from v1.1 scope.
-- v1.1 scope is two small changes: ICON-01 (asset catalog PNG drop-in) and POLL-01 (two constant changes in TemperatureViewModel.swift + one label update in ContentView.swift)
-- Two phases chosen: Phase 4 (Polling — code-only, Simulator-verifiable) and Phase 5 (Visual Polish — icon asset, requires PNG to be prepared first)
+- [v1.2]: CPU-02 and MEM-02 are experimental — Mach system APIs (host_statistics, host_statistics64) may be blocked by iOS 18 sandbox. Phase 6 validates on device before UI work.
+- [v1.2]: Dashboard uses TabView (user choice), not ScrollView. Three tabs: Thermal, CPU, Memory.
+- [v1.2]: No battery features this milestone — deferred to v1.3+.
 
 ### Pending Todos
 
-- Plan Phase 4 (Polling) via `/gsd-plan-phase 4`
-- Prepare 1024×1024 PNG icon asset before executing Phase 5
+None yet.
 
 ### Blockers/Concerns
 
-None.
+- Phase 6 must run on physical device — Simulator cannot reproduce iOS 18 sandbox restrictions on Mach APIs.
 
 ### Quick Tasks Completed
 
@@ -82,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-13
-Stopped at: v1.1 roadmap created — Phase 4 defined
+Last session: 2026-05-14
+Stopped at: v1.2 roadmap created — ready to plan Phase 6
 Resume file: None

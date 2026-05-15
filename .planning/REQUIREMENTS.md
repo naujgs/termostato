@@ -36,7 +36,7 @@ Requirements for Sensor Research & Data Expansion milestone. Each maps to roadma
 
 | Feature | Reason |
 |---------|--------|
-| Numeric °C temperature | IOKit blocked by AMFI under free Apple ID; TrollStore requires iOS ≤17.0 (device is iOS 18) |
+| Numeric temperature | IOKit blocked by AMFI under free Apple ID; TrollStore requires iOS <=17.0 (device is iOS 18) |
 | GPU utilization | No public runtime API exists on iOS |
 | Per-core CPU breakdown | Unnecessary complexity for personal monitoring tool |
 | Battery features | User decision — deferred to v1.3+ |
@@ -46,18 +46,18 @@ Requirements for Sensor Research & Data Expansion milestone. Each maps to roadma
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CPU-01 | — | Pending |
-| CPU-02 | — | Pending |
-| MEM-01 | — | Pending |
-| MEM-02 | — | Pending |
-| DASH-01 | — | Pending |
-| DASH-02 | — | Pending |
+| CPU-01 | Phase 7 | Pending |
+| CPU-02 | Phase 6 | Pending |
+| MEM-01 | Phase 7 | Pending |
+| MEM-02 | Phase 6 | Pending |
+| DASH-01 | Phase 8 | Pending |
+| DASH-02 | Phase 8 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 6 total
-- Mapped to phases: 0
-- Unmapped: 6 ⚠️
+- Mapped to phases: 6
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-14*
-*Last updated: 2026-05-14 after initial definition*
+*Last updated: 2026-05-14 — traceability updated after roadmap creation*

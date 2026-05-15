@@ -20,7 +20,7 @@ The phone's thermal state, always visible at a glance — with an alert before i
 
 ## Current State
 
-**v1.2 complete — Phase 7 complete 2026-05-15**
+**v1.2 complete — Phase 8 complete 2026-05-15 (milestone shipped)**
 
 Phase 7 result: live CPU and memory metrics integrated into a 3-tab dashboard (Thermal / CPU / Memory). All 4 confirmed Mach APIs wired into MetricsViewModel. On-device verified — all tabs show live data, Thermal tab regression-free.
 
@@ -56,6 +56,8 @@ Phase 7 result: live CPU and memory metrics integrated into a 3-tab dashboard (T
 - ✓ Live App CPU%, System CPU%, App Memory MB, System Memory free/used GB in dashboard — *Phase 7*
 - ✓ TabView with Thermal, CPU, Memory tabs — *Phase 7*
 - ✓ Localized metric tooltips (en + es) — *Phase 7*
+- ✓ Tab selection persists within session (selectedTab @State binding, SC5) — *Phase 8*
+- ✓ All 6 v1.2 requirements satisfied and closed out — *Phase 8*
 
 ### Future (v1.3+)
 
@@ -99,10 +101,11 @@ Phase 7 result: live CPU and memory metrics integrated into a 3-tab dashboard (T
 | TrollStore for numeric °C | TrollStore requires iOS ≤17.0; target device is iOS 18 — path permanently blocked | ✗ Blocked — deferred indefinitely (device on iOS 18) |
 | 10s polling interval | 30s felt sluggish; 10s gives responsive updates without significant battery impact | ✓ Confirmed — verified on device, no perceptible battery impact |
 | Opaque RGB icon PNG | iOS icons must be fully opaque — alpha channel causes Xcode warnings and App Store rejection | ✓ Confirmed — alpha stripped via ffmpeg before commit |
+| Explicit selectedTab @State in ContentView | SwiftUI implicit selection is observable but not easily testable; explicit Int binding enables clear UAT verification | ✓ Confirmed — SC5 verified on device |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-05-15 — Phase 7 complete, metrics dashboard live*
+*Last updated: 2026-05-15 — Phase 8 complete, v1.2 milestone shipped*

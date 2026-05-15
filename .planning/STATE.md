@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Sensor Research & Data Expansion
-status: executing
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-05-15T20:35:34.419Z"
+status: complete
+stopped_at: Phase 8 complete — v1.2 milestone shipped
+last_updated: "2026-05-15T00:00:00Z"
 last_activity: 2026-05-15
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
-  percent: 88
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-14)
 
 ## Current Position
 
-Phase: 08 (dashboard-tabs) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
+Phase: 08 (dashboard-tabs) — COMPLETE
+Plan: Complete
+Status: v1.2 milestone complete
 Last activity: 2026-05-15
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 08-dashboard-tabs P01 | 1 | 1 tasks | 1 files |
 | Phase 08 P02 | 5 | 1 tasks | 0 files |
+| 8. Dashboard Tabs | 3 | — | — |
 
 ## Accumulated Context
 
@@ -73,6 +74,7 @@ Recent decisions affecting current work:
 - [v1.2]: No battery features this milestone — deferred to v1.3+.
 - [Phase 08-dashboard-tabs]: Tab selection integers follow Phase 7 order: 0=Thermal, 1=CPU, 2=Memory; .tag() after .tabItem{} per SwiftUI convention
 - [Phase 08]: SC5 confirmed passing on physical iOS 18 device — tab switching does not reset metric values, no regressions
+- [v1.2]: DASH-01 and DASH-02 were satisfied in Phase 7 (SC4), not Phase 8. Phase 8 only added selectedTab binding (SC5) and closed out docs.
 
 ### Pending Todos
 

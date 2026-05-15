@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1-3 (shipped 2026-05-13)
 - ✅ **v1.1 Visual Improvements** — Phases 4-5 (shipped 2026-05-13)
-- 🚧 **v1.2 Sensor Research & Data Expansion** — Phases 6-8 (in progress)
+- ✅ **v1.2 Sensor Research & Data Expansion** — Phases 6-8 (shipped 2026-05-15)
 
 ## Phases
 
@@ -29,13 +29,18 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 
 </details>
 
-### 🚧 v1.2 Sensor Research & Data Expansion (In Progress)
+<details>
+<summary>✅ v1.2 Sensor Research & Data Expansion (Phases 6-8) — SHIPPED 2026-05-15</summary>
 
 **Milestone Goal:** Systematically probe Mach system APIs on iOS 18 under free sideload, implement all confirmed-accessible CPU and memory metrics, and present them in a tabbed dashboard alongside existing thermal state.
 
 - [x] **Phase 6: Mach API Proof-of-Concept** — Validate system-wide CPU and memory APIs on physical device
 - [x] **Phase 7: Metrics Integration** — Wire per-process and system-wide metrics into the ViewModel
-- [ ] **Phase 8: Dashboard Tabs** — Refactor single-screen layout into TabView with Thermal, CPU, and Memory tabs
+- [x] **Phase 8: Dashboard Tabs** — Refactor single-screen layout into TabView with Thermal, CPU, and Memory tabs
+
+Full details: `.planning/milestones/v1.2-ROADMAP.md`
+
+</details>
 
 ## Phase Details
 
@@ -82,7 +87,7 @@ Plans:
 Plans:
 - [x] 08-01-PLAN.md — Add selectedTab @State binding to ContentView (SC5)
 - [x] 08-02-PLAN.md — On-device SC5 tab persistence UAT checkpoint
-- [ ] 08-03-PLAN.md — Requirements and milestone close-out docs
+- [x] 08-03-PLAN.md — Requirements and milestone close-out docs
 
 ## Progress
 
@@ -98,4 +103,4 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | 5. Visual Polish | v1.1 | 1/1 | Complete | 2026-05-13 |
 | 6. Mach API Proof-of-Concept | v1.2 | 2/2 | Complete | 2026-05-14 |
 | 7. Metrics Integration | v1.2 | 3/3 | Complete | 2026-05-15 |
-| 8. Dashboard Tabs | v1.2 | 2/3 | In Progress|  |
+| 8. Dashboard Tabs | v1.2 | 3/3 | Complete | 2026-05-15 |

@@ -32,11 +32,16 @@ struct ContentView: View {
                 .tag(2)
         }
         // D-10: Both ViewModels start/stop together on scene transitions.
-        .onChange(of: scenePhase) { _, newPhase in
+        // Guard on oldPhase so polling is only restarted on a genuine background→active
+        // return, not on every inactive→active transition (e.g. Notification Centre dismiss).
+        .onChange(of: scenePhase) { oldPhase, newPhase in
             switch newPhase {
             case .active:
-                vm.startPolling()
-                metrics.startPolling()
+                // Only restart polling when returning from background, not from inactive.
+                if oldPhase == .background {
+                    vm.startPolling()
+                    metrics.startPolling()
+                }
             case .background:
                 vm.stopPolling()
                 metrics.stopPolling()

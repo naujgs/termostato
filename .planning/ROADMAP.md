@@ -56,13 +56,17 @@ Plans:
 ### Phase 7: Metrics Integration
 **Goal**: Users can see live CPU and memory readings from all confirmed-accessible data sources
 **Depends on**: Phase 6
-**Requirements**: CPU-01, MEM-01
+**Requirements**: CPU-01, MEM-01, CPU-02, MEM-02, DASH-01, DASH-02
 **Success Criteria** (what must be TRUE):
   1. User can see Termostato's own CPU usage displayed as a percentage, updating on the polling interval
   2. User can see Termostato's own memory footprint displayed in MB, updating on the polling interval
-  3. If Phase 6 confirmed system-wide APIs as accessible, system-wide CPU % and memory (used/free) are also displayed
-  4. If Phase 6 confirmed system-wide APIs as blocked, those gauges are absent (not zeroed, not errored -- simply hidden)
-**Plans**: TBD
+  3. System-wide CPU % and memory (used/free) are displayed (Phase 6 confirmed all 4 APIs KERN_SUCCESS)
+  4. TabView with Thermal, CPU, Memory tabs is implemented (DASH-01, DASH-02 satisfied here per D-03)
+**Plans**: 3 plans
+Plans:
+- [ ] 07-01-PLAN.md — Register new Swift files in pbxproj + create MetricsViewModel.swift + reduce TemperatureViewModel polling to 5s
+- [ ] 07-02-PLAN.md — Create ThermalView.swift, CPUView.swift, MemoryView.swift
+- [ ] 07-03-PLAN.md — Restructure ContentView to TabView container + on-device human verification
 
 ### Phase 8: Dashboard Tabs
 **Goal**: Users can navigate between Thermal, CPU, and Memory views using a TabView, with no regression to existing thermal functionality
@@ -90,5 +94,5 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | 4. Polling | v1.1 | 1/1 | Complete | 2026-05-13 |
 | 5. Visual Polish | v1.1 | 1/1 | Complete | 2026-05-13 |
 | 6. Mach API Proof-of-Concept | v1.2 | 0/2 | Not started | - |
-| 7. Metrics Integration | v1.2 | 0/? | Not started | - |
+| 7. Metrics Integration | v1.2 | 0/3 | Not started | - |
 | 8. Dashboard Tabs | v1.2 | 0/? | Not started | - |

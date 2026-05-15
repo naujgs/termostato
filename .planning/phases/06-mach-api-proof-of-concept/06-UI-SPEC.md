@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-05-15
+revised: 2026-05-15
 ---
 
 # Phase 6 — UI Design Contract
@@ -43,13 +44,17 @@ Exceptions: none. Sheet is a simple vertical layout — only xs through xl neede
 
 ## Typography
 
+Two weights only: semibold (600) for titles and badges, regular (400) for body and detail text.
+
 | Role | Size | Weight | Line Height | SwiftUI Modifier |
 |------|------|--------|-------------|-----------------|
 | Sheet title | 20pt | semibold (600) | 1.2 | `.font(.title3).fontWeight(.semibold)` |
 | API name label | 17pt | semibold (600) | 1.3 | `.font(.headline)` |
-| Verdict badge text | 15pt | medium (500) | 1.0 | `.font(.subheadline).fontWeight(.medium)` |
+| Verdict badge text | 13pt | semibold (600) | 1.0 | `.font(.caption).fontWeight(.semibold)` |
 | Detail text (kern_return_t, raw values) | 13pt | regular (400) | 1.4 | `.font(.caption)` |
 | Progress label ("Sample 2 of 3") | 13pt | regular (400) | 1.4 | `.font(.caption)` |
+
+Rationale for badge text at 13pt semibold: The colored pill background provides the primary visual distinction for verdict badges, not font size. Using 13pt semibold differentiates badges from 13pt regular detail text through weight alone, while maintaining clear separation from the 17pt API name labels above. The previous 15pt was only 2pt from 17pt — an imperceptible difference at the same weight.
 
 ---
 
@@ -79,6 +84,16 @@ Accent reserved for: verdict status badges only — green/yellow/red map directl
 
 ---
 
+## Visual Focal Point
+
+The **verdict badge row list** is the primary visual anchor of the debug sheet. The four color-coded verdict cards are what the developer scans first after a probe completes. The executor must ensure:
+
+- Verdict rows receive the most visual weight (card backgrounds, colored pill badges, data density).
+- The "Run Probe" button is visually subordinate — standard `.borderedProminent` is sufficient but must not compete with the verdict row area.
+- The sheet title "Mach API Probe" is a static label, not a focal point. It orients the user but does not draw the eye.
+
+---
+
 ## Component Inventory
 
 ### 1. Debug Sheet Trigger (D-05)
@@ -95,7 +110,7 @@ Accent reserved for: verdict status badges only — green/yellow/red map directl
 - **Layout:** Single `VStack` with:
   1. Sheet title: "Mach API Probe"
   2. Progress indicator: "Sample {n} of 3" with `ProgressView` (linear, determinate)
-  3. Verdict list: 4 rows (one per API)
+  3. Verdict list: 4 rows (one per API) — **this is the focal point of the sheet**
   4. "Run Probe" button (bottom)
 
 ### 3. Verdict Row (repeated 4x)
@@ -120,7 +135,7 @@ One row per API probe. Each row is a rounded rectangle card containing:
 
 - Shape: `Capsule()` with horizontal padding 12pt, vertical padding 4pt
 - Fill: verdict color (green/yellow/red) or `Color(.tertiarySystemFill)` for "Pending"
-- Text: verdict label in `.subheadline` weight medium
+- Text: verdict label in 13pt semibold (600)
 - Text color: per Badge Text Color Rules above
 
 ### 5. Run Probe Button
@@ -153,7 +168,7 @@ One row per API probe. Each row is a rounded rectangle card containing:
 
 | State | Badge | Detail Text | Timestamp |
 |-------|-------|-------------|-----------|
-| Pending | Gray pill "Pending" | Em dash "—" | Em dash "—" |
+| Pending | Gray pill "Pending" | Em dash "---" | Em dash "---" |
 | Accessible | Green pill "Accessible" | kern_return_t + raw data values | HH:mm:ss |
 | Degraded | Yellow pill "Degraded" | kern_return_t + raw data (zeroed values noted) | HH:mm:ss |
 | Blocked | Red pill "Blocked" | kern_return_t error code | HH:mm:ss |

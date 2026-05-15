@@ -80,7 +80,7 @@ Plans:
   5. Tab selection persists during a session -- switching away and back does not reset data or scroll position
 **Plans**: 3 plans
 Plans:
-- [ ] 08-01-PLAN.md — Add selectedTab @State binding to ContentView (SC5)
+- [x] 08-01-PLAN.md — Add selectedTab @State binding to ContentView (SC5)
 - [ ] 08-02-PLAN.md — On-device SC5 tab persistence UAT checkpoint
 - [ ] 08-03-PLAN.md — Requirements and milestone close-out docs
 
@@ -98,4 +98,4 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | 5. Visual Polish | v1.1 | 1/1 | Complete | 2026-05-13 |
 | 6. Mach API Proof-of-Concept | v1.2 | 2/2 | Complete | 2026-05-14 |
 | 7. Metrics Integration | v1.2 | 3/3 | Complete | 2026-05-15 |
-| 8. Dashboard Tabs | v1.2 | 0/3 | Not started | - |
+| 8. Dashboard Tabs | v1.2 | 1/3 | In Progress|  |

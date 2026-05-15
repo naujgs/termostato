@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Sensor Research & Data Expansion
 status: executing
-stopped_at: Phase 8 context gathered
-last_updated: "2026-05-15T20:10:33.210Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-05-15T20:29:55.526Z"
 last_activity: 2026-05-15
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_plans: 8
+  completed_plans: 6
+  percent: 75
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** The phone's thermal state, always visible at a glance — with an alert before it gets dangerously hot.
-**Current focus:** Phase 07 — metrics-integration
+**Current focus:** Phase 08 — dashboard-tabs
 
 ## Current Position
 
-Phase: 8
-Plan: Not started
-Status: Executing Phase 07
+Phase: 08 (dashboard-tabs) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-05-15
 
 Progress: [░░░░░░░░░░] 0%
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: Stable
 
 *Updated after each plan completion*
+| Phase 08-dashboard-tabs P01 | 1 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,7 @@ Recent decisions affecting current work:
 - [v1.2]: CPU-02 and MEM-02 are experimental — Mach system APIs (host_statistics, host_statistics64) may be blocked by iOS 18 sandbox. Phase 6 validates on device before UI work.
 - [v1.2]: Dashboard uses TabView (user choice), not ScrollView. Three tabs: Thermal, CPU, Memory.
 - [v1.2]: No battery features this milestone — deferred to v1.3+.
+- [Phase 08-dashboard-tabs]: Tab selection integers follow Phase 7 order: 0=Thermal, 1=CPU, 2=Memory; .tag() after .tabItem{} per SwiftUI convention
 
 ### Pending Todos
 
@@ -86,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-15T20:10:33.202Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-dashboard-tabs/08-CONTEXT.md
+Last session: 2026-05-15T20:29:55.524Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: None

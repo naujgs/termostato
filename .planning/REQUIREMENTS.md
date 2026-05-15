@@ -19,8 +19,8 @@ Requirements for Sensor Research & Data Expansion milestone. Each maps to roadma
 
 ### Dashboard Layout
 
-- [ ] **DASH-01**: User can switch between Thermal, CPU, and Memory tabs
-- [ ] **DASH-02**: Existing thermal state badge and step-chart remain functional in the Thermal tab (no regression)
+- [x] **DASH-01**: User can switch between Thermal, CPU, and Memory tabs
+- [x] **DASH-02**: Existing thermal state badge and step-chart remain functional in the Thermal tab (no regression)
 
 ## Future Requirements (v1.3+)
 
@@ -50,8 +50,8 @@ Requirements for Sensor Research & Data Expansion milestone. Each maps to roadma
 | CPU-02 | Phase 6 | Pending |
 | MEM-01 | Phase 7 | Pending |
 | MEM-02 | Phase 6 | Pending |
-| DASH-01 | Phase 8 | Pending |
-| DASH-02 | Phase 8 | Pending |
+| DASH-01 | Phase 8 | Complete |
+| DASH-02 | Phase 8 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 6 total

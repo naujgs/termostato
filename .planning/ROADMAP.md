@@ -48,7 +48,10 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
   2. Running the app on a physical iOS 18 device logs whether each Mach call succeeds or returns KERN_FAILURE / zeroed data
   3. A clear per-API verdict (accessible / blocked / degraded) is documented so Phase 7 knows what to integrate
   4. If system-wide APIs are blocked, the graceful-fallback path (hide system-wide gauge, show per-process only) is confirmed as the design decision
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 06-01-PLAN.md — Build probe engine (SystemMetrics.swift) and debug sheet UI (MachProbeDebugView.swift)
+- [ ] 06-02-PLAN.md — On-device probe checkpoint and verdict documentation (06-VERDICTS.md)
 
 ### Phase 7: Metrics Integration
 **Goal**: Users can see live CPU and memory readings from all confirmed-accessible data sources
@@ -86,6 +89,6 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | 3. Alerts & Notification System | v1.0 | 2/2 | Complete | 2026-05-13 |
 | 4. Polling | v1.1 | 1/1 | Complete | 2026-05-13 |
 | 5. Visual Polish | v1.1 | 1/1 | Complete | 2026-05-13 |
-| 6. Mach API Proof-of-Concept | v1.2 | 0/? | Not started | - |
+| 6. Mach API Proof-of-Concept | v1.2 | 0/2 | Not started | - |
 | 7. Metrics Integration | v1.2 | 0/? | Not started | - |
 | 8. Dashboard Tabs | v1.2 | 0/? | Not started | - |

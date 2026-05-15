@@ -9,13 +9,13 @@ Requirements for Sensor Research & Data Expansion milestone. Each maps to roadma
 
 ### CPU Metrics
 
-- [ ] **CPU-01**: User can see Termostato's own CPU usage as a percentage gauge
-- [ ] **CPU-02**: User can see system-wide CPU usage if the iOS 18 sandbox permits (graceful fallback to hidden if `host_statistics` is blocked)
+- [x] **CPU-01**: User can see Termostato's own CPU usage as a percentage gauge
+- [x] **CPU-02**: User can see system-wide CPU usage if the iOS 18 sandbox permits (graceful fallback to hidden if `host_statistics` is blocked)
 
 ### Memory Metrics
 
-- [ ] **MEM-01**: User can see Termostato's memory footprint in MB
-- [ ] **MEM-02**: User can see system-wide memory usage (free/used) if the iOS 18 sandbox permits (graceful fallback to hidden if `host_statistics64` is blocked)
+- [x] **MEM-01**: User can see Termostato's memory footprint in MB
+- [x] **MEM-02**: User can see system-wide memory usage (free/used) if the iOS 18 sandbox permits (graceful fallback to hidden if `host_statistics64` is blocked)
 
 ### Dashboard Layout
 
@@ -46,12 +46,12 @@ Requirements for Sensor Research & Data Expansion milestone. Each maps to roadma
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CPU-01 | Phase 7 | Pending |
-| CPU-02 | Phase 6 | Pending |
-| MEM-01 | Phase 7 | Pending |
-| MEM-02 | Phase 6 | Pending |
-| DASH-01 | Phase 8 | Complete |
-| DASH-02 | Phase 8 | Complete |
+| CPU-01 | Phase 7 | Satisfied |
+| CPU-02 | Phase 6 | Satisfied |
+| MEM-01 | Phase 7 | Satisfied |
+| MEM-02 | Phase 6 | Satisfied |
+| DASH-01 | Phase 7 | Satisfied |
+| DASH-02 | Phase 7 | Satisfied |
 
 **Coverage:**
 - v1.2 requirements: 6 total
@@ -60,4 +60,4 @@ Requirements for Sensor Research & Data Expansion milestone. Each maps to roadma
 
 ---
 *Requirements defined: 2026-05-14*
-*Last updated: 2026-05-14 — traceability updated after roadmap creation*
+*Last updated: 2026-05-15 — v1.2 requirements satisfied: CPU-01/02 (Phase 7/6), MEM-01/02 (Phase 7/6), DASH-01/02 (Phase 7)*

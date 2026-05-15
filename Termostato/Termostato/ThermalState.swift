@@ -12,12 +12,23 @@ enum ThermalLevel: String, CaseIterable, Identifiable, Sendable {
     case nominal, fair, serious, critical
     var id: String { rawValue }
 
+    /// English-only name used in notification bodies (proper noun, not localized).
     var label: String {
         switch self {
         case .nominal:  return "Nominal"
         case .fair:     return "Fair"
         case .serious:  return "Serious"
         case .critical: return "Critical"
+        }
+    }
+
+    /// Localized display label — use this in all UI surfaces.
+    var localizedLabelKey: LocalizedStringKey {
+        switch self {
+        case .nominal:  return "thermal.level.nominal"
+        case .fair:     return "thermal.level.fair"
+        case .serious:  return "thermal.level.serious"
+        case .critical: return "thermal.level.critical"
         }
     }
 

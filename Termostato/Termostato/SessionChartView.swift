@@ -46,7 +46,7 @@ struct SessionChartView: View {
                 AxisGridLine().foregroundStyle(Color.tmHair)
                 AxisValueLabel {
                     if let i = value.as(Int.self) {
-                        Text(ThermalLevel.allCases[i].label)
+                        Text(ThermalLevel.allCases[i].localizedLabelKey)
                             .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(Color.tmFg3)
                     }

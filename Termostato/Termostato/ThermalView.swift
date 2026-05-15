@@ -46,11 +46,6 @@ struct ThermalView: View {
                         .onLongPressGesture { showDebugSheet = true }
                         .sensoryFeedback(.impact, trigger: showDebugSheet)
                     Spacer()
-                    Text("\(viewModel.history.count) \(String(localized: "label.pts", table: "Localizable"))")
-                        .font(.tmLabelMono)
-                        .tracking(0.6)
-                        .monospacedDigit()
-                        .foregroundStyle(Color.tmFg3)
                 }
                 .padding(.horizontal, TMSpacing.s5)
                 .padding(.top, TMSpacing.s2)
@@ -112,9 +107,8 @@ struct ThermalView: View {
                     .padding(.top, TMSpacing.s6)
                     .padding(.bottom, TMSpacing.s2)
 
-                    // Chart — expands to fill remaining screen height
+                    // Chart — full width, expands to fill remaining screen height
                     SessionChartView(samples: samples)
-                        .padding(.horizontal, TMSpacing.s5)
                         .frame(minHeight: 120, maxHeight: .infinity)
 
                     // Legend
@@ -122,7 +116,7 @@ struct ThermalView: View {
                         ForEach(ThermalLevel.allCases) { lvl in
                             HStack(spacing: 6) {
                                 Circle().fill(lvl.color).frame(width: 7, height: 7)
-                                Text(lvl.label)
+                                Text(lvl.localizedLabelKey)
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundStyle(Color.tmFg2)
                             }

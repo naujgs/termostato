@@ -1,189 +1,74 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "tooltip.app_cpu" : {
-      "comment" : "Tooltip for App CPU metric card",
+    "%@: %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "CPU time used by this app across all cores. High values mean the app is working hard."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tiempo de CPU usado por esta app en todos los núcleos. Valores altos indican que la app trabaja intensamente."
+            "state" : "new",
+            "value" : "%1$@: %2$@"
           }
         }
       }
     },
-    "tooltip.sys_cpu" : {
-      "comment" : "Tooltip for System CPU metric card",
+    "%lld %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Total CPU usage across all apps and system processes on the device."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uso total de CPU de todas las apps y procesos del sistema en el dispositivo."
+            "state" : "new",
+            "value" : "%1$lld %2$@"
           }
         }
       }
     },
-    "tooltip.app_memory" : {
-      "comment" : "Tooltip for App Memory metric card",
+    "banner.notifications_disabled" : {
+      "comment" : "Banner shown when notification permission is denied",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "RAM currently occupied by this app (resident memory). iOS may terminate apps that use too much."
+            "value" : "Notifications disabled — tap to open Settings"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "RAM ocupada actualmente por esta app (memoria residente). El sistema puede cerrar apps que usen demasiada."
+            "value" : "Notificaciones desactivadas — toca para abrir Ajustes"
           }
         }
       }
     },
-    "tooltip.memory_free" : {
-      "comment" : "Tooltip for Memory Free metric card",
+    "chart.caption" : {
+      "comment" : "Caption below the session history chart",
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "RAM available for apps right now. Low values may cause iOS to terminate background apps."
+            "value" : "Session history (last 60 min)"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "RAM disponible para apps en este momento. Valores bajos pueden hacer que el sistema cierre apps en segundo plano."
+            "value" : "Historial de sesión (últimos 60 min)"
           }
         }
       }
     },
-    "tooltip.memory_used" : {
-      "comment" : "Tooltip for Memory Used metric card",
+    "chart.empty_hint" : {
+      "comment" : "Subtext shown while waiting for first thermal reading",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "RAM currently in use by all apps and system processes combined."
+            "value" : "Thermal data will appear here once the first reading arrives."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "RAM en uso actualmente por todas las apps y procesos del sistema combinados."
-          }
-        }
-      }
-    },
-    "tooltip.thermal_state" : {
-      "comment" : "Tooltip for Thermal State badge",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Device heat level reported by iOS. Nominal = cool, Fair = warm, Serious = hot (performance throttled), Critical = very hot (shutdown risk)."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nivel de calor del dispositivo según iOS. Nominal = frío, Fair = templado, Serious = caliente (rendimiento reducido), Critical = muy caliente (riesgo de apagado)."
-          }
-        }
-      }
-    },
-    "tab.thermal" : {
-      "comment" : "Tab bar label for thermal state tab",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thermal"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Térmica"
-          }
-        }
-      }
-    },
-    "tab.cpu" : {
-      "comment" : "Tab bar label for CPU tab",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CPU"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CPU"
-          }
-        }
-      }
-    },
-    "tab.memory" : {
-      "comment" : "Tab bar label for memory tab",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Memory"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Memoria"
-          }
-        }
-      }
-    },
-    "label.live" : {
-      "comment" : "Live indicator pip inside the thermal badge",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LIVE"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "EN VIVO"
-          }
-        }
-      }
-    },
-    "label.pts" : {
-      "comment" : "Abbreviation for data points count in chart header",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PTS"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PTS"
+            "value" : "Los datos térmicos aparecerán aquí cuando llegue la primera lectura."
           }
         }
       }
@@ -239,56 +124,48 @@
         }
       }
     },
-    "chart.empty_hint" : {
-      "comment" : "Subtext shown while waiting for first thermal reading",
+    "Done" : {
+
+    },
+    "label.live" : {
+      "comment" : "Live indicator pip inside the thermal badge",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Thermal data will appear here once the first reading arrives."
+            "value" : "LIVE"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los datos térmicos aparecerán aquí cuando llegue la primera lectura."
+            "value" : "EN VIVO"
           }
         }
       }
     },
-    "chart.caption" : {
-      "comment" : "Caption below the session history chart",
+    "label.pts" : {
+      "comment" : "Abbreviation for data points count in chart header",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Session history (last 60 min)"
+            "value" : "PTS"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Historial de sesión (últimos 60 min)"
+            "value" : "PTS"
           }
         }
       }
     },
-    "banner.notifications_disabled" : {
-      "comment" : "Banner shown when notification permission is denied",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notifications disabled — tap to open Settings"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notificaciones desactivadas — toca para abrir Ajustes"
-          }
-        }
-      }
+    "level" : {
+
+    },
+    "Mach API Probe" : {
+
     },
     "metric.app_cpu" : {
       "comment" : "Label for App CPU metric card",
@@ -303,23 +180,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "CPU de la app"
-          }
-        }
-      }
-    },
-    "metric.sys_cpu" : {
-      "comment" : "Label for System CPU metric card",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System CPU"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CPU del sistema"
           }
         }
       }
@@ -375,19 +235,36 @@
         }
       }
     },
-    "notification.title" : {
-      "comment" : "Local notification title when device overheats",
+    "metric.sys_cpu" : {
+      "comment" : "Label for System CPU metric card",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iPhone Overheating"
+            "value" : "System CPU"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iPhone sobrecalentándose"
+            "value" : "CPU del sistema"
+          }
+        }
+      }
+    },
+    "notification.action_dismiss" : {
+      "comment" : "Dismiss action on the thermal alert notification",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dismiss"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descartar"
           }
         }
       }
@@ -409,20 +286,236 @@
         }
       }
     },
-    "notification.action_dismiss" : {
-      "comment" : "Dismiss action on the thermal alert notification",
+    "notification.title" : {
+      "comment" : "Local notification title when device overheats",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dismiss"
+            "value" : "iPhone Overheating"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descartar"
+            "value" : "iPhone sobrecalentándose"
           }
+        }
+      }
+    },
+    "Probe progress: sample %lld of 3" : {
+
+    },
+    "Probing..." : {
+
+    },
+    "Run Probe" : {
+
+    },
+    "Sample %lld of 3" : {
+
+    },
+    "t" : {
+
+    },
+    "tab.cpu" : {
+      "comment" : "Tab bar label for CPU tab",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU"
+          }
+        }
+      }
+    },
+    "tab.memory" : {
+      "comment" : "Tab bar label for memory tab",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memory"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memoria"
+          }
+        }
+      }
+    },
+    "tab.thermal" : {
+      "comment" : "Tab bar label for thermal state tab",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thermal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temperatura"
+          }
+        }
+      }
+    },
+    "Termostato" : {
+
+    },
+    "tooltip.app_cpu" : {
+      "comment" : "Tooltip for App CPU metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU time used by this app across all cores. High values mean the app is working hard."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo de CPU usado por esta app en todos los núcleos. Valores altos indican que la app trabaja intensamente."
+          }
+        }
+      }
+    },
+    "tooltip.app_memory" : {
+      "comment" : "Tooltip for App Memory metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM currently occupied by this app (resident memory). iOS may terminate apps that use too much."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM ocupada actualmente por esta app (memoria residente). El sistema puede cerrar apps que usen demasiada."
+          }
+        }
+      }
+    },
+    "tooltip.memory_free" : {
+      "comment" : "Tooltip for Memory Free metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM available for apps right now. Low values may cause iOS to terminate background apps."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM disponible para apps en este momento. Valores bajos pueden hacer que el sistema cierre apps en segundo plano."
+          }
+        }
+      }
+    },
+    "tooltip.memory_used" : {
+      "comment" : "Tooltip for Memory Used metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM currently in use by all apps and system processes combined."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM en uso actualmente por todas las apps y procesos del sistema combinados."
+          }
+        }
+      }
+    },
+    "tooltip.sys_cpu" : {
+      "comment" : "Tooltip for System CPU metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total CPU usage across all apps and system processes on the device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uso total de CPU de todas las apps y procesos del sistema en el dispositivo."
+          }
+        }
+      }
+    },
+    "tooltip.thermal_state" : {
+      "comment" : "Tooltip for Thermal State badge",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device heat level reported by iOS. Nominal = cool, Fair = warm, Serious = hot (performance throttled), Critical = very hot (shutdown risk)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nivel de calor del dispositivo según iOS. Normal = frío, Regular = templado, Serio = caliente (rendimiento reducido), Crítico = muy caliente (riesgo de apagado)."
+          }
+        }
+      }
+    },
+    "thermal.level.nominal" : {
+      "comment" : "Localized display label for the Nominal thermal state",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : { "state" : "translated", "value" : "Nominal" }
+        },
+        "es" : {
+          "stringUnit" : { "state" : "translated", "value" : "Normal" }
+        }
+      }
+    },
+    "thermal.level.fair" : {
+      "comment" : "Localized display label for the Fair thermal state",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : { "state" : "translated", "value" : "Fair" }
+        },
+        "es" : {
+          "stringUnit" : { "state" : "translated", "value" : "Regular" }
+        }
+      }
+    },
+    "thermal.level.serious" : {
+      "comment" : "Localized display label for the Serious thermal state",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : { "state" : "translated", "value" : "Serious" }
+        },
+        "es" : {
+          "stringUnit" : { "state" : "translated", "value" : "Serio" }
+        }
+      }
+    },
+    "thermal.level.critical" : {
+      "comment" : "Localized display label for the Critical thermal state",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : { "state" : "translated", "value" : "Critical" }
+        },
+        "es" : {
+          "stringUnit" : { "state" : "translated", "value" : "Crítico" }
         }
       }
     }

@@ -50,7 +50,7 @@ struct ThermalBadgeView: View {
 
             // Center — state label + optional secondary
             VStack(spacing: TMSpacing.s3) {
-                Text(state.label)
+                Text(state.localizedLabelKey)
                     .font(.tmBadgeLabel)
                     .tracking(-1.6)
                     .foregroundStyle(.white)

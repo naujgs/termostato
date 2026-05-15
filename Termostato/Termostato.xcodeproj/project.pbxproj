@@ -13,6 +13,8 @@
 		AA000005000000000000000A /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA000005000000000000000B /* IOKit.framework */; };
 		AA000007000000000000000A /* TemperatureViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000007000000000000000B /* TemperatureViewModel.swift */; };
 		AA000008000000000000000A /* NotificationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000008000000000000000B /* NotificationDelegate.swift */; };
+		AA000009000000000000000A /* SystemMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000009000000000000000B /* SystemMetrics.swift */; };
+		AA000010100000000000000A /* MachProbeDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000010100000000000000B /* MachProbeDebugView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +26,8 @@
 		AA000006000000000000000B /* Termostato-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Termostato-Bridging-Header.h"; sourceTree = "<group>"; };
 		AA000007000000000000000B /* TemperatureViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureViewModel.swift; sourceTree = "<group>"; };
 		AA000008000000000000000B /* NotificationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDelegate.swift; sourceTree = "<group>"; };
+		AA000009000000000000000B /* SystemMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMetrics.swift; sourceTree = "<group>"; };
+		AA000010100000000000000B /* MachProbeDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachProbeDebugView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +65,8 @@
 				AA000002000000000000000B /* ContentView.swift */,
 				AA000007000000000000000B /* TemperatureViewModel.swift */,
 				AA000008000000000000000B /* NotificationDelegate.swift */,
+				AA000009000000000000000B /* SystemMetrics.swift */,
+				AA000010100000000000000B /* MachProbeDebugView.swift */,
 				AA000003000000000000000B /* Assets.xcassets */,
 				AA000006000000000000000B /* Termostato-Bridging-Header.h */,
 			);
@@ -149,6 +155,8 @@
 				AA000002000000000000000A /* ContentView.swift in Sources */,
 				AA000007000000000000000A /* TemperatureViewModel.swift in Sources */,
 				AA000008000000000000000A /* NotificationDelegate.swift in Sources */,
+				AA000009000000000000000A /* SystemMetrics.swift in Sources */,
+				AA000010100000000000000A /* MachProbeDebugView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

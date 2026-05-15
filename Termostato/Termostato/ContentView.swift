@@ -11,15 +11,22 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
 
+    // Phase 6 debug sheet — triggered by long-pressing the app title (D-05)
+    @State private var showDebugSheet = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
 
-            // App title
+            // App title — long press to open Mach API debug sheet (D-05)
             Text("Termostato")
                 .font(.title2)
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 .padding(.bottom, 16)
+                .onLongPressGesture {
+                    showDebugSheet = true
+                }
+                .sensoryFeedback(.impact, trigger: showDebugSheet)
 
             // MARK: - Thermal State Badge (D-01)
             RoundedRectangle(cornerRadius: 20)
@@ -134,6 +141,9 @@ struct ContentView: View {
         }
         .onAppear {
             viewModel.startPolling()
+        }
+        .sheet(isPresented: $showDebugSheet) {
+            MachProbeDebugView()
         }
     }
 

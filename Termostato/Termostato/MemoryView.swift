@@ -18,7 +18,8 @@ struct MemoryView: View {
                 label: "App Memory",
                 value: metrics.appMemoryMB > 0
                     ? "\(metrics.appMemoryMB) MB"
-                    : "—"
+                    : "—",
+                tooltip: "tooltip.app_memory"
             )
 
             // System memory — free GB (D-05, MEM-02)
@@ -26,7 +27,8 @@ struct MemoryView: View {
                 label: "Memory Free",
                 value: metrics.sysMemoryFreeGB > 0
                     ? String(format: "%.1f GB", metrics.sysMemoryFreeGB)
-                    : "—"
+                    : "—",
+                tooltip: "tooltip.memory_free"
             )
 
             // System memory — used GB (D-05, MEM-02)
@@ -34,7 +36,8 @@ struct MemoryView: View {
                 label: "Memory Used",
                 value: metrics.sysMemoryUsedGB > 0
                     ? String(format: "%.1f GB", metrics.sysMemoryUsedGB)
-                    : "—"
+                    : "—",
+                tooltip: "tooltip.memory_used"
             )
 
             Spacer()

@@ -1,0 +1,108 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "tooltip.app_cpu" : {
+      "comment" : "Tooltip for App CPU metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU time used by this app across all cores. High values mean the app is working hard."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo de CPU usado por esta app en todos los núcleos. Valores altos indican que la app trabaja intensamente."
+          }
+        }
+      }
+    },
+    "tooltip.sys_cpu" : {
+      "comment" : "Tooltip for System CPU metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total CPU usage across all apps and system processes on the device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uso total de CPU de todas las apps y procesos del sistema en el dispositivo."
+          }
+        }
+      }
+    },
+    "tooltip.app_memory" : {
+      "comment" : "Tooltip for App Memory metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM currently occupied by this app (resident memory). iOS may terminate apps that use too much."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM ocupada actualmente por esta app (memoria residente). El sistema puede cerrar apps que usen demasiada."
+          }
+        }
+      }
+    },
+    "tooltip.memory_free" : {
+      "comment" : "Tooltip for Memory Free metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM available for apps right now. Low values may cause iOS to terminate background apps."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM disponible para apps en este momento. Valores bajos pueden hacer que el sistema cierre apps en segundo plano."
+          }
+        }
+      }
+    },
+    "tooltip.memory_used" : {
+      "comment" : "Tooltip for Memory Used metric card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM currently in use by all apps and system processes combined."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM en uso actualmente por todas las apps y procesos del sistema combinados."
+          }
+        }
+      }
+    },
+    "tooltip.thermal_state" : {
+      "comment" : "Tooltip for Thermal State badge",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device heat level reported by iOS. Nominal = cool, Fair = warm, Serious = hot (performance throttled), Critical = very hot (shutdown risk)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nivel de calor del dispositivo según iOS. Nominal = frío, Fair = templado, Serious = caliente (rendimiento reducido), Critical = muy caliente (riesgo de apagado)."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

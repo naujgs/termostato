@@ -19,6 +19,7 @@
 		AA000012100000000000000A /* ThermalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000012100000000000000B /* ThermalView.swift */; };
 		AA000013100000000000000A /* CPUView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000013100000000000000B /* CPUView.swift */; };
 		AA000014100000000000000A /* MemoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000014100000000000000B /* MemoryView.swift */; };
+		AA000015100000000000000A /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AA000015100000000000000B /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		AA000012100000000000000B /* ThermalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalView.swift; sourceTree = "<group>"; };
 		AA000013100000000000000B /* CPUView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUView.swift; sourceTree = "<group>"; };
 		AA000014100000000000000B /* MemoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryView.swift; sourceTree = "<group>"; };
+		AA000015100000000000000B /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +81,7 @@
 				AA000012100000000000000B /* ThermalView.swift */,
 				AA000013100000000000000B /* CPUView.swift */,
 				AA000014100000000000000B /* MemoryView.swift */,
+				AA000015100000000000000B /* Localizable.xcstrings */,
 				AA000003000000000000000B /* Assets.xcassets */,
 				AA000006000000000000000B /* Termostato-Bridging-Header.h */,
 			);
@@ -135,6 +138,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				es,
 				Base,
 			);
 			mainGroup = AA000022000000000000000A;
@@ -153,6 +157,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA000003000000000000000A /* Assets.xcassets in Resources */,
+				AA000015100000000000000A /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

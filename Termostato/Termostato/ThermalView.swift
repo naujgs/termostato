@@ -10,6 +10,7 @@ struct ThermalView: View {
 
     // Debug sheet state lives here per D-02 — trigger is the long-press on "Termostato" title.
     @State private var showDebugSheet = false
+    @State private var showThermalTooltip = false
     @Environment(\.openURL) private var openURL
 
     var body: some View {
@@ -29,6 +30,21 @@ struct ThermalView: View {
             // MARK: - Thermal State Badge
             RoundedRectangle(cornerRadius: 20)
                 .fill(badgeColor)
+                .overlay(alignment: .topTrailing) {
+                    Button {
+                        showThermalTooltip = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(badgeTextColor.opacity(0.7))
+                    }
+                    .padding(12)
+                    .popover(isPresented: $showThermalTooltip) {
+                        Text("tooltip.thermal_state" as LocalizedStringKey)
+                            .font(.footnote)
+                            .padding()
+                            .presentationCompactAdaptation(.popover)
+                    }
+                }
                 .overlay {
                     Text(thermalStateLabel)
                         .font(.largeTitle)

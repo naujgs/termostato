@@ -18,7 +18,8 @@ struct CPUView: View {
                 label: "App CPU",
                 value: metrics.appCPUPercent > 0
                     ? String(format: "%.1f%%", metrics.appCPUPercent)
-                    : "—"
+                    : "—",
+                tooltip: "tooltip.app_cpu"
             )
 
             // System CPU card (D-04, CPU-02)
@@ -26,7 +27,8 @@ struct CPUView: View {
                 label: "System CPU",
                 value: metrics.sysCPUPercent > 0
                     ? String(format: "%.1f%%", metrics.sysCPUPercent)
-                    : "—"
+                    : "—",
+                tooltip: "tooltip.sys_cpu"
             )
 
             Spacer()
@@ -41,10 +43,32 @@ struct CPUView: View {
 struct MetricCardView: View {
     let label: String
     let value: String
+    var tooltip: LocalizedStringKey? = nil
+
+    @State private var showTooltip = false
 
     var body: some View {
         RoundedRectangle(cornerRadius: 20)
             .fill(Color(.systemGray6))
+            .overlay(alignment: .topTrailing) {
+                if tooltip != nil {
+                    Button {
+                        showTooltip = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(12)
+                    .popover(isPresented: $showTooltip) {
+                        if let tooltip {
+                            Text(tooltip)
+                                .font(.footnote)
+                                .padding()
+                                .presentationCompactAdaptation(.popover)
+                        }
+                    }
+                }
+            }
             .overlay {
                 VStack(spacing: 4) {
                     Text(label)

@@ -15,6 +15,10 @@
 		AA000008000000000000000A /* NotificationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000008000000000000000B /* NotificationDelegate.swift */; };
 		AA000009000000000000000A /* SystemMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000009000000000000000B /* SystemMetrics.swift */; };
 		AA000010100000000000000A /* MachProbeDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000010100000000000000B /* MachProbeDebugView.swift */; };
+		AA000011100000000000000A /* MetricsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000011100000000000000B /* MetricsViewModel.swift */; };
+		AA000012100000000000000A /* ThermalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000012100000000000000B /* ThermalView.swift */; };
+		AA000013100000000000000A /* CPUView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000013100000000000000B /* CPUView.swift */; };
+		AA000014100000000000000A /* MemoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000014100000000000000B /* MemoryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +32,10 @@
 		AA000008000000000000000B /* NotificationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDelegate.swift; sourceTree = "<group>"; };
 		AA000009000000000000000B /* SystemMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMetrics.swift; sourceTree = "<group>"; };
 		AA000010100000000000000B /* MachProbeDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachProbeDebugView.swift; sourceTree = "<group>"; };
+		AA000011100000000000000B /* MetricsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsViewModel.swift; sourceTree = "<group>"; };
+		AA000012100000000000000B /* ThermalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalView.swift; sourceTree = "<group>"; };
+		AA000013100000000000000B /* CPUView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUView.swift; sourceTree = "<group>"; };
+		AA000014100000000000000B /* MemoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +75,10 @@
 				AA000008000000000000000B /* NotificationDelegate.swift */,
 				AA000009000000000000000B /* SystemMetrics.swift */,
 				AA000010100000000000000B /* MachProbeDebugView.swift */,
+				AA000011100000000000000B /* MetricsViewModel.swift */,
+				AA000012100000000000000B /* ThermalView.swift */,
+				AA000013100000000000000B /* CPUView.swift */,
+				AA000014100000000000000B /* MemoryView.swift */,
 				AA000003000000000000000B /* Assets.xcassets */,
 				AA000006000000000000000B /* Termostato-Bridging-Header.h */,
 			);
@@ -157,6 +169,10 @@
 				AA000008000000000000000A /* NotificationDelegate.swift in Sources */,
 				AA000009000000000000000A /* SystemMetrics.swift in Sources */,
 				AA000010100000000000000A /* MachProbeDebugView.swift in Sources */,
+				AA000011100000000000000A /* MetricsViewModel.swift in Sources */,
+				AA000012100000000000000A /* ThermalView.swift in Sources */,
+				AA000013100000000000000A /* CPUView.swift in Sources */,
+				AA000014100000000000000A /* MemoryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

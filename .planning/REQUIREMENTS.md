@@ -1,31 +1,63 @@
-# Requirements: Termostato v1.1 Visual Improvements
+# Requirements: Termostato
 
-## Milestone Requirements
+**Defined:** 2026-05-14
+**Core Value:** The phone's thermal state, always visible at a glance — with an alert before it gets dangerously hot.
 
-### Visual Identity
+## v1.2 Requirements
 
-- [ ] **ICON-01**: App displays a custom icon on the home screen (replacing the default Xcode placeholder)
+Requirements for Sensor Research & Data Expansion milestone. Each maps to roadmap phases.
 
-### Responsiveness
+### CPU Metrics
 
-- [ ] **POLL-01**: App polls thermal state every 10 seconds (reduced from 30s) with the step-chart history window remaining at 60 minutes
+- [x] **CPU-01**: User can see Termostato's own CPU usage as a percentage gauge
+- [x] **CPU-02**: User can see system-wide CPU usage if the iOS 18 sandbox permits (graceful fallback to hidden if `host_statistics` is blocked)
 
-## Future Requirements (v1.2+)
+### Memory Metrics
 
-- State duration display ("Serious for 4 min")
-- "Back to Nominal" recovery notification
-- Persistent session history across app restarts
+- [x] **MEM-01**: User can see Termostato's memory footprint in MB
+- [x] **MEM-02**: User can see system-wide memory usage (free/used) if the iOS 18 sandbox permits (graceful fallback to hidden if `host_statistics64` is blocked)
+
+### Dashboard Layout
+
+- [x] **DASH-01**: User can switch between Thermal, CPU, and Memory tabs
+- [x] **DASH-02**: Existing thermal state badge and step-chart remain functional in the Thermal tab (no regression)
+
+## Future Requirements (v1.3+)
+
+- **CPU-03**: Rolling history chart for CPU usage over session
+- **MEM-03**: Rolling history chart for memory usage over session
+- **BATT-01**: Battery level % and charge state display
+- **BATT-02**: Battery level history chart
+- **THERM-01**: State duration display ("Serious for 4 min")
+- **THERM-02**: "Back to Nominal" recovery notification
+- **HIST-01**: Persistent session history across app restarts
 
 ## Out of Scope
 
-- Numeric °C temperature — IOKit blocked by AMFI under free Apple ID; TrollStore requires iOS ≤17.0, target device is iOS 18 (permanently blocked)
-- App Store distribution — personal sideload only
-- APNs remote push — local notifications are the correct approach
-- Android / other platforms
+| Feature | Reason |
+|---------|--------|
+| Numeric temperature | IOKit blocked by AMFI under free Apple ID; TrollStore requires iOS <=17.0 (device is iOS 18) |
+| GPU utilization | No public runtime API exists on iOS |
+| Per-core CPU breakdown | Unnecessary complexity for personal monitoring tool |
+| Battery features | User decision — deferred to v1.3+ |
+| System-wide CPU/memory as hard requirement | Sandbox may block; implemented as best-effort with graceful fallback |
 
 ## Traceability
 
-| REQ-ID | Description | Phase | Plan |
-|--------|-------------|-------|------|
-| POLL-01 | 10s polling, 60 min history | Phase 4 | TBD |
-| ICON-01 | Custom app icon | Phase 5 | TBD |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CPU-01 | Phase 7 | Satisfied |
+| CPU-02 | Phase 6 | Satisfied |
+| MEM-01 | Phase 7 | Satisfied |
+| MEM-02 | Phase 6 | Satisfied |
+| DASH-01 | Phase 7 | Satisfied |
+| DASH-02 | Phase 7 | Satisfied |
+
+**Coverage:**
+- v1.2 requirements: 6 total
+- Mapped to phases: 6
+- Unmapped: 0
+
+---
+*Requirements defined: 2026-05-14*
+*Last updated: 2026-05-15 — v1.2 requirements satisfied: CPU-01/02 (Phase 7/6), MEM-01/02 (Phase 7/6), DASH-01/02 (Phase 7)*

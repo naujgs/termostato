@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Visual Improvements
-status: executing
-stopped_at: v1.1 roadmap created — Phase 4 defined
-last_updated: "2026-05-13T19:10:56.010Z"
-last_activity: 2026-05-13
+milestone: v1.0
+milestone_name: milestone
+status: completed
+stopped_at: Completed 08-03-PLAN.md
+last_updated: "2026-05-15T20:58:35.605Z"
+last_activity: 2026-05-15
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  total_phases: 3
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 8
   percent: 100
 ---
 
@@ -18,41 +18,50 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-13)
+See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** The phone's thermal state, always visible at a glance — with an alert before it gets dangerously hot.
-**Current focus:** Phase 5 — Visual Polish
+**Current focus:** Phase 08 — dashboard-tabs
 
 ## Current Position
 
-Phase: 5
+Phase: 08
 Plan: Not started
-Status: Executing Phase 5
-Last activity: 2026-05-13
+Status: v1.2 milestone complete
+Last activity: 2026-05-15
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 2 (v1.1)
-- Average duration: —
-- Total execution time: 0.0 hours
+- Total plans completed: 16 (v1.0: 6, v1.1: 2)
+- Average duration: not tracked pre-v1.2
+- Total execution time: not tracked pre-v1.2
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 04 | 1 | - | - |
-| 5 | 1 | - | - |
+| 1. Foundation | 3 | — | — |
+| 2. Dashboard UI | 1 | — | — |
+| 3. Alerts | 2 | — | — |
+| 4. Polling | 1 | — | — |
+| 5. Visual Polish | 1 | — | — |
+| 06 | 2 | - | - |
+| 07 | 3 | - | - |
+| 08 | 3 | - | - |
 
 **Recent Trend:**
 
-- Last 5 plans: —
-- Trend: —
+- Last 5 plans: durations not tracked
+- Trend: Stable
 
 *Updated after each plan completion*
+| Phase 08-dashboard-tabs P01 | 1 | 1 tasks | 1 files |
+| Phase 08 P02 | 5 | 1 tasks | 0 files |
+| 8. Dashboard Tabs | 3 | — | — |
 
 ## Accumulated Context
 
@@ -61,18 +70,20 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- TrollStore numeric °C path permanently blocked — target device is iOS 18, TrollStore ceiling is iOS 17.0. Removed from v1.1 scope.
-- v1.1 scope is two small changes: ICON-01 (asset catalog PNG drop-in) and POLL-01 (two constant changes in TemperatureViewModel.swift + one label update in ContentView.swift)
-- Two phases chosen: Phase 4 (Polling — code-only, Simulator-verifiable) and Phase 5 (Visual Polish — icon asset, requires PNG to be prepared first)
+- [v1.2]: CPU-02 and MEM-02 are experimental — Mach system APIs (host_statistics, host_statistics64) may be blocked by iOS 18 sandbox. Phase 6 validates on device before UI work.
+- [v1.2]: Dashboard uses TabView (user choice), not ScrollView. Three tabs: Thermal, CPU, Memory.
+- [v1.2]: No battery features this milestone — deferred to v1.3+.
+- [Phase 08-dashboard-tabs]: Tab selection integers follow Phase 7 order: 0=Thermal, 1=CPU, 2=Memory; .tag() after .tabItem{} per SwiftUI convention
+- [Phase 08]: SC5 confirmed passing on physical iOS 18 device — tab switching does not reset metric values, no regressions
+- [v1.2]: DASH-01 and DASH-02 were satisfied in Phase 7 (SC4), not Phase 8. Phase 8 only added selectedTab binding (SC5) and closed out docs.
 
 ### Pending Todos
 
-- Plan Phase 4 (Polling) via `/gsd-plan-phase 4`
-- Prepare 1024×1024 PNG icon asset before executing Phase 5
+None yet.
 
 ### Blockers/Concerns
 
-None.
+- Phase 6 must run on physical device — Simulator cannot reproduce iOS 18 sandbox restrictions on Mach APIs.
 
 ### Quick Tasks Completed
 
@@ -82,6 +93,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-13
-Stopped at: v1.1 roadmap created — Phase 4 defined
+Last session: 2026-05-15T20:40:04.507Z
+Stopped at: Completed 08-03-PLAN.md
 Resume file: None

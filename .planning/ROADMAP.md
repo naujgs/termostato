@@ -33,8 +33,8 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 
 **Milestone Goal:** Systematically probe Mach system APIs on iOS 18 under free sideload, implement all confirmed-accessible CPU and memory metrics, and present them in a tabbed dashboard alongside existing thermal state.
 
-- [ ] **Phase 6: Mach API Proof-of-Concept** — Validate system-wide CPU and memory APIs on physical device
-- [ ] **Phase 7: Metrics Integration** — Wire per-process and system-wide metrics into the ViewModel
+- [x] **Phase 6: Mach API Proof-of-Concept** — Validate system-wide CPU and memory APIs on physical device
+- [x] **Phase 7: Metrics Integration** — Wire per-process and system-wide metrics into the ViewModel
 - [ ] **Phase 8: Dashboard Tabs** — Refactor single-screen layout into TabView with Thermal, CPU, and Memory tabs
 
 ## Phase Details
@@ -78,8 +78,11 @@ Plans:
   3. The CPU tab displays per-process CPU usage (and system-wide if accessible) with appropriate labeling
   4. The Memory tab displays per-process memory footprint (and system-wide if accessible) with appropriate labeling
   5. Tab selection persists during a session -- switching away and back does not reset data or scroll position
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 3 plans
+Plans:
+- [ ] 08-01-PLAN.md — Add selectedTab @State binding to ContentView (SC5)
+- [ ] 08-02-PLAN.md — On-device SC5 tab persistence UAT checkpoint
+- [ ] 08-03-PLAN.md — Requirements and milestone close-out docs
 
 ## Progress
 
@@ -93,6 +96,6 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | 3. Alerts & Notification System | v1.0 | 2/2 | Complete | 2026-05-13 |
 | 4. Polling | v1.1 | 1/1 | Complete | 2026-05-13 |
 | 5. Visual Polish | v1.1 | 1/1 | Complete | 2026-05-13 |
-| 6. Mach API Proof-of-Concept | v1.2 | 0/2 | Not started | - |
-| 7. Metrics Integration | v1.2 | 0/3 | Not started | - |
-| 8. Dashboard Tabs | v1.2 | 0/? | Not started | - |
+| 6. Mach API Proof-of-Concept | v1.2 | 2/2 | Complete | 2026-05-14 |
+| 7. Metrics Integration | v1.2 | 3/3 | Complete | 2026-05-15 |
+| 8. Dashboard Tabs | v1.2 | 0/3 | Not started | - |

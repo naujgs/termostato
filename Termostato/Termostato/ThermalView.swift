@@ -112,10 +112,10 @@ struct ThermalView: View {
                     .padding(.top, TMSpacing.s6)
                     .padding(.bottom, TMSpacing.s2)
 
-                    // Chart
+                    // Chart — expands to fill remaining screen height
                     SessionChartView(samples: samples)
                         .padding(.horizontal, TMSpacing.s5)
-                        .frame(maxHeight: 160)
+                        .frame(minHeight: 120, maxHeight: .infinity)
 
                     // Legend
                     HStack(spacing: TMSpacing.s4) {
@@ -130,9 +130,8 @@ struct ThermalView: View {
                     }
                     .padding(.horizontal, TMSpacing.s5)
                     .padding(.top, TMSpacing.s3)
+                    .padding(.bottom, TMSpacing.s4)
                 }
-
-                Spacer(minLength: 0)
             }
         }
         .sheet(isPresented: $showDebugSheet) {

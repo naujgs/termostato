@@ -195,36 +195,70 @@
         }
       }
     },
-    "metric.memory_free" : {
-      "comment" : "Label for Memory Free metric card",
+    "metric.memory_active" : {
+      "comment" : "Label for Active Memory grid cell",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Memory Free"
+            "value" : "Active"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Memoria libre"
+            "value" : "Activa"
           }
         }
       }
     },
-    "metric.memory_used" : {
-      "comment" : "Label for Memory Used metric card",
+    "metric.memory_free" : {
+      "comment" : "Label for Free Memory grid cell (raw free_count pages)",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Memory Used"
+            "value" : "Free"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Memoria usada"
+            "value" : "Libre"
+          }
+        }
+      }
+    },
+    "metric.memory_inactive" : {
+      "comment" : "Label for Inactive Memory grid cell",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inactive"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inactiva"
+          }
+        }
+      }
+    },
+    "metric.memory_wired" : {
+      "comment" : "Label for Wired Memory grid cell",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wired"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fija"
           }
         }
       }
@@ -465,36 +499,70 @@
         }
       }
     },
-    "tooltip.memory_free" : {
-      "comment" : "Tooltip for Memory Free metric card",
+    "tooltip.memory_active" : {
+      "comment" : "Tooltip for Active Memory grid cell",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "RAM available for apps right now. Low values may cause iOS to terminate background apps."
+            "value" : "RAM currently being used by running apps and processes. High values are normal under load."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "RAM disponible para apps en este momento. Valores bajos pueden hacer que el sistema cierre apps en segundo plano."
+            "value" : "RAM en uso activo por apps y procesos en ejecución. Valores altos son normales bajo carga."
           }
         }
       }
     },
-    "tooltip.memory_used" : {
-      "comment" : "Tooltip for Memory Used metric card",
+    "tooltip.memory_free" : {
+      "comment" : "Tooltip for Free Memory grid cell",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "RAM currently in use by all apps and system processes combined."
+            "value" : "Unallocated RAM plus speculative pages (prefetched file cache that iOS reclaims instantly). Near zero is normal — iOS fills spare pages proactively."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "RAM en uso actualmente por todas las apps y procesos del sistema combinados."
+            "value" : "RAM sin asignar más páginas especulativas (caché de archivos precargada que iOS recupera al instante). Cerca de cero es normal."
+          }
+        }
+      }
+    },
+    "tooltip.memory_inactive" : {
+      "comment" : "Tooltip for Inactive Memory grid cell",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cold pages kept as cache plus the physical RAM used by iOS's VM compressor to store compressed pages. Both are reclaimable on demand."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas frías en caché más la RAM física usada por el compresor de memoria de iOS. Ambas se pueden recuperar bajo demanda."
+          }
+        }
+      }
+    },
+    "tooltip.memory_wired" : {
+      "comment" : "Tooltip for Wired Memory grid cell",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kernel and system pages locked in RAM. Cannot be paged out — always reserved by iOS."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Páginas del kernel y del sistema bloqueadas en RAM. No pueden descargarse — siempre reservadas por iOS."
           }
         }
       }

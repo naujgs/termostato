@@ -20,11 +20,17 @@ final class MetricsViewModel {
     /// System CPU% from host_statistics delta formula — user/(user+idle) × 100 (D-13)
     private(set) var sysCPUPercent: Double = 0.0
 
-    /// System free memory in GB from host_statistics64 free_count × page size (D-08)
+    /// System free memory in GB — truly unallocated pages (free_count × page size)
     private(set) var sysMemoryFreeGB: Double = 0.0
 
-    /// System used memory in GB from host_statistics64 (active_count + wire_count) × page size (D-08)
-    private(set) var sysMemoryUsedGB: Double = 0.0
+    /// System active memory in GB — pages actively used by apps (active_count × page size)
+    private(set) var sysMemoryActiveGB: Double = 0.0
+
+    /// System inactive memory in GB — recently used, reclaimable cache (inactive_count × page size)
+    private(set) var sysMemoryInactiveGB: Double = 0.0
+
+    /// System wired memory in GB — kernel pages that cannot be paged out (wire_count × page size)
+    private(set) var sysMemoryWiredGB: Double = 0.0
 
     // MARK: - Private polling state
 
@@ -75,11 +81,13 @@ final class MetricsViewModel {
         let sysCPU = readSystemCPU()
         let sysMem = readSystemMemory()
         await MainActor.run {
-            self.appCPUPercent   = appCPU
-            self.appMemoryMB     = appMem
-            self.sysCPUPercent   = sysCPU
-            self.sysMemoryFreeGB = sysMem.freeGB
-            self.sysMemoryUsedGB = sysMem.usedGB
+            self.appCPUPercent      = appCPU
+            self.appMemoryMB        = appMem
+            self.sysCPUPercent      = sysCPU
+            self.sysMemoryFreeGB    = sysMem.freeGB
+            self.sysMemoryActiveGB  = sysMem.activeGB
+            self.sysMemoryInactiveGB = sysMem.inactiveGB
+            self.sysMemoryWiredGB   = sysMem.wiredGB
         }
     }
 
@@ -165,8 +173,8 @@ final class MetricsViewModel {
         return (userDelta / total) * 100.0
     }
 
-    /// System memory free/used in GB — host_statistics64 vm_statistics64 page counts × vm_kernel_page_size.
-    nonisolated private func readSystemMemory() -> (freeGB: Double, usedGB: Double) {
+    /// System memory breakdown in GB — host_statistics64 vm_statistics64 page counts × page size.
+    nonisolated private func readSystemMemory() -> (freeGB: Double, activeGB: Double, inactiveGB: Double, wiredGB: Double) {
         var vmStat = vm_statistics64()
         var count = mach_msg_type_number_t(
             MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size
@@ -176,14 +184,20 @@ final class MetricsViewModel {
                 host_statistics64(mach_host_self(), HOST_VM_INFO64, $0, &count)
             }
         }
-        guard result == KERN_SUCCESS else { return (0.0, 0.0) }
+        guard result == KERN_SUCCESS else { return (0.0, 0.0, 0.0, 0.0) }
 
         // vm_kernel_page_size is not concurrency-safe under Swift 6 strict concurrency (assumption A1 fallback).
         // iOS on Apple Silicon uses 16384-byte pages; this literal is safe and correct for arm64.
         let pageSize: Double = 16384
-        let freeGB = Double(vmStat.free_count) * pageSize / 1_073_741_824.0
-        let usedGB = Double(vmStat.active_count + vmStat.wire_count) * pageSize / 1_073_741_824.0
+        let gb: Double = 1_073_741_824.0
+        // speculative pages are prefetched file cache — immediately reclaimable, treated as free.
+        let freeGB     = Double(vmStat.free_count + vmStat.speculative_count) * pageSize / gb
+        let activeGB   = Double(vmStat.active_count)   * pageSize / gb
+        // compressor_page_count = physical RAM used by VM compressor to store compressed inactive pages.
+        // Folded into inactive so the four buckets sum to total physical RAM.
+        let inactiveGB = Double(vmStat.inactive_count + vmStat.compressor_page_count) * pageSize / gb
+        let wiredGB    = Double(vmStat.wire_count)     * pageSize / gb
 
-        return (freeGB: freeGB, usedGB: usedGB)
+        return (freeGB: freeGB, activeGB: activeGB, inactiveGB: inactiveGB, wiredGB: wiredGB)
     }
 }

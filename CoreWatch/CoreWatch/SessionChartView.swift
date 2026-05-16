@@ -54,8 +54,5 @@ struct SessionChartView: View {
             }
         }
         .chartXAxis(.hidden)
-        .chartPlotStyle { content in
-            content.padding(.trailing, 60)
-        }
     }
 }

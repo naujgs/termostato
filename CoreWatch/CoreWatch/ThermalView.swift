@@ -35,7 +35,7 @@ struct ThermalView: View {
         ZStack {
             Color.tmBg.ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(spacing: 0) {
 
                 // Header: wordmark + point count
                 HStack(alignment: .firstTextBaseline) {
@@ -109,10 +109,11 @@ struct ThermalView: View {
 
                     // Chart — full width, expands to fill remaining screen height
                     SessionChartView(samples: samples)
-                        .frame(minHeight: 120, maxHeight: .infinity)
+                        .frame(maxWidth: .infinity, minHeight: 120, maxHeight: .infinity)
 
                     // Legend
                     HStack(spacing: TMSpacing.s4) {
+                        Spacer(minLength: 0)
                         ForEach(ThermalLevel.allCases) { lvl in
                             HStack(spacing: 6) {
                                 Circle().fill(lvl.color).frame(width: 7, height: 7)
@@ -121,6 +122,7 @@ struct ThermalView: View {
                                     .foregroundStyle(Color.tmFg2)
                             }
                         }
+                        Spacer(minLength: 0)
                     }
                     .padding(.horizontal, TMSpacing.s5)
                     .padding(.top, TMSpacing.s3)

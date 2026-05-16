@@ -1,8 +1,8 @@
-# Termostato
+# CoreWatch
 
 ## What This Is
 
-Termostato is a personal iOS app (sideloaded, not App Store) that monitors iPhone health in real time. It shows thermal state (Nominal / Fair / Serious / Critical) with a color-coded badge and session history chart, plus live CPU usage (per-app and system-wide) and memory metrics (app footprint, system free/used) in a three-tab dashboard. It delivers local push-notification alerts when the device overheats, whether the app is foregrounded or backgrounded.
+CoreWatch is a personal iOS app (sideloaded, not App Store) that monitors iPhone health in real time. It shows thermal state (Nominal / Fair / Serious / Critical) with a color-coded badge and session history chart, plus live CPU usage (per-app and system-wide) and memory metrics (app footprint, system free/used) in a three-tab dashboard. It delivers local push-notification alerts when the device overheats, whether the app is foregrounded or backgrounded.
 
 ## Core Value
 

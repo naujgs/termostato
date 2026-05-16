@@ -39,7 +39,7 @@ struct ThermalView: View {
 
                 // Header: wordmark + point count
                 HStack(alignment: .firstTextBaseline) {
-                    Text("Termostato")
+                    Text("CoreWatch")
                         .font(.system(size: 26, weight: .semibold))
                         .tracking(-0.5)
                         .foregroundStyle(Color.tmFg1)

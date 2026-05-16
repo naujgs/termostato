@@ -51,8 +51,8 @@ Determine which Mach system APIs (`host_statistics`, `host_statistics64`, `task_
 - `.planning/REQUIREMENTS.md` — CPU-02 and MEM-02 requirement definitions, graceful fallback constraint
 
 ### Existing Code
-- `Termostato/Termostato/TemperatureViewModel.swift` — Current ViewModel pattern (@Observable, @MainActor, polling timer, ring buffer)
-- `Termostato/Termostato/ContentView.swift` — Current SwiftUI view structure, .sheet() integration point
+- `CoreWatch/CoreWatch/TemperatureViewModel.swift` — Current ViewModel pattern (@Observable, @MainActor, polling timer, ring buffer)
+- `CoreWatch/CoreWatch/ContentView.swift` — Current SwiftUI view structure, .sheet() integration point
 
 ### Phase Dependencies
 - `.planning/ROADMAP.md` §Phase 6 — Success criteria, depends on Phase 5, requirement mapping
@@ -70,7 +70,7 @@ Determine which Mach system APIs (`host_statistics`, `host_statistics64`, `task_
 - **Polling**: 10s `Timer.publish` interval with `startPolling()`/`stopPolling()` lifecycle
 - **Concurrency**: `@MainActor` isolation on ViewModel, `Task { @MainActor in }` for async work
 - **State observation**: `@Observable` macro with `private(set)` published properties
-- **Console logging**: `print("[Termostato] ...")` format for debug output
+- **Console logging**: `print("[CoreWatch] ...")` format for debug output
 
 ### Integration Points
 - `ContentView.body` — Add `.sheet()` modifier for debug overlay

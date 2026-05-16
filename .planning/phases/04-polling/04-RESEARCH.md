@@ -59,10 +59,10 @@ No Swift API changes, no framework upgrades, no new files.
 
 ### Current Structure (unchanged by this phase)
 ```
-Termostato/
+CoreWatch/
 ├── TemperatureViewModel.swift   # @Observable @MainActor — polling loop, ring buffer
 ├── ContentView.swift            # SwiftUI view — reads from ViewModel only
-├── TermostatoApp.swift          # App entry point
+├── CoreWatchApp.swift          # App entry point
 └── NotificationDelegate.swift   # UNUserNotificationCenterDelegate
 ```
 
@@ -231,7 +231,7 @@ Step 2.6: SKIPPED — this phase is a pure code edit with no external dependenci
 | POLL-01 | history retains 360 data points | manual-smoke | — manual only — | N/A |
 | POLL-01 | Chart label says "60 min" | visual-inspection | — | N/A |
 
-**Manual-only justification:** No XCTest target exists in the project. `Timer.publish` behavior at a 10s interval is observable via the Simulator's debug console (`[Termostato] thermalState = …` prints every 10s). Ring-buffer capacity is verifiable by leaving the Simulator running for 60+ minutes and observing the history array size via the debug print output — or by a 6-minute spot-check (60 readings at 10s) confirming the array trims correctly at 360.
+**Manual-only justification:** No XCTest target exists in the project. `Timer.publish` behavior at a 10s interval is observable via the Simulator's debug console (`[CoreWatch] thermalState = …` prints every 10s). Ring-buffer capacity is verifiable by leaving the Simulator running for 60+ minutes and observing the history array size via the debug print output — or by a 6-minute spot-check (60 readings at 10s) confirming the array trims correctly at 360.
 
 ### Sampling Rate
 - **Per commit:** Manual Simulator launch, observe console output for 30 seconds confirming 3 prints at ~10s intervals.
@@ -254,8 +254,8 @@ This phase changes two numeric literals and one comment. No authentication, sess
 ## Sources
 
 ### Primary (HIGH confidence)
-- `Termostato/Termostato/TemperatureViewModel.swift` — direct codebase read, lines 49, 101, 111, 116 [VERIFIED]
-- `Termostato/Termostato/ContentView.swift` — direct codebase read, line 113 [VERIFIED]
+- `CoreWatch/CoreWatch/TemperatureViewModel.swift` — direct codebase read, lines 49, 101, 111, 116 [VERIFIED]
+- `CoreWatch/CoreWatch/ContentView.swift` — direct codebase read, line 113 [VERIFIED]
 - `.planning/REQUIREMENTS.md` — POLL-01 definition [VERIFIED]
 - `.planning/ROADMAP.md` — Phase 4 success criteria [VERIFIED]
 - `CLAUDE.md` (project) — stack constraints, timer pattern [VERIFIED]

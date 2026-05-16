@@ -8,7 +8,7 @@ tech-stack:
   patterns: [nonisolated(unsafe) stored property for UIBackgroundTaskIdentifier]
 key-files:
   modified:
-    - Termostato/Termostato/TemperatureViewModel.swift
+    - CoreWatch/CoreWatch/TemperatureViewModel.swift
 decisions:
   - "backgroundTaskID declared nonisolated(unsafe) matching thermalObserver pattern already in file"
   - "UIApplication.shared access is safe from @MainActor context — both startPolling/stopPolling called on main actor via ContentView scenePhase observer"
@@ -53,5 +53,5 @@ None — plan executed exactly as written.
 
 ## Self-Check: PASSED
 
-- File exists: `Termostato/Termostato/TemperatureViewModel.swift` — FOUND
+- File exists: `CoreWatch/CoreWatch/TemperatureViewModel.swift` — FOUND
 - Commit 34216e8 — FOUND

@@ -84,7 +84,7 @@ final class SystemMetricsProbe {
                 self.results[SystemMetricsProbe.processCPUAPI, default: []].append(procCPUResult)
 
                 self.samplesCompleted = i + 1
-                print("[Termostato] Probe sample \(i + 1) of 3 complete")
+                print("[CoreWatch] Probe sample \(i + 1) of 3 complete")
 
                 if i < 2 {
                     if Task.isCancelled { break }
@@ -99,7 +99,7 @@ final class SystemMetricsProbe {
             }
 
             self.isProbing = false
-            print("[Termostato] Probe sequence complete. Verdicts: \(self.finalVerdicts)")
+            print("[CoreWatch] Probe sequence complete. Verdicts: \(self.finalVerdicts)")
         }
     }
 
@@ -154,7 +154,7 @@ final class SystemMetricsProbe {
             rawData = "kern_return_t: \(result)"
         }
 
-        print("[Termostato] host_statistics CPU: kern_return_t=\(result), data=\(rawData)")
+        print("[CoreWatch] host_statistics CPU: kern_return_t=\(result), data=\(rawData)")
         return MachProbeResult(
             api: SystemMetricsProbe.cpuAPI,
             kernReturn: result,
@@ -188,7 +188,7 @@ final class SystemMetricsProbe {
             rawData = "kern_return_t: \(result)"
         }
 
-        print("[Termostato] host_statistics64 Memory: kern_return_t=\(result), data=\(rawData)")
+        print("[CoreWatch] host_statistics64 Memory: kern_return_t=\(result), data=\(rawData)")
         return MachProbeResult(
             api: SystemMetricsProbe.memoryAPI,
             kernReturn: result,
@@ -221,7 +221,7 @@ final class SystemMetricsProbe {
             rawData = "kern_return_t: \(result)"
         }
 
-        print("[Termostato] task_info Memory: kern_return_t=\(result), data=\(rawData)")
+        print("[CoreWatch] task_info Memory: kern_return_t=\(result), data=\(rawData)")
         return MachProbeResult(
             api: SystemMetricsProbe.processMemoryAPI,
             kernReturn: result,
@@ -240,7 +240,7 @@ final class SystemMetricsProbe {
 
         guard result == KERN_SUCCESS, let threads = threadList else {
             let rawData = "kern_return_t: \(result)"
-            print("[Termostato] task_threads CPU: kern_return_t=\(result), data=\(rawData)")
+            print("[CoreWatch] task_threads CPU: kern_return_t=\(result), data=\(rawData)")
             return MachProbeResult(
                 api: SystemMetricsProbe.processCPUAPI,
                 kernReturn: result,
@@ -274,7 +274,7 @@ final class SystemMetricsProbe {
         }
 
         let rawData = "threads: \(threadCount), total_cpu: \(String(format: "%.1f", totalUsage))%"
-        print("[Termostato] task_threads CPU: kern_return_t=\(result), data=\(rawData)")
+        print("[CoreWatch] task_threads CPU: kern_return_t=\(result), data=\(rawData)")
         return MachProbeResult(
             api: SystemMetricsProbe.processCPUAPI,
             kernReturn: result,

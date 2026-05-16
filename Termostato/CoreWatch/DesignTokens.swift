@@ -1,6 +1,6 @@
 //
 //  DesignTokens.swift
-//  Termostato
+//  CoreWatch
 //
 //  Single source of truth for color and typography tokens.
 //  Mirrors `colors_and_type.css` 1:1.

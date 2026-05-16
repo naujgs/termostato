@@ -4,13 +4,13 @@ reviewed: 2026-05-15T00:00:00Z
 depth: standard
 files_reviewed: 7
 files_reviewed_list:
-  - Termostato/Termostato/MetricsViewModel.swift
-  - Termostato/Termostato/TemperatureViewModel.swift
-  - Termostato/Termostato/ThermalView.swift
-  - Termostato/Termostato/CPUView.swift
-  - Termostato/Termostato/MemoryView.swift
-  - Termostato/Termostato/ContentView.swift
-  - Termostato/Termostato/Localizable.xcstrings
+  - CoreWatch/CoreWatch/MetricsViewModel.swift
+  - CoreWatch/CoreWatch/TemperatureViewModel.swift
+  - CoreWatch/CoreWatch/ThermalView.swift
+  - CoreWatch/CoreWatch/CPUView.swift
+  - CoreWatch/CoreWatch/MemoryView.swift
+  - CoreWatch/CoreWatch/ContentView.swift
+  - CoreWatch/CoreWatch/Localizable.xcstrings
 findings:
   critical: 0
   warning: 4
@@ -50,7 +50,7 @@ No critical issues (security vulnerabilities, nil crashes, data loss) were found
 
 ### WR-01: Double-start on launch discards first tick; no guard against `.inactive` restart
 
-**File:** `Termostato/Termostato/ContentView.swift:44-47` and `30-43`
+**File:** `CoreWatch/CoreWatch/ContentView.swift:44-47` and `30-43`
 
 **Issue:** `onAppear` fires and calls `startPolling()` on both ViewModels immediately. Then, milliseconds later, the scenePhase transitions from `.inactive` → `.active`, firing the `.onChange` handler which calls `startPolling()` again. Each `MetricsViewModel.startPolling()` cancels `pollingTask` before recreating it, and each `TemperatureViewModel.startPolling()` cancels `timerCancellable`. The double-start is guarded against crashes, but the first `tick()` result captured in the `Task.detached` closure is thrown away when the task is immediately cancelled. The effect is that the first visible metric reading is delayed by a full 5-second sleep cycle instead of arriving immediately.
 
@@ -77,7 +77,7 @@ Additionally, `.inactive` has a `break` — it neither starts nor stops polling.
 
 ### WR-02: `readSystemCPU()` silently drops kernel (`system`) ticks from CPU total
 
-**File:** `Termostato/Termostato/MetricsViewModel.swift:147-161`
+**File:** `CoreWatch/CoreWatch/MetricsViewModel.swift:147-161`
 
 **Issue:** The delta formula computes `userDelta / (userDelta + idleDelta)`, deliberately excluding `cpu_ticks.1` (CPU_STATE_SYSTEM). The comment correctly notes that `.1` is "always 0 on Apple Silicon", but this is not accurate for all iOS devices. A13 Bionic and earlier (iPhone 11 and below), and any simulator environment, do record non-zero `system` ticks. Dropping system ticks causes the displayed "System CPU%" to read lower than true utilisation, which is a logic error for the stated metric ("total CPU usage across all apps and system processes").
 
@@ -110,7 +110,7 @@ Note: if Option A is chosen, `previousCPUTicks` needs a `system` component added
 
 ### WR-03: `vm_deallocate` address cast uses `bitPattern:` on a typed pointer
 
-**File:** `Termostato/Termostato/MetricsViewModel.swift:97`
+**File:** `CoreWatch/CoreWatch/MetricsViewModel.swift:97`
 
 **Issue:** `vm_address_t(bitPattern: threads)` converts `UnsafeMutablePointer<thread_act_t>?` after the optional is unwound via the `guard`. `vm_address_t` is a typealias for `UInt`. On arm64 `UInt` and pointer bit width are both 64 bits, so the numeric value is correct. However, `bitPattern:` initialiser on `UInt` accepting a pointer is only defined for `UnsafeRawPointer`, not `UnsafeMutablePointer<T>`. The compiler accepts this implicitly via pointer-to-raw coercion, which is technically sound but relies on an implicit conversion that could be broken by a future Swift version. The established safe idiom is `UInt(bitPattern: threads)`.
 
@@ -127,7 +127,7 @@ vm_deallocate(mach_task_self_, vm_address_t(UInt(bitPattern: threads)), size)
 
 ### WR-04: Tooltip popover anchored to icon `Image`, not to the `Button`
 
-**File:** `Termostato/Termostato/ThermalView.swift:34-47`
+**File:** `CoreWatch/CoreWatch/ThermalView.swift:34-47`
 
 **Issue:** The `.popover(isPresented: $showThermalTooltip)` modifier is applied to the `Button`'s `label` closure content (the `Image`), not to the `Button` itself. Structurally, the `Button { showThermalTooltip = true } label: { Image(...) .popover(...) }` places the popover modifier inside the label builder. On iPadOS the popover anchor will be the image frame, not the button hit area. On iPhone the `.presentationCompactAdaptation(.popover)` modifier causes it to present as a popover regardless of the anchor, but the code structure is semantically wrong and diverges from the `MetricCardView` pattern where `.popover` is correctly on the `Button`.
 
@@ -159,7 +159,7 @@ After re-reading: the `.popover` at line 41 is chained off `.padding(12)` which 
 
 ### IN-01: Hard-coded literal `16384` for page size is arm64-only
 
-**File:** `Termostato/Termostato/MetricsViewModel.swift:179`
+**File:** `CoreWatch/CoreWatch/MetricsViewModel.swift:179`
 
 **Issue:** The comment correctly explains the fallback from `vm_kernel_page_size` due to Swift 6 strict-concurrency. The literal `16384` is correct for all current iOS devices running on Apple Silicon (arm64). However, if this code is ever run in a simulator targeting x86_64 or if a future architecture change occurs, the wrong page size will silently produce incorrect memory readings without any diagnostic. The comment documents the reasoning but does not guard against misuse.
 
@@ -176,7 +176,7 @@ let pageSize: Double = 16384
 
 ### IN-02: `readSystemCPU()` first-poll guard uses `prev.user > 0 || prev.idle > 0`
 
-**File:** `Termostato/Termostato/MetricsViewModel.swift:154`
+**File:** `CoreWatch/CoreWatch/MetricsViewModel.swift:154`
 
 **Issue:** The intent of this guard is to detect the initial state where `previousCPUTicks` has never been populated (both fields are `0`). The condition `prev.user > 0 || prev.idle > 0` correctly identifies "not first poll" but could theoretically fail to return `0.0` if the kernel reports a state where `user > 0` but `idle == 0` at the exact moment of the first real read. This is extremely unlikely but the safer idiom is to use a separate `Bool` flag to track "first poll taken".
 
@@ -196,7 +196,7 @@ guard !wasCold else { return 0.0 }
 
 ### IN-03: `ThermalView` tooltip popover placement is structurally different from `MetricCardView`
 
-**File:** `Termostato/Termostato/ThermalView.swift:32-47`
+**File:** `CoreWatch/CoreWatch/ThermalView.swift:32-47`
 
 **Issue:** `ThermalView` places the info button in a `.overlay(alignment: .topTrailing)` on the `RoundedRectangle`, then adds a second `.overlay` for the state label. `MetricCardView` uses the same pattern for the info button but combines the value label in a single overlay. The two are functionally equivalent and both patterns are correct SwiftUI, but the inconsistency makes the codebase slightly harder to reason about. Not a bug.
 
@@ -206,7 +206,7 @@ guard !wasCold else { return 0.0 }
 
 ### IN-04: `TemperatureViewModel` `startPolling()` calls both `requestNotificationPermission()` and `refreshNotificationStatus()` on every foreground
 
-**File:** `Termostato/Termostato/TemperatureViewModel.swift:118-119`
+**File:** `CoreWatch/CoreWatch/TemperatureViewModel.swift:118-119`
 
 **Issue:** `requestNotificationPermission()` shows the system permission dialog on first launch. `refreshNotificationStatus()` re-reads the status without prompting. Calling both on every foreground is correct for keeping `notificationsAuthorized` current, but `requestNotificationPermission()` will silently no-op after the user has already decided (iOS only shows the dialog once). The behaviour is correct but the dual `Task { }` calls create two concurrent async tasks each time the app foregrounds, which is unnecessary.
 
@@ -224,9 +224,9 @@ Or combine both into a single `updateNotificationStatus()` method that calls `re
 
 ### IN-05: `Localizable.xcstrings` has no Spanish translations for UI strings in `ThermalView`
 
-**File:** `Termostato/Termostato/Localizable.xcstrings`
+**File:** `CoreWatch/CoreWatch/Localizable.xcstrings`
 
-**Issue:** The xcstrings catalog provides `en` and `es` translations for all six tooltip keys. However, the hardcoded UI strings in `ThermalView` and elsewhere ("Termostato", "Nominal", "Fair", "Serious", "Critical", "Warming up...", "Notifications disabled — tap to open Settings", "Session history (last 60 min)") are not in the catalog. These will not be localised for Spanish users. This is in scope only if the app intends to support Spanish as a full locale (the presence of `es` translations for tooltips suggests intent).
+**Issue:** The xcstrings catalog provides `en` and `es` translations for all six tooltip keys. However, the hardcoded UI strings in `ThermalView` and elsewhere ("CoreWatch", "Nominal", "Fair", "Serious", "Critical", "Warming up...", "Notifications disabled — tap to open Settings", "Session history (last 60 min)") are not in the catalog. These will not be localised for Spanish users. This is in scope only if the app intends to support Spanish as a full locale (the presence of `es` translations for tooltips suggests intent).
 
 **Suggestion:** Either add these display strings to `Localizable.xcstrings` with `es` translations, or document that the app is English-only for non-tooltip text and remove the `es` entries from the catalog to avoid partial localisation that could confuse future maintainers.
 

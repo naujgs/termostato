@@ -4,8 +4,8 @@ reviewed: 2026-05-12T00:00:00Z
 depth: standard
 files_reviewed: 2
 files_reviewed_list:
-  - Termostato/Termostato/TemperatureViewModel.swift
-  - Termostato/Termostato/ContentView.swift
+  - CoreWatch/CoreWatch/TemperatureViewModel.swift
+  - CoreWatch/CoreWatch/ContentView.swift
 findings:
   critical: 0
   warning: 2
@@ -31,7 +31,7 @@ Both files are well-structured and follow the MVVM pattern correctly. The `@Obse
 
 ### WR-01: Strong self-capture in Combine sink creates retain cycle
 
-**File:** `Termostato/Termostato/TemperatureViewModel.swift:67`
+**File:** `CoreWatch/CoreWatch/TemperatureViewModel.swift:67`
 
 **Issue:** The `sink` closure uses `[self]` (strong capture). The `AnyCancellable` returned by `sink` is stored as `timerCancellable` on `self`, so `self` holds the cancellable, and the cancellable closure holds `self` — a retain cycle. If the view is torn down before `stopPolling()` is called (e.g., preview recycling, unit test teardown, or a future navigation change), the ViewModel will never deallocate. Swift 6 strict concurrency does not break this cycle automatically; only cancellation or weak capture does.
 
@@ -46,7 +46,7 @@ timerCancellable = Timer.publish(every: 30, on: .main, in: .common)
 
 ### WR-02: Double `startPolling()` on cold launch produces two back-to-back readings
 
-**File:** `Termostato/Termostato/ContentView.swift:97-111`
+**File:** `CoreWatch/CoreWatch/ContentView.swift:97-111`
 
 **Issue:** On cold launch, both `onAppear` (line 109) and `onChange(of: scenePhase)` with `.active` (line 99) fire, causing `startPolling()` — and therefore `updateThermalState()` — to be called twice within the same run-loop tick. This appends two identical `ThermalReading` entries to `history` with the same timestamp and state, making the history inaccurate from the very first second. On subsequent re-foreground events only `onChange` fires, so launch behavior differs from resume behavior.
 
@@ -83,7 +83,7 @@ If there is any concern about `onChange` not firing before the first frame, an a
 
 ### IN-01: `print()` debug statements not guarded by `#if DEBUG`
 
-**File:** `Termostato/Termostato/TemperatureViewModel.swift:72, 80, 92`
+**File:** `CoreWatch/CoreWatch/TemperatureViewModel.swift:72, 80, 92`
 
 **Issue:** Three `print(...)` calls will appear in release builds. On a sideloaded personal app this is low-stakes, but the output (thermal state every 30 seconds) will appear in Console.app and device logs indefinitely.
 
@@ -91,13 +91,13 @@ If there is any concern about `onChange` not firing before the first frame, an a
 
 ```swift
 #if DEBUG
-print("[Termostato] Polling started.")
+print("[CoreWatch] Polling started.")
 #endif
 ```
 
 ### IN-02: "Ring buffer" comment describes an Array with `removeFirst()`, which is O(n)
 
-**File:** `Termostato/Termostato/TemperatureViewModel.swift:46`
+**File:** `CoreWatch/CoreWatch/TemperatureViewModel.swift:46`
 
 **Issue:** The comment reads `"Session history ring buffer"` but the implementation uses `Array.removeFirst()`, which is O(n) due to element shifting. With `maxHistory = 120` this is functionally irrelevant. The mislabeling is the only concern — a future developer might assume ring-buffer semantics (constant-time head removal) and be surprised.
 
@@ -109,7 +109,7 @@ print("[Termostato] Polling started.")
 
 ### IN-03: Chart sub-label claims "last 60 min" regardless of actual session duration
 
-**File:** `Termostato/Termostato/ContentView.swift:87`
+**File:** `CoreWatch/CoreWatch/ContentView.swift:87`
 
 **Issue:** The label `"Session history (last 60 min)"` is displayed from the moment the first reading appears. During the first 60 minutes, the label is misleading (e.g., after 2 minutes it shows "last 60 min" but only 4 readings exist). The buffer capacity is 60 minutes at 30-second intervals, but the label states a maximum, not the actual window shown.
 

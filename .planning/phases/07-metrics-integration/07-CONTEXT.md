@@ -23,7 +23,7 @@ TemperatureViewModel polling interval is reduced from 10s to 5s.
 ### Dashboard Structure
 
 - **D-01:** Phase 7 introduces TabView with 3 tabs: **Thermal**, **CPU**, **Memory**. ContentView becomes the TabView container. Existing thermal content (badge + chart) moves into a new `ThermalView` sub-view.
-- **D-02:** Debug sheet trigger (long-press on "Termostato" title) moves into `ThermalView` with the rest of the thermal content. Behavior unchanged, just relocated.
+- **D-02:** Debug sheet trigger (long-press on "CoreWatch" title) moves into `ThermalView` with the rest of the thermal content. Behavior unchanged, just relocated.
 - **D-03:** DASH-01 and DASH-02 (from REQUIREMENTS.md, Phase 8) are satisfied here — the TabView restructure happens in Phase 7, not Phase 8.
 
 ### Metric Display Format
@@ -77,9 +77,9 @@ TemperatureViewModel polling interval is reduced from 10s to 5s.
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Existing Code (primary references)
-- `Termostato/Termostato/TemperatureViewModel.swift` — `@Observable @MainActor` polling pattern, Timer.publish, ring buffer, `startPolling()`/`stopPolling()` lifecycle. Phase 7 adds Mach calls following this established pattern.
-- `Termostato/Termostato/ContentView.swift` — Current single-VStack layout; Phase 7 restructures to TabView. Read this to understand what moves where.
-- `Termostato/Termostato/SystemMetrics.swift` — All 4 Mach call implementations (`probeSystemCPU`, `probeSystemMemory`, `probeTaskMemory`, `probeTaskCPU`). Extract patterns from here — do NOT rewrite.
+- `CoreWatch/CoreWatch/TemperatureViewModel.swift` — `@Observable @MainActor` polling pattern, Timer.publish, ring buffer, `startPolling()`/`stopPolling()` lifecycle. Phase 7 adds Mach calls following this established pattern.
+- `CoreWatch/CoreWatch/ContentView.swift` — Current single-VStack layout; Phase 7 restructures to TabView. Read this to understand what moves where.
+- `CoreWatch/CoreWatch/SystemMetrics.swift` — All 4 Mach call implementations (`probeSystemCPU`, `probeSystemMemory`, `probeTaskMemory`, `probeTaskCPU`). Extract patterns from here — do NOT rewrite.
 
 ### Planning Artifacts
 - `.planning/phases/06-mach-api-proof-of-concept/06-VERDICTS.md` — Per-API verdicts and data samples. Confirms all 4 APIs KERN_SUCCESS. Apple Silicon system-tick note in host_statistics section.
@@ -88,7 +88,7 @@ TemperatureViewModel polling interval is reduced from 10s to 5s.
 - `CLAUDE.md` — Tech stack, Swift 6.3 strict concurrency rules, private API constraints.
 
 ### Xcode Project
-- `Termostato/Termostato.xcodeproj/project.pbxproj` — New Swift files MUST be manually registered (PBXBuildFile, PBXFileReference, PBXGroup, PBXSourcesBuildPhase entries). This was required for SystemMetrics.swift and MachProbeDebugView.swift in Phase 6 — same process for MetricsViewModel.swift and any new view files.
+- `CoreWatch/CoreWatch.xcodeproj/project.pbxproj` — New Swift files MUST be manually registered (PBXBuildFile, PBXFileReference, PBXGroup, PBXSourcesBuildPhase entries). This was required for SystemMetrics.swift and MachProbeDebugView.swift in Phase 6 — same process for MetricsViewModel.swift and any new view files.
 
 </canonical_refs>
 
@@ -102,7 +102,7 @@ TemperatureViewModel polling interval is reduced from 10s to 5s.
 
 ### Established Patterns
 - `@Observable @MainActor final class` — ViewModel pattern. MetricsViewModel follows this.
-- `print("[Termostato] ...")` — Console logging prefix convention
+- `print("[CoreWatch] ...")` — Console logging prefix convention
 - `private(set) var` — Published properties exposed read-only to views
 - `@ObservationIgnored nonisolated(unsafe) private var` — For non-observable stored references (timer handle, etc.)
 - `withUnsafeMutablePointer + withMemoryRebound` — Mach API Swift bridging pattern (confirmed in SystemMetrics.swift)

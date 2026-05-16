@@ -81,7 +81,7 @@ The background delivery claim (`thermalStateDidChangeNotification` fires for bac
 | Instead of | Could Use | Tradeoff |
 |------------|-----------|----------|
 | `UNTimeIntervalNotificationTrigger(timeInterval:1, repeats:false)` | `nil` trigger | Both schedule an "immediate" notification. `nil` is cleaner for an event-driven alert; the 1-second trigger adds no value |
-| Separate `NotificationDelegate: NSObject` | `TermostatoApp` as delegate | Dedicated helper keeps TermostatoApp clean; either works. Delegate is needed only for foreground presentation |
+| Separate `NotificationDelegate: NSObject` | `CoreWatchApp` as delegate | Dedicated helper keeps CoreWatchApp clean; either works. Delegate is needed only for foreground presentation |
 | `print()` | `OSLog` | `print()` is established in Phase 2 code; consistent, sufficient for personal sideloaded app |
 
 **Installation:** No installation required — all frameworks are built-in.
@@ -95,12 +95,12 @@ The background delivery claim (`thermalStateDidChangeNotification` fires for bac
 No new files are required. All changes are additive to existing files:
 
 ```
-Termostato/Termostato/
+CoreWatch/CoreWatch/
 ├── TemperatureViewModel.swift   # + lastAlertedState, notificationsAuthorized,
 │                                #   thermalStateDidChangeNotification observer,
 │                                #   scheduleNotification(), requestPermission()
 ├── ContentView.swift            # + permission-denied banner View
-├── TermostatoApp.swift          # + UNUserNotificationCenterDelegate setup
+├── CoreWatchApp.swift          # + UNUserNotificationCenterDelegate setup
 └── NotificationDelegate.swift  # NEW (optional): NSObject UNUserNotificationCenterDelegate
 ```
 
@@ -156,10 +156,10 @@ func requestNotificationPermission() async {
             .requestAuthorization(options: [.alert, .sound])
         notificationsAuthorized = granted
         if !granted {
-            print("[Termostato] Notification permission denied.")
+            print("[CoreWatch] Notification permission denied.")
         }
     } catch {
-        print("[Termostato] Notification auth error: \(error)")
+        print("[CoreWatch] Notification auth error: \(error)")
         notificationsAuthorized = false
     }
 }
@@ -175,7 +175,7 @@ func startPolling() {
     updateThermalState()
     Task { await requestNotificationPermission() }
     Task { await refreshNotificationStatus() }
-    print("[Termostato] Polling started.")
+    print("[CoreWatch] Polling started.")
 }
 ```
 
@@ -268,7 +268,7 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
 }
 ```
 
-Set `UNUserNotificationCenter.current().delegate = notificationDelegate` in `TermostatoApp` (stored as a `@State` to keep it alive) or in `TemperatureViewModel.init()`.
+Set `UNUserNotificationCenter.current().delegate = notificationDelegate` in `CoreWatchApp` (stored as a `@State` to keep it alive) or in `TemperatureViewModel.init()`.
 
 ### Pattern 6: Settings Deep-Link Banner in SwiftUI
 
@@ -382,7 +382,7 @@ if !viewModel.notificationsAuthorized {
 
 **What goes wrong:** Delegate is set to a local variable that goes out of scope; subsequent notifications are not presented in the foreground.
 **Why it happens:** `UNUserNotificationCenter.delegate` is a weak property. If the delegate object is not strongly retained elsewhere, it is deallocated.
-**How to avoid:** Store the `NotificationDelegate` instance on a long-lived object (e.g., as a `@State` in `TermostatoApp`, or as a stored property on `TemperatureViewModel`).
+**How to avoid:** Store the `NotificationDelegate` instance on a long-lived object (e.g., as a `@State` in `CoreWatchApp`, or as a stored property on `TemperatureViewModel`).
 **Warning signs:** `willPresent` called once, then never again.
 [ASSUMED — standard UIKit/UserNotifications pattern; weak delegate is documented]
 
@@ -459,7 +459,7 @@ func refreshNotificationStatus() async {
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
 | A1 | `queue: .main` on `addObserver(forName:object:queue:)` satisfies `@MainActor` isolation without a Task wrapper | Pattern 1 | Compiler may reject or warn; fix: wrap closure body in `Task { @MainActor in }` |
-| A2 | `NotificationDelegate` as `@State` in `TermostatoApp` keeps it alive (strong reference) | Pattern 5 | Delegate deallocated; foreground notification presentation stops. Fix: store on TemperatureViewModel instead |
+| A2 | `NotificationDelegate` as `@State` in `CoreWatchApp` keeps it alive (strong reference) | Pattern 5 | Delegate deallocated; foreground notification presentation stops. Fix: store on TemperatureViewModel instead |
 | A3 | `UNNotificationAction` with `.destructive` option shows "Dismiss" button on lock screen and banner | Pattern 4 | Button may not appear on all iOS notification styles; non-blocking for MVP |
 | A4 | `thermalStateDidChangeNotification` fires while app is in Background execution state (not terminated, not suspended yet) | Common Pitfalls / ALRT-03 | If iOS suspends the app before the thermal event fires, background alerting fails silently. Must verify on physical device with debugger detached |
 

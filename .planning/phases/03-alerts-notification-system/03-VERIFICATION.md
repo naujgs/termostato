@@ -50,7 +50,7 @@ All truths are drawn from ROADMAP.md success criteria (non-negotiable contract) 
 | P02-T2 | When permission denied, inline banner appears below thermal state badge | VERIFIED | ContentView.swift lines 36–58: conditional block appears between `RoundedRectangle` block and `Spacer().frame(height: 32)` |
 | P02-T3 | The permission-denied banner contains a tappable Settings deep-link | VERIFIED | `Button { openURL(...UIApplication.openSettingsURLString...) }` at ContentView.swift:40–42 |
 | P02-T4 | The banner disappears when permission is granted | VERIFIED | Bound to `viewModel.notificationsAuthorized`; `refreshNotificationStatus()` called in `startPolling()` on every foreground (TemperatureViewModel.swift:119) |
-| P02-T5 | NotificationDelegate is retained for the lifetime of the app | VERIFIED | `@State private var notificationDelegate = NotificationDelegate()` in `TermostatoApp.swift:9` — `@State` in the `App` struct provides app-lifetime strong retention |
+| P02-T5 | NotificationDelegate is retained for the lifetime of the app | VERIFIED | `@State private var notificationDelegate = NotificationDelegate()` in `CoreWatchApp.swift:9` — `@State` in the `App` struct provides app-lifetime strong retention |
 
 **Score:** 11/11 truths verified
 
@@ -60,10 +60,10 @@ All truths are drawn from ROADMAP.md success criteria (non-negotiable contract) 
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `Termostato/Termostato/TemperatureViewModel.swift` | Full notification logic: permission, scheduling, cooldown, background observer | VERIFIED | 267 lines; contains all 6 notification methods plus 3 new stored properties; `import UserNotifications` present |
-| `Termostato/Termostato/NotificationDelegate.swift` | UNUserNotificationCenterDelegate — foreground notification presentation | VERIFIED | 32 lines; `final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate` with both `nonisolated` delegate methods |
-| `Termostato/Termostato/TermostatoApp.swift` | NotificationDelegate retained as @State; delegate set on appear | VERIFIED | 19 lines; `@State private var notificationDelegate = NotificationDelegate()` + `.onAppear { UNUserNotificationCenter.current().delegate = notificationDelegate }` |
-| `Termostato/Termostato/ContentView.swift` | Permission-denied banner below thermal state badge | VERIFIED | Lines 36–58; conditional block gated by `!viewModel.notificationsAuthorized`; correct position in VStack (after badge, before Spacer(height:32)) |
+| `CoreWatch/CoreWatch/TemperatureViewModel.swift` | Full notification logic: permission, scheduling, cooldown, background observer | VERIFIED | 267 lines; contains all 6 notification methods plus 3 new stored properties; `import UserNotifications` present |
+| `CoreWatch/CoreWatch/NotificationDelegate.swift` | UNUserNotificationCenterDelegate — foreground notification presentation | VERIFIED | 32 lines; `final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate` with both `nonisolated` delegate methods |
+| `CoreWatch/CoreWatch/CoreWatchApp.swift` | NotificationDelegate retained as @State; delegate set on appear | VERIFIED | 19 lines; `@State private var notificationDelegate = NotificationDelegate()` + `.onAppear { UNUserNotificationCenter.current().delegate = notificationDelegate }` |
+| `CoreWatch/CoreWatch/ContentView.swift` | Permission-denied banner below thermal state badge | VERIFIED | Lines 36–58; conditional block gated by `!viewModel.notificationsAuthorized`; correct position in VStack (after badge, before Spacer(height:32)) |
 
 ---
 
@@ -74,7 +74,7 @@ All truths are drawn from ROADMAP.md success criteria (non-negotiable contract) 
 | `TemperatureViewModel.updateThermalState()` | `checkAndFireNotification()` | Direct method call | WIRED | Line 149: `checkAndFireNotification()` called at end of `updateThermalState()` |
 | `TemperatureViewModel.init()` | `NotificationCenter.default.addObserver` | `thermalStateDidChangeNotification` | WIRED | Lines 80–91: observer registered for `ProcessInfo.thermalStateDidChangeNotification` |
 | `TemperatureViewModel.startPolling()` | `requestNotificationPermission` / `refreshNotificationStatus` | `Task { await ... }` | WIRED | Lines 118–119 |
-| `TermostatoApp` | `UNUserNotificationCenter.current().delegate` | `notificationDelegate` stored as `@State` | WIRED | TermostatoApp.swift:15 |
+| `CoreWatchApp` | `UNUserNotificationCenter.current().delegate` | `notificationDelegate` stored as `@State` | WIRED | CoreWatchApp.swift:15 |
 | `ContentView.body` | `viewModel.notificationsAuthorized` | `if !viewModel.notificationsAuthorized` conditional block | WIRED | ContentView.swift:39 |
 
 ---
@@ -118,7 +118,7 @@ All three Phase 3 requirement IDs declared in both plan frontmatters are fully s
 
 ### Anti-Patterns Found
 
-Scanned: TemperatureViewModel.swift, NotificationDelegate.swift, TermostatoApp.swift, ContentView.swift
+Scanned: TemperatureViewModel.swift, NotificationDelegate.swift, CoreWatchApp.swift, ContentView.swift
 
 No TODO, FIXME, PLACEHOLDER, stub, or hardcoded empty data patterns found in any Phase 3 modified file. All notification methods contain substantive implementations — no `return null`, `return []`, or console-log-only bodies.
 

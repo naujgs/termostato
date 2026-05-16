@@ -27,7 +27,7 @@ created: 2026-05-13
 
 ## Sampling Rate
 
-- **After every task commit:** Manual Simulator launch — observe console for `[Termostato] thermalState = …` printing at ~10s intervals (3 prints in 30s confirms 10s cadence)
+- **After every task commit:** Manual Simulator launch — observe console for `[CoreWatch] thermalState = …` printing at ~10s intervals (3 prints in 30s confirms 10s cadence)
 - **After every plan wave:** All three success criteria checked manually in Simulator
 - **Before `/gsd-verify-work`:** Full manual smoke suite must pass
 - **Max feedback latency:** ~30 seconds (one Simulator launch cycle)
@@ -56,7 +56,7 @@ created: 2026-05-13
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Timer fires every 10s (chart density increases) | POLL-01 | No XCTest target; Timer.publish behavior is observable via debug console | Run in Simulator, observe `[Termostato] thermalState = …` prints — 3 prints should appear within ~30 seconds |
+| Timer fires every 10s (chart density increases) | POLL-01 | No XCTest target; Timer.publish behavior is observable via debug console | Run in Simulator, observe `[CoreWatch] thermalState = …` prints — 3 prints should appear within ~30 seconds |
 | history retains 360 data points | POLL-01 | No XCTest target; ring-buffer capacity requires runtime observation | Run 6-minute spot-check: after 60 readings at 10s the array should stop growing (confirm via debug print showing history count capped at 360) |
 | Chart label displays "60 min" description | POLL-01 | Visual UI label, no snapshot tests | Open app in Simulator, verify chart sub-label reads "Session history (last 60 min)" |
 

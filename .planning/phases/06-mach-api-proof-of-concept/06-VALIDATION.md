@@ -18,9 +18,9 @@ created: 2026-05-15
 | Property | Value |
 |----------|-------|
 | **Framework** | XCTest (built into Xcode 26.4.1) |
-| **Config file** | Termostato/TermostatoTests/ (if exists) |
-| **Quick run command** | `xcodebuild test -scheme Termostato -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:TermostatoTests 2>&1 \| tail -20` |
-| **Full suite command** | `xcodebuild test -scheme Termostato -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 \| tail -40` |
+| **Config file** | CoreWatch/CoreWatchTests/ (if exists) |
+| **Quick run command** | `xcodebuild test -scheme CoreWatch -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:CoreWatchTests 2>&1 \| tail -20` |
+| **Full suite command** | `xcodebuild test -scheme CoreWatch -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 \| tail -40` |
 | **Estimated runtime** | ~30 seconds |
 
 ---

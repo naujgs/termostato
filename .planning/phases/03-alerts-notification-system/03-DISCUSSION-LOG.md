@@ -16,7 +16,7 @@
 | Option | Description | Selected |
 |--------|-------------|----------|
 | State name only | "Serious" or "Critical" — glanceable, matches the badge label | |
-| App name + state | "Termostato — Serious" — source clear in Notification Center | |
+| App name + state | "CoreWatch — Serious" — source clear in Notification Center | |
 | Alert framing | "iPhone Overheating" — describes the event rather than mirroring the state name | ✓ |
 
 **User's choice:** Alert framing — "iPhone Overheating"

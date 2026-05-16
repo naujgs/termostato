@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AA000001000000000000000A /* TermostatoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000001000000000000000B /* TermostatoApp.swift */; };
+		AA000001000000000000000A /* CoreWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000001000000000000000B /* CoreWatchApp.swift */; };
 		AA000002000000000000000A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002000000000000000B /* ContentView.swift */; };
 		AA000003000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA000003000000000000000B /* Assets.xcassets */; };
 		AA000005000000000000000A /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA000005000000000000000B /* IOKit.framework */; };
@@ -27,12 +27,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		AA000001000000000000000B /* TermostatoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TermostatoApp.swift; sourceTree = "<group>"; };
+		AA000001000000000000000B /* CoreWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreWatchApp.swift; sourceTree = "<group>"; };
 		AA000002000000000000000B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		AA000003000000000000000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		AA000004000000000000000B /* Termostato.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Termostato.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA000004000000000000000B /* CoreWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoreWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA000005000000000000000B /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
-		AA000006000000000000000B /* Termostato-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Termostato-Bridging-Header.h"; sourceTree = "<group>"; };
+		AA000006000000000000000B /* CoreWatch-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CoreWatch-Bridging-Header.h"; sourceTree = "<group>"; };
 		AA000007000000000000000B /* TemperatureViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureViewModel.swift; sourceTree = "<group>"; };
 		AA000008000000000000000B /* NotificationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDelegate.swift; sourceTree = "<group>"; };
 		AA000009000000000000000B /* SystemMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMetrics.swift; sourceTree = "<group>"; };
@@ -71,15 +71,15 @@
 		AA000020000000000000000A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AA000004000000000000000B /* Termostato.app */,
+				AA000004000000000000000B /* CoreWatch.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		AA000021000000000000000A /* Termostato */ = {
+		AA000021000000000000000A /* CoreWatch */ = {
 			isa = PBXGroup;
 			children = (
-				AA000001000000000000000B /* TermostatoApp.swift */,
+				AA000001000000000000000B /* CoreWatchApp.swift */,
 				AA000002000000000000000B /* ContentView.swift */,
 				AA000007000000000000000B /* TemperatureViewModel.swift */,
 				AA000008000000000000000B /* NotificationDelegate.swift */,
@@ -95,15 +95,15 @@
 				AA000018100000000000000B /* ThermalBadgeView.swift */,
 				AA000019100000000000000B /* SessionChartView.swift */,
 				AA000003000000000000000B /* Assets.xcassets */,
-				AA000006000000000000000B /* Termostato-Bridging-Header.h */,
+				AA000006000000000000000B /* CoreWatch-Bridging-Header.h */,
 			);
-			path = Termostato;
+			path = CoreWatch;
 			sourceTree = "<group>";
 		};
 		AA000022000000000000000A = {
 			isa = PBXGroup;
 			children = (
-				AA000021000000000000000A /* Termostato */,
+				AA000021000000000000000A /* CoreWatch */,
 				AA000020000000000000000A /* Products */,
 				8151E0112FB3713400C7D949 /* Recovered References */,
 			);
@@ -112,9 +112,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AA000030000000000000000A /* Termostato */ = {
+		AA000030000000000000000A /* CoreWatch */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AA000050000000000000000A /* Build configuration list for PBXNativeTarget "Termostato" */;
+			buildConfigurationList = AA000050000000000000000A /* Build configuration list for PBXNativeTarget "CoreWatch" */;
 			buildPhases = (
 				AA000011000000000000000A /* Sources */,
 				AA000010000000000000000A /* Frameworks */,
@@ -124,9 +124,9 @@
 			);
 			dependencies = (
 			);
-			name = Termostato;
-			productName = Termostato;
-			productReference = AA000004000000000000000B /* Termostato.app */;
+			name = CoreWatch;
+			productName = CoreWatch;
+			productReference = AA000004000000000000000B /* CoreWatch.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -144,7 +144,7 @@
 					};
 				};
 			};
-			buildConfigurationList = AA000051000000000000000A /* Build configuration list for PBXProject "Termostato" */;
+			buildConfigurationList = AA000051000000000000000A /* Build configuration list for PBXProject "CoreWatch" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -158,7 +158,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AA000030000000000000000A /* Termostato */,
+				AA000030000000000000000A /* CoreWatch */,
 			);
 		};
 /* End PBXProject section */
@@ -180,7 +180,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA000001000000000000000A /* TermostatoApp.swift in Sources */,
+				AA000001000000000000000A /* CoreWatchApp.swift in Sources */,
 				AA000002000000000000000A /* ContentView.swift in Sources */,
 				AA000007000000000000000A /* TemperatureViewModel.swift in Sources */,
 				AA000008000000000000000A /* NotificationDelegate.swift in Sources */,
@@ -340,10 +340,10 @@
 				);
 				MARKETING_VERSION = 1.0;
 				INFOPLIST_KEY_CFBundleDisplayName = CoreWatch;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jgs.Termostato;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jgs.CoreWatch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Termostato/Termostato-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "CoreWatch/CoreWatch-Bridging-Header.h";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -373,10 +373,10 @@
 				);
 				MARKETING_VERSION = 1.0;
 				INFOPLIST_KEY_CFBundleDisplayName = CoreWatch;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jgs.Termostato;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jgs.CoreWatch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Termostato/Termostato-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "CoreWatch/CoreWatch-Bridging-Header.h";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -386,7 +386,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AA000050000000000000000A /* Build configuration list for PBXNativeTarget "Termostato" */ = {
+		AA000050000000000000000A /* Build configuration list for PBXNativeTarget "CoreWatch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA000062000000000000000A /* Debug */,
@@ -395,7 +395,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AA000051000000000000000A /* Build configuration list for PBXProject "Termostato" */ = {
+		AA000051000000000000000A /* Build configuration list for PBXProject "CoreWatch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA000060000000000000000A /* Debug */,

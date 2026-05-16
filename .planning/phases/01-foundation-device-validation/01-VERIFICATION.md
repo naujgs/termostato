@@ -6,7 +6,7 @@ score: 4/4 must-haves verified
 overrides_applied: 1
 overrides:
   - must_have: "A written decision record exists stating whether IOKit returns data or is silently blocked"
-    reason: "The probe crashed with EXC_BAD_ACCESS before producing the exact [Termostato][IOKit] console log line the plan acceptance criterion required to be pasted verbatim. The crash itself is definitive evidence of BLOCKED status and is fully documented in DECISION-IOKIT.md with the BLOCKED verdict, crash address, and architectural impact. No console line was produced to paste because the crash preceded logging. This deviation in evidence form does not change the verdict."
+    reason: "The probe crashed with EXC_BAD_ACCESS before producing the exact [CoreWatch][IOKit] console log line the plan acceptance criterion required to be pasted verbatim. The crash itself is definitive evidence of BLOCKED status and is fully documented in DECISION-IOKIT.md with the BLOCKED verdict, crash address, and architectural impact. No console line was produced to paste because the crash preceded logging. This deviation in evidence form does not change the verdict."
     accepted_by: "jgs (prompt note)"
     accepted_at: "2026-05-12T00:00:00Z"
 ---
@@ -25,7 +25,7 @@ overrides:
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
 | 1 | The app builds in Xcode and installs onto the owner's iPhone via USB without App Store submission | VERIFIED | BUILD SUCCEEDED confirmed in 01-01-SUMMARY.md and 01-02-SUMMARY.md; physical device install confirmed by human checkpoint in 01-03-SUMMARY.md |
-| 2 | ProcessInfo.thermalState returns a valid value and logs to console with each poll cycle | VERIFIED | `ProcessInfo.processInfo.thermalState` present in TemperatureViewModel.swift (line 53); `Timer.publish(every: 30)` wired (line 32); `[Termostato] thermalState = nominal` log confirmed on physical device in 01-03-SUMMARY.md |
+| 2 | ProcessInfo.thermalState returns a valid value and logs to console with each poll cycle | VERIFIED | `ProcessInfo.processInfo.thermalState` present in TemperatureViewModel.swift (line 53); `Timer.publish(every: 30)` wired (line 32); `[CoreWatch] thermalState = nominal` log confirmed on physical device in 01-03-SUMMARY.md |
 | 3 | A written decision record exists stating whether IOKit returns data or is silently blocked | VERIFIED (override) | DECISION-IOKIT.md exists with clear BLOCKED verdict; probe crashed (EXC_BAD_ACCESS) before producing the exact console log line — crash is documented as the evidence; override accepted per prompt note |
 | 4 | The data pipeline runs while the app is foregrounded and pauses when it is backgrounded (scenePhase observer confirmed) | VERIFIED | ContentView.swift contains `.onChange(of: scenePhase)` calling `stopPolling()` on `.background` and `startPolling()` on `.active`; `.onAppear` handles initial start; `Polling stopped (backgrounded).` and `Polling started.` confirmed on device in 01-03-SUMMARY.md |
 
@@ -35,18 +35,18 @@ overrides:
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `Termostato/Termostato.xcodeproj/project.pbxproj` | iOS 18.0 target, Swift 6 strict concurrency, free Apple ID signing | VERIFIED | `IPHONEOS_DEPLOYMENT_TARGET = 18.0` (4 occurrences); `SWIFT_STRICT_CONCURRENCY = complete` (2 occurrences); `SWIFT_OBJC_BRIDGING_HEADER` set (2 occurrences); IOKit.framework linked |
-| `Termostato/Termostato/TermostatoApp.swift` | SwiftUI @main entry point | VERIFIED | File exists; created in 01-01-SUMMARY.md commit 18ef55a |
-| `Termostato/Termostato/Termostato-Bridging-Header.h` | IOKit import bridge for Swift | VERIFIED | File exists; contains `#import <mach/mach.h>`, `typedef mach_port_t io_object_t`, and all four IOKit extern declarations |
-| `Termostato/Termostato/TemperatureViewModel.swift` | Core data pipeline: thermalState polling, no probe code | VERIFIED | `@Observable`, `@MainActor`, `Timer.publish(every: 30)`, `ProcessInfo.processInfo.thermalState` all present; `probeIOKit` count = 0 (probe fully removed) |
-| `Termostato/Termostato/ContentView.swift` | Root view with scenePhase lifecycle wiring | VERIFIED | `@Environment(\.scenePhase)`, `.onChange(of: scenePhase)`, `viewModel.startPolling()`, `viewModel.stopPolling()` all present; no `import UIKit` |
+| `CoreWatch/CoreWatch.xcodeproj/project.pbxproj` | iOS 18.0 target, Swift 6 strict concurrency, free Apple ID signing | VERIFIED | `IPHONEOS_DEPLOYMENT_TARGET = 18.0` (4 occurrences); `SWIFT_STRICT_CONCURRENCY = complete` (2 occurrences); `SWIFT_OBJC_BRIDGING_HEADER` set (2 occurrences); IOKit.framework linked |
+| `CoreWatch/CoreWatch/CoreWatchApp.swift` | SwiftUI @main entry point | VERIFIED | File exists; created in 01-01-SUMMARY.md commit 18ef55a |
+| `CoreWatch/CoreWatch/CoreWatch-Bridging-Header.h` | IOKit import bridge for Swift | VERIFIED | File exists; contains `#import <mach/mach.h>`, `typedef mach_port_t io_object_t`, and all four IOKit extern declarations |
+| `CoreWatch/CoreWatch/TemperatureViewModel.swift` | Core data pipeline: thermalState polling, no probe code | VERIFIED | `@Observable`, `@MainActor`, `Timer.publish(every: 30)`, `ProcessInfo.processInfo.thermalState` all present; `probeIOKit` count = 0 (probe fully removed) |
+| `CoreWatch/CoreWatch/ContentView.swift` | Root view with scenePhase lifecycle wiring | VERIFIED | `@Environment(\.scenePhase)`, `.onChange(of: scenePhase)`, `viewModel.startPolling()`, `viewModel.stopPolling()` all present; no `import UIKit` |
 | `.planning/phases/01-foundation-device-validation/DECISION-IOKIT.md` | Written IOKit decision record | VERIFIED (override) | File exists; contains BLOCKED verdict, crash evidence (EXC_BAD_ACCESS code=1, address=0xadf1046), and architectural impact statement |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|----|-----|--------|---------|
-| `Termostato-Bridging-Header.h` | `project.pbxproj` SWIFT_OBJC_BRIDGING_HEADER | Build Settings | WIRED | `SWIFT_OBJC_BRIDGING_HEADER = "Termostato/Termostato-Bridging-Header.h"` present in target Debug and Release configs |
+| `CoreWatch-Bridging-Header.h` | `project.pbxproj` SWIFT_OBJC_BRIDGING_HEADER | Build Settings | WIRED | `SWIFT_OBJC_BRIDGING_HEADER = "CoreWatch/CoreWatch-Bridging-Header.h"` present in target Debug and Release configs |
 | `ContentView.swift` | `TemperatureViewModel` | `@State private var viewModel = TemperatureViewModel()` + `.onChange(of: scenePhase)` | WIRED | ViewModel instantiated as `@State`; `onChange` fires `startPolling()`/`stopPolling()` on phase transitions; `onAppear` fires initial start |
 | `TemperatureViewModel.startPolling()` | `ProcessInfo.processInfo.thermalState` | `Timer.publish(every: 30)` Combine sink → `updateThermalState()` | WIRED | Sink calls `self.updateThermalState()` which reads `ProcessInfo.processInfo.thermalState` and assigns to `thermalState` property |
 | `TemperatureViewModel.init()` | IOKit probe | `probeIOKit()` call in init (Phase 1 only) | N/A — correctly removed | Probe deleted per D-02; `init()` is now empty body `{}` |
@@ -83,7 +83,7 @@ None. All four success criteria are verifiable through code inspection plus docu
 
 ### Gaps Summary
 
-No gaps. All four roadmap success criteria are satisfied. One override is applied for SC-3: the IOKit decision record lacks a pasted `[Termostato][IOKit]` console line because the probe crashed before that line could be logged. The crash is documented as the evidence and the BLOCKED verdict is unambiguous.
+No gaps. All four roadmap success criteria are satisfied. One override is applied for SC-3: the IOKit decision record lacks a pasted `[CoreWatch][IOKit]` console line because the probe crashed before that line could be logged. The crash is documented as the evidence and the BLOCKED verdict is unambiguous.
 
 ---
 

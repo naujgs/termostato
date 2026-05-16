@@ -24,7 +24,7 @@ Features users expect from any temperature/thermal monitor. Missing one of these
 
 ## Differentiators
 
-Features that would make Termostato stand out from App Store competitors. Not required for v1, but worth knowing about for roadmap ordering.
+Features that would make CoreWatch stand out from App Store competitors. Not required for v1, but worth knowing about for roadmap ordering.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
@@ -84,7 +84,7 @@ Unit preference (UserDefaults)
 
 ## Alert Pattern Recommendation
 
-Three alert strategies exist in the monitoring-app space. For Termostato v1:
+Three alert strategies exist in the monitoring-app space. For CoreWatch v1:
 
 **Recommended: hybrid threshold + state-change**
 
@@ -328,7 +328,7 @@ Before defining features, confirm what each candidate API can actually return:
 
 **Category:** Differentiator — adds meaningful context to thermal state. If the device is at "Serious" thermal and CPU is pegged at 95%, the user understands why.
 
-**What it shows:** The percentage of one CPU core being consumed by the Termostato process itself. This is honest about its scope — it is not "the device's CPU load," it is "how hard this app is working." On a monitoring app the value will typically be low (1–5%), which is itself useful signal (the monitor itself is not the problem).
+**What it shows:** The percentage of one CPU core being consumed by the CoreWatch process itself. This is honest about its scope — it is not "the device's CPU load," it is "how hard this app is working." On a monitoring app the value will typically be low (1–5%), which is itself useful signal (the monitor itself is not the problem).
 
 **API approach:** Sum `cpu_usage` fields across all of the app's threads via `task_threads()` + `thread_info(thread, THREAD_BASIC_INFO, ...)`. Divide by `TH_USAGE_SCALE` (1000) to get 0.0–1.0. This is the approach used by GDPerformanceView-Swift and every iOS in-app performance overlay library. It is self-scoped (reads only this process's threads) and confirmed sandbox-safe.
 
@@ -358,7 +358,7 @@ var appCPUUsage: Double {
 }
 ```
 
-**Limitation:** This only reflects Termostato's own process. It will not tell you that a game running in the foreground is consuming 80% CPU. For a personal thermal dashboard this is a reasonable limitation — the primary signal is still `thermalState`.
+**Limitation:** This only reflects CoreWatch's own process. It will not tell you that a game running in the foreground is consuming 80% CPU. For a personal thermal dashboard this is a reasonable limitation — the primary signal is still `thermalState`.
 
 **Display recommendation:** A single numeric percentage label ("CPU: 3.2%") in a secondary row below the thermal badge. A SwiftUI `Gauge` view (iOS 16+, `.accessoryCircular` style) works well for an at-a-glance ring showing 0–100%. No chart needed for v1.2 — the existing thermalState chart already provides the session history narrative.
 
@@ -376,7 +376,7 @@ var appCPUUsage: Double {
 
 **Category:** Table stakes for a health dashboard. Every competitor app (System Status, System Monitor & Device Info) shows memory. Users expect it.
 
-**What it shows:** How much physical memory (RAM) Termostato is consuming, in MB. This is the `phys_footprint` value from `TASK_VM_INFO` — the same number Xcode's memory gauge shows.
+**What it shows:** How much physical memory (RAM) CoreWatch is consuming, in MB. This is the `phys_footprint` value from `TASK_VM_INFO` — the same number Xcode's memory gauge shows.
 
 **API approach:** Apple recommends `task_info()` with `TASK_VM_INFO` and reading `task_vm_info.phys_footprint`. This is a documented, sanctioned API for reading one's own process memory. Apple's own engineers posted this in the developer forums.
 
@@ -525,7 +525,7 @@ SwiftUI Gauge (iOS 16+, in deployment target)
 
 ### Design References for v1.2
 
-**System Status (techet.net/sysstat):** The reference app for this genre on iOS. Uses separate pages per metric category (CPU, Memory, Battery, Storage, Network). Not appropriate to copy — Termostato should remain a single-screen dashboard, not a multi-page system inspector. Take: the visual convention of real-time graphs per metric. Reject: the paginated navigation structure.
+**System Status (techet.net/sysstat):** The reference app for this genre on iOS. Uses separate pages per metric category (CPU, Memory, Battery, Storage, Network). Not appropriate to copy — CoreWatch should remain a single-screen dashboard, not a multi-page system inspector. Take: the visual convention of real-time graphs per metric. Reject: the paginated navigation structure.
 
 **GDPerformanceView-Swift:** Open-source overlay showing CPU %, memory, FPS above the status bar. Confirms that the per-process `task_threads` approach works in a standard iOS app context (though it targets in-app dev overlays, not sideloaded monitors). Design reference for compact metric display.
 

@@ -1,4 +1,4 @@
-# Termostato — Retrospective
+# CoreWatch — Retrospective
 
 ## Milestone: v1.0 — MVP
 

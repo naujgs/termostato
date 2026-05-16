@@ -24,7 +24,7 @@ tech-stack:
 key-files:
   created: []
   modified:
-    - Termostato/Termostato/ContentView.swift
+    - CoreWatch/CoreWatch/ContentView.swift
 
 key-decisions:
   - "Tag integers follow Phase 7 tab order: 0=Thermal, 1=CPU, 2=Memory"
@@ -66,7 +66,7 @@ Each task was committed atomically:
 
 ## Files Created/Modified
 
-- `Termostato/Termostato/ContentView.swift` - Added selectedTab property, updated TabView initializer, added .tag() modifiers to all three tabs
+- `CoreWatch/CoreWatch/ContentView.swift` - Added selectedTab property, updated TabView initializer, added .tag() modifiers to all three tabs
 
 ## Decisions Made
 

@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AA000030000000000000000A"
-               BuildableName = "Termostato.app"
-               BlueprintName = "Termostato"
-               ReferencedContainer = "container:Termostato.xcodeproj">
+               BuildableName = "CoreWatch.app"
+               BlueprintName = "CoreWatch"
+               ReferencedContainer = "container:CoreWatch.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -44,9 +44,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA000030000000000000000A"
-            BuildableName = "Termostato.app"
-            BlueprintName = "Termostato"
-            ReferencedContainer = "container:Termostato.xcodeproj">
+            BuildableName = "CoreWatch.app"
+            BlueprintName = "CoreWatch"
+            ReferencedContainer = "container:CoreWatch.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -61,9 +61,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA000030000000000000000A"
-            BuildableName = "Termostato.app"
-            BlueprintName = "Termostato"
-            ReferencedContainer = "container:Termostato.xcodeproj">
+            BuildableName = "CoreWatch.app"
+            BlueprintName = "CoreWatch"
+            ReferencedContainer = "container:CoreWatch.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

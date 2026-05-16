@@ -21,7 +21,7 @@ tech-stack:
 key-files:
   created: []
   modified:
-    - Termostato/Termostato/TemperatureViewModel.swift
+    - CoreWatch/CoreWatch/TemperatureViewModel.swift
 
 key-decisions:
   - "10s interval chosen to satisfy POLL-01 (3x more responsive) while remaining well within ProcessInfo.thermalState update granularity"
@@ -67,7 +67,7 @@ Each task was committed atomically:
 
 ## Files Created/Modified
 
-- `Termostato/Termostato/TemperatureViewModel.swift` — Changed `maxHistory` from 120 to 360, changed `Timer.publish(every:)` from 30 to 10, updated four inline comments
+- `CoreWatch/CoreWatch/TemperatureViewModel.swift` — Changed `maxHistory` from 120 to 360, changed `Timer.publish(every:)` from 30 to 10, updated four inline comments
 
 ## Decisions Made
 

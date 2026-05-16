@@ -12,13 +12,13 @@ tech_stack:
   patterns: [Task.detached+MainActor.run, nonisolated(unsafe)-mach-state, vm_deallocate-defer]
 key_files:
   created:
-    - Termostato/Termostato/MetricsViewModel.swift
-    - Termostato/Termostato/ThermalView.swift
-    - Termostato/Termostato/CPUView.swift
-    - Termostato/Termostato/MemoryView.swift
+    - CoreWatch/CoreWatch/MetricsViewModel.swift
+    - CoreWatch/CoreWatch/ThermalView.swift
+    - CoreWatch/CoreWatch/CPUView.swift
+    - CoreWatch/CoreWatch/MemoryView.swift
   modified:
-    - Termostato/Termostato.xcodeproj/project.pbxproj
-    - Termostato/Termostato/TemperatureViewModel.swift
+    - CoreWatch/CoreWatch.xcodeproj/project.pbxproj
+    - CoreWatch/CoreWatch/TemperatureViewModel.swift
 decisions:
   - "vm_kernel_page_size replaced with literal 16384 — Swift 6 strict concurrency treats the Darwin global as shared mutable state; literal is correct for arm64 iOS"
   - "Stub view files (ThermalView, CPUView, MemoryView) created to unblock build — registered in pbxproj but bodies implemented in Plan 02"
@@ -93,9 +93,9 @@ No new network endpoints, auth paths, file access patterns, or schema changes we
 
 ## Self-Check: PASSED
 
-- `/Users/jgs/workspace/Termostato/Termostato/Termostato/MetricsViewModel.swift` — FOUND
-- `/Users/jgs/workspace/Termostato/Termostato/Termostato/ThermalView.swift` — FOUND
-- `/Users/jgs/workspace/Termostato/Termostato/Termostato/CPUView.swift` — FOUND
-- `/Users/jgs/workspace/Termostato/Termostato/Termostato/MemoryView.swift` — FOUND
+- `/Users/jgs/workspace/CoreWatch/CoreWatch/CoreWatch/MetricsViewModel.swift` — FOUND
+- `/Users/jgs/workspace/CoreWatch/CoreWatch/CoreWatch/ThermalView.swift` — FOUND
+- `/Users/jgs/workspace/CoreWatch/CoreWatch/CoreWatch/CPUView.swift` — FOUND
+- `/Users/jgs/workspace/CoreWatch/CoreWatch/CoreWatch/MemoryView.swift` — FOUND
 - Commit ca2870f — FOUND (Task 1: pbxproj registrations)
 - Commit c0ca77f — FOUND (Task 2: MetricsViewModel + stubs + TemperatureViewModel)

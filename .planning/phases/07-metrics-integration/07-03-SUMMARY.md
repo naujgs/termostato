@@ -13,7 +13,7 @@ tech_stack:
 key_files:
   created: []
   modified:
-    - Termostato/Termostato/ContentView.swift
+    - CoreWatch/CoreWatch/ContentView.swift
 decisions:
   - "ContentView owns both @State VMs (vm + metrics); tab views receive them as parameters only — consistent with Plan 02 D-07 decision"
   - "scenePhase .active/.background drives both VM start/stop together (D-10) — no double-start possible due to existing guards in both VMs (T-07-07 mitigation verified)"
@@ -70,7 +70,7 @@ All 18 Task 2 on-device verification points passed (user sign-off: "approved"):
 - **Found during:** Post-Task 1, pre-checkpoint
 - **Issue:** Metric cards lacked contextual labels to help users understand what each value represents
 - **Fix:** Added `.help()` tooltip modifiers to all metric cards in CPUView, MemoryView, and the thermal badge in ThermalView with localized strings
-- **Files modified:** Termostato/Termostato/CPUView.swift, Termostato/Termostato/MemoryView.swift, Termostato/Termostato/ThermalView.swift
+- **Files modified:** CoreWatch/CoreWatch/CPUView.swift, CoreWatch/CoreWatch/MemoryView.swift, CoreWatch/CoreWatch/ThermalView.swift
 - **Commit:** d6b1d2d
 
 ## Known Stubs
@@ -83,7 +83,7 @@ No new network endpoints, auth paths, file access patterns, or schema changes. C
 
 ## Self-Check: PASSED
 
-- `/Users/jgs/workspace/Termostato/Termostato/Termostato/ContentView.swift` — FOUND (52 lines, TabView implementation)
+- `/Users/jgs/workspace/CoreWatch/CoreWatch/CoreWatch/ContentView.swift` — FOUND (52 lines, TabView implementation)
 - Commit 9ec23a1 — Task 1: ContentView TabView wiring
 - Commit d6b1d2d — Bonus: localized tooltips on metric cards and thermal badge
 - Task 2: on-device verification complete, all 18 points approved by user

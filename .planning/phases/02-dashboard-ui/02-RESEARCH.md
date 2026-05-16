@@ -91,11 +91,11 @@ The most technically precise aspect of this phase is the per-step coloring of th
 ### Recommended Project Structure
 
 ```
-Termostato/Termostato/
+CoreWatch/CoreWatch/
 ├── TemperatureViewModel.swift   # Add ThermalReading struct + history array (extend Phase 1)
 ├── ContentView.swift            # Replace placeholder with badge + chart dashboard
-├── TermostatoApp.swift          # Unchanged
-├── Termostato-Bridging-Header.h # Unchanged (Phase 1 IOKit artifact — leave or remove per Phase 1 cleanup)
+├── CoreWatchApp.swift          # Unchanged
+├── CoreWatch-Bridging-Header.h # Unchanged (Phase 1 IOKit artifact — leave or remove per Phase 1 cleanup)
 └── Assets.xcassets              # Unchanged
 ```
 
@@ -157,7 +157,7 @@ private func updateThermalState() {
         history.removeFirst()
     }
     history.append(reading)
-    print("[Termostato] thermalState = \(thermalStateDescription)")
+    print("[CoreWatch] thermalState = \(thermalStateDescription)")
 }
 ```
 
@@ -469,7 +469,7 @@ Step 2.6: SKIPPED — Phase 2 has no external dependencies beyond the Apple SDK 
 | Quick run command | N/A — manual Simulator/device verification |
 | Full suite command | N/A |
 
-**Note:** The Termostato project has no automated test target. `ProcessInfo.thermalState` and `ProcessInfo.thermalStateDidChangeNotification` cannot be injected in an XCTest host without a custom abstraction layer, which is out of scope for this phase. Validation is manual (Xcode Simulator + physical device).
+**Note:** The CoreWatch project has no automated test target. `ProcessInfo.thermalState` and `ProcessInfo.thermalStateDidChangeNotification` cannot be injected in an XCTest host without a custom abstraction layer, which is out of scope for this phase. Validation is manual (Xcode Simulator + physical device).
 
 ### Phase Requirements — Test Map
 

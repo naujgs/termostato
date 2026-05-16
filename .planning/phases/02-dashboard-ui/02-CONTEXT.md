@@ -64,8 +64,8 @@ This phase does NOT wire notifications — that is Phase 3.
 - `.planning/phases/01-foundation-device-validation/01-CONTEXT.md` — D-03 establishes TemperatureViewModel as the real ViewModel Phase 2 extends (history array added, not a rewrite); D-04/D-05 polling interval and lifecycle pattern
 
 ### Existing Source Files
-- `Termostato/Termostato/TemperatureViewModel.swift` — Add history array here. Phase 2 extends this file.
-- `Termostato/Termostato/ContentView.swift` — Phase 1 placeholder. Phase 2 replaces the body entirely with the dashboard layout.
+- `CoreWatch/CoreWatch/TemperatureViewModel.swift` — Add history array here. Phase 2 extends this file.
+- `CoreWatch/CoreWatch/ContentView.swift` — Phase 1 placeholder. Phase 2 replaces the body entirely with the dashboard layout.
 
 </canonical_refs>
 

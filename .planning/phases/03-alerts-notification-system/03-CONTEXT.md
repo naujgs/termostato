@@ -69,9 +69,9 @@ This phase does NOT add new dashboard UI elements beyond the permission-denied S
 - `.planning/phases/02-dashboard-ui/02-CONTEXT.md` — D-07 (system appearance, no forced color scheme); D-08 (badge color palette)
 
 ### Existing Source Files
-- `Termostato/Termostato/TemperatureViewModel.swift` — Add `lastAlertedState`, `notificationsAuthorized`, `thermalStateDidChangeNotification` observer, and notification scheduling here
-- `Termostato/Termostato/ContentView.swift` — Add permission-denied banner below the badge (between badge and chart)
-- `Termostato/Termostato/TermostatoApp.swift` — Minimal; no changes expected
+- `CoreWatch/CoreWatch/TemperatureViewModel.swift` — Add `lastAlertedState`, `notificationsAuthorized`, `thermalStateDidChangeNotification` observer, and notification scheduling here
+- `CoreWatch/CoreWatch/ContentView.swift` — Add permission-denied banner below the badge (between badge and chart)
+- `CoreWatch/CoreWatch/CoreWatchApp.swift` — Minimal; no changes expected
 
 </canonical_refs>
 
@@ -99,7 +99,7 @@ This phase does NOT add new dashboard UI elements beyond the permission-denied S
 <specifics>
 ## Specific Ideas
 
-- Notification title "iPhone Overheating" was chosen over "Serious" or "Termostato — Serious" — alert framing over state mirroring.
+- Notification title "iPhone Overheating" was chosen over "Serious" or "CoreWatch — Serious" — alert framing over state mirroring.
 - Body format: `"Thermal state: Serious — performance may be limited"` — state name is interpolated, not hardcoded.
 - Dismiss button added via `UNNotificationCategory`; tapping outside Dismiss (the notification body) opens the app.
 - Cooldown is entirely state-level-based, not time-based. No arbitrary N-minute timers.

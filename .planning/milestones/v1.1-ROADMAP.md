@@ -1,4 +1,4 @@
-# Roadmap: Termostato
+# Roadmap: CoreWatch
 
 ## Milestones
 

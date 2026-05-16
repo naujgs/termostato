@@ -27,8 +27,8 @@ tech-stack:
 key-files:
   created: []
   modified:
-    - Termostato/Termostato/TemperatureViewModel.swift
-    - Termostato/Termostato/ContentView.swift
+    - CoreWatch/CoreWatch/TemperatureViewModel.swift
+    - CoreWatch/CoreWatch/ContentView.swift
 
 key-decisions:
   - "D-01: Full-width RoundedRectangle badge with largeTitle bold text — glanceable at a glance"
@@ -82,8 +82,8 @@ Each task was committed atomically:
 
 ## Files Created/Modified
 
-- `Termostato/Termostato/TemperatureViewModel.swift` - Added ThermalReading struct (file-level), maxHistory constant, history ring buffer, and ring-buffer append logic in updateThermalState()
-- `Termostato/Termostato/ContentView.swift` - Full replacement: badge + step-chart layout, empty state, chart Y-axis labels, scenePhase observer and onAppear preserved from Phase 1
+- `CoreWatch/CoreWatch/TemperatureViewModel.swift` - Added ThermalReading struct (file-level), maxHistory constant, history ring buffer, and ring-buffer append logic in updateThermalState()
+- `CoreWatch/CoreWatch/ContentView.swift` - Full replacement: badge + step-chart layout, empty state, chart Y-axis labels, scenePhase observer and onAppear preserved from Phase 1
 
 ## Decisions Made
 

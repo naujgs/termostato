@@ -24,13 +24,13 @@ status: partial
 
 ### WR-01: `startPolling()` called on every `.active` transition including `.inactive → .active`
 
-**Files modified:** `Termostato/Termostato/ContentView.swift`
+**Files modified:** `CoreWatch/CoreWatch/ContentView.swift`
 **Commit:** b34269a
 **Applied fix:** Changed the `onChange(of: scenePhase)` closure from `{ _, newPhase in` to `{ oldPhase, newPhase in }` and added an `if oldPhase == .background` guard inside the `.active` case. Polling (and the associated `requestNotificationPermission` / `refreshNotificationStatus` call path) now only restarts on a genuine background→active return, not on every `inactive→active` transition such as Notification Centre dismissal or call end. Fixed in a prior pass.
 
 ### IN-02: Leftover `print` debug artifacts in ViewModels called from ContentView lifecycle
 
-**Files modified:** `Termostato/Termostato/TemperatureViewModel.swift`, `Termostato/Termostato/MetricsViewModel.swift`
+**Files modified:** `CoreWatch/CoreWatch/TemperatureViewModel.swift`, `CoreWatch/CoreWatch/MetricsViewModel.swift`
 **Commit:** 793c277
 **Applied fix:** Wrapped all `print(...)` statements in both ViewModels with `#if DEBUG` / `#endif` guards. This covers all call sites: `startPolling`, `stopPolling`, `updateThermalState`, `requestNotificationPermission`, `checkAndFireNotification`, `handleBackgroundThermalChange`, and `scheduleOverheatNotification` in `TemperatureViewModel.swift`; and `startPolling` / `stopPolling` in `MetricsViewModel.swift`.
 
@@ -38,7 +38,7 @@ status: partial
 
 ### IN-01: `onAppear` and `onChange` both call `startPolling()` without coordination
 
-**File:** `Termostato/Termostato/ContentView.swift:49-52`
+**File:** `CoreWatch/CoreWatch/ContentView.swift:49-52`
 **Reason:** Resolved as a side-effect of the WR-01 fix (commit b34269a). With the `oldPhase == .background` guard in place, `onChange` no longer fires `startPolling()` on cold launch (where `oldPhase == .inactive`). The `onAppear` block handles initial startup exclusively; `onChange` handles background→active restarts exclusively. There is no longer a double-start on cold launch. The REVIEW.md explicitly identifies "Option B: keep onAppear, apply WR-01 fix" as a valid resolution — that is the current state of the code.
 
 ---

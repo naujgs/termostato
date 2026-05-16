@@ -46,7 +46,7 @@ human_verification:
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `Termostato/Termostato/ContentView.swift` | TabView with explicit selectedTab binding | VERIFIED | Contains `@State private var selectedTab: Int = 0`, `TabView(selection: $selectedTab)`, `.tag(0)`, `.tag(1)`, `.tag(2)` — all 3 grep checks pass |
+| `CoreWatch/CoreWatch/ContentView.swift` | TabView with explicit selectedTab binding | VERIFIED | Contains `@State private var selectedTab: Int = 0`, `TabView(selection: $selectedTab)`, `.tag(0)`, `.tag(1)`, `.tag(2)` — all 3 grep checks pass |
 
 | From | To | Via | Status | Details |
 |------|----|-----|--------|---------|
@@ -131,7 +131,7 @@ No TODOs, FIXMEs, placeholder comments, empty implementations, or hardcoded empt
 4. Return to Thermal tab — confirm badge shows current state and history chart has data points (not reset)
 5. Navigate to CPU tab again — confirm value persists (not "—"), wait for next poll (~5s) to confirm update
 6. Navigate to Memory tab and back — confirm values persist between navigation
-7. Long-press "Termostato" title on Thermal tab — confirm MachProbeDebugView debug sheet opens; dismiss; confirm no regression
+7. Long-press "CoreWatch" title on Thermal tab — confirm MachProbeDebugView debug sheet opens; dismiss; confirm no regression
 
 **Expected:** No tab resets to "—" when returning; Thermal chart does not clear on tab switch; debug sheet opens and dismisses cleanly; no crashes or layout regressions.
 

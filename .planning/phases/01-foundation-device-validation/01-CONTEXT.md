@@ -33,7 +33,7 @@ This phase does NOT build the dashboard UI — that is Phase 2.
 ### Claude's Discretion
 - Bridging header setup for IOKit (if needed) — Claude decides approach
 - Console logging format for Phase 1 validation output — `print()` is fine for a spike; OSLog can wait for Phase 2
-- Xcode project settings (bundle ID format, display name, signing team) — use `com.{user}.Termostato` convention
+- Xcode project settings (bundle ID format, display name, signing team) — use `com.{user}.CoreWatch` convention
 
 </decisions>
 

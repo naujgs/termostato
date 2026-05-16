@@ -53,8 +53,8 @@ None -- discussion stayed within phase scope.
 - **Dependencies:** Zero external dependencies -- Apple frameworks only
 - **Deployment target:** iOS 18.x minimum
 - **Polling pattern:** `Timer.publish(every: 10, ...)` with `startPolling()`/`stopPolling()` lifecycle
-- **Bridging header:** Already exists at `Termostato/Termostato/Termostato-Bridging-Header.h` with `#import <mach/mach.h>` and IOKit declarations
-- **Console logging:** `print("[Termostato] ...")` format
+- **Bridging header:** Already exists at `CoreWatch/CoreWatch/CoreWatch-Bridging-Header.h` with `#import <mach/mach.h>` and IOKit declarations
+- **Console logging:** `print("[CoreWatch] ...")` format
 
 ## Standard Stack
 
@@ -74,14 +74,14 @@ All APIs are kernel headers available through the existing bridging header. No S
 
 ### Recommended Project Structure
 ```
-Termostato/Termostato/
+CoreWatch/CoreWatch/
 ├── SystemMetrics.swift          # NEW: Mach API probe code (D-01)
 ├── MachProbeDebugView.swift     # NEW: Debug sheet UI (D-04)
 ├── TemperatureViewModel.swift   # UNCHANGED
 ├── ContentView.swift            # MODIFIED: add .sheet() for debug view
-├── Termostato-Bridging-Header.h # UNCHANGED (already has mach/mach.h)
+├── CoreWatch-Bridging-Header.h # UNCHANGED (already has mach/mach.h)
 ├── NotificationDelegate.swift   # UNCHANGED
-└── TermostatoApp.swift          # UNCHANGED
+└── CoreWatchApp.swift          # UNCHANGED
 ```
 
 ### Pattern 1: Swift-only Mach API Calls (D-03 Recommendation)
@@ -283,7 +283,7 @@ final class SystemMetricsProbe {
 @State private var showDebugSheet = false
 
 // Hidden trigger (D-05): long press on title
-Text("Termostato")
+Text("CoreWatch")
     .onLongPressGesture { showDebugSheet = true }
 
 .sheet(isPresented: $showDebugSheet) {
@@ -375,7 +375,7 @@ This phase reads system/process statistics via kernel APIs. No user data, no aut
 
 ### Primary (HIGH confidence)
 - iOS SDK headers at `/Applications/Xcode.app/.../iPhoneOS26.4.sdk/usr/include/mach/` -- verified `host_info.h`, `task_info.h`, `thread_info.h` contain all required types and constants [VERIFIED: local filesystem]
-- Existing bridging header at `Termostato/Termostato/Termostato-Bridging-Header.h` -- confirms `#import <mach/mach.h>` already present [VERIFIED: local filesystem]
+- Existing bridging header at `CoreWatch/CoreWatch/CoreWatch-Bridging-Header.h` -- confirms `#import <mach/mach.h>` already present [VERIFIED: local filesystem]
 - XNU source (`apple-oss-distributions/xnu` on GitHub) -- `host_statistics` and `host_statistics64` use `host_priv` parameter type [VERIFIED: GitHub raw fetch]
 
 ### Secondary (MEDIUM confidence)

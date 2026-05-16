@@ -159,7 +159,7 @@ Source: D-03 (step chart), D-04 (no scroll), D-05 (120-reading ring buffer), Cla
 | Element | Copy |
 |---------|------|
 | Primary CTA | None — this phase has no user-initiated actions (display only) |
-| App title | "Termostato" |
+| App title | "CoreWatch" |
 | Badge — state labels | "Nominal" / "Fair" / "Serious" / "Critical" (exact casing, no abbreviation) |
 | Chart sub-label | "Session history (last 60 min)" |
 | Empty state heading | "Warming up..." |

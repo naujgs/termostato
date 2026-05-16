@@ -51,11 +51,11 @@ Phase 9 (not in scope here) will implement the Claude Design mockups — a full 
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Core Source Files (Phase 7 output)
-- `Termostato/Termostato/ContentView.swift` — Current TabView container (54 lines). D-03 adds `@State selectedTab` here.
-- `Termostato/Termostato/CPUView.swift` — CPU tab view + MetricCardView component.
-- `Termostato/Termostato/MemoryView.swift` — Memory tab view.
-- `Termostato/Termostato/ThermalView.swift` — Thermal tab view.
-- `Termostato/Termostato/MetricsViewModel.swift` — Mach API polling ViewModel.
+- `CoreWatch/CoreWatch/ContentView.swift` — Current TabView container (54 lines). D-03 adds `@State selectedTab` here.
+- `CoreWatch/CoreWatch/CPUView.swift` — CPU tab view + MetricCardView component.
+- `CoreWatch/CoreWatch/MemoryView.swift` — Memory tab view.
+- `CoreWatch/CoreWatch/ThermalView.swift` — Thermal tab view.
+- `CoreWatch/CoreWatch/MetricsViewModel.swift` — Mach API polling ViewModel.
 
 ### Planning Artifacts
 - `.planning/REQUIREMENTS.md` — D-05: all 6 v1.2 requirements need `[x]` marks + traceability update.
@@ -77,7 +77,7 @@ Phase 9 (not in scope here) will implement the Claude Design mockups — a full 
 ### Established Patterns
 - `@Observable @MainActor final class` — ViewModels. No changes to ViewModels in Phase 8.
 - `@State private var` for ViewModel ownership in ContentView — `vm` and `metrics` are already `@State`, `selectedTab` follows the same pattern.
-- `print("[Termostato] ...")` — logging prefix (no new logging needed in Phase 8)
+- `print("[CoreWatch] ...")` — logging prefix (no new logging needed in Phase 8)
 
 ### Integration Points
 - `ContentView.body` — sole change: `TabView` → `TabView(selection: $selectedTab)` + `@State private var selectedTab: Int = 0`

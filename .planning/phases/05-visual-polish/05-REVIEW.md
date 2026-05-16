@@ -4,8 +4,8 @@ reviewed: 2026-05-13T00:00:00Z
 depth: standard
 files_reviewed: 2
 files_reviewed_list:
-  - Termostato/Termostato/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
-  - Termostato/Termostato/Assets.xcassets/AppIcon.appiconset/Contents.json
+  - CoreWatch/CoreWatch/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
+  - CoreWatch/CoreWatch/Assets.xcassets/AppIcon.appiconset/Contents.json
 findings:
   critical: 0
   warning: 1
@@ -31,7 +31,7 @@ One warning: the PNG encodes an alpha (transparency) channel (`8-bit/color RGBA`
 
 ### WR-01: App icon PNG contains an alpha channel (RGBA)
 
-**File:** `Termostato/Termostato/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png`
+**File:** `CoreWatch/CoreWatch/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png`
 **Issue:** `file` inspection reports `8-bit/color RGBA, non-interlaced`. iOS requires app icons to be fully opaque RGB PNGs with no alpha channel. Xcode's asset catalog compiler silently discards the alpha on device build, but this produces a warning in Xcode's asset validation and is a hard error for any App Store / TestFlight submission. The visual result on device may be unexpected if the icon relies on transparency to blend with the background — on iOS the home screen background will show through transparent pixels, not a designed solid color.
 
 **Fix:** Re-export the icon as an RGB (no alpha) PNG. In any image editor, flatten the image to a white or black background (whichever matches the design intent) before exporting, then verify:

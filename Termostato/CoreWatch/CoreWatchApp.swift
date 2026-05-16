@@ -2,7 +2,7 @@ import SwiftUI
 import UserNotifications
 
 @main
-struct TermostatoApp: App {
+struct CoreWatchApp: App {
 
     /// Retained for the app lifetime so UNUserNotificationCenter.delegate is not deallocated
     /// (RESEARCH.md Pitfall 6 — delegate is a weak reference; must be strongly held here).

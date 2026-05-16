@@ -98,7 +98,7 @@ The **verdict badge row list** is the primary visual anchor of the debug sheet. 
 
 ### 1. Debug Sheet Trigger (D-05)
 
-- **Gesture:** Long press on "Termostato" title text in ContentView
+- **Gesture:** Long press on "CoreWatch" title text in ContentView
 - **Duration:** System default long press (0.5s)
 - **Feedback:** System haptic on activation (`.sensoryFeedback(.impact, trigger:)`)
 - **No visible affordance** — this is intentionally hidden throwaway UI

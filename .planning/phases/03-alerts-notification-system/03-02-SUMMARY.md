@@ -11,9 +11,9 @@ dependency_graph:
     - permission-denied banner with Settings deep-link
     - complete Phase 3 notification system (ALRT-01, ALRT-02, ALRT-03)
   affects:
-    - Termostato/Termostato/NotificationDelegate.swift
-    - Termostato/Termostato/TermostatoApp.swift
-    - Termostato/Termostato/ContentView.swift
+    - CoreWatch/CoreWatch/NotificationDelegate.swift
+    - CoreWatch/CoreWatch/CoreWatchApp.swift
+    - CoreWatch/CoreWatch/ContentView.swift
 tech_stack:
   added:
     - UNUserNotificationCenterDelegate (NSObject subclass, nonisolated methods)
@@ -26,10 +26,10 @@ tech_stack:
     - Conditional banner driven by viewModel.notificationsAuthorized (@Observable binding)
 key_files:
   created:
-    - Termostato/Termostato/NotificationDelegate.swift
+    - CoreWatch/CoreWatch/NotificationDelegate.swift
   modified:
-    - Termostato/Termostato/TermostatoApp.swift
-    - Termostato/Termostato/ContentView.swift
+    - CoreWatch/CoreWatch/CoreWatchApp.swift
+    - CoreWatch/CoreWatch/ContentView.swift
 decisions:
   - "nonisolated on both UNUserNotificationCenterDelegate methods — Swift 6 requires this for conformance from a non-isolated class (RESEARCH.md Pattern 5)"
   - "@State used to retain NotificationDelegate in App struct — UNUserNotificationCenter.delegate is weak; must be strongly held to avoid deallocation"
@@ -48,15 +48,15 @@ requirements_satisfied:
 
 # Phase 03 Plan 02: Notification Delivery Infrastructure and Permission Banner Summary
 
-**One-liner:** UNUserNotificationCenterDelegate wired into TermostatoApp via @State retention, with permission-denied banner in ContentView using @Environment(\.openURL) Settings deep-link — completes Phase 3 notification system.
+**One-liner:** UNUserNotificationCenterDelegate wired into CoreWatchApp via @State retention, with permission-denied banner in ContentView using @Environment(\.openURL) Settings deep-link — completes Phase 3 notification system.
 
 ## What Was Built
 
-### Task 1: NotificationDelegate + TermostatoApp wiring (commit 5c3804b)
+### Task 1: NotificationDelegate + CoreWatchApp wiring (commit 5c3804b)
 
 Created `NotificationDelegate.swift` — a minimal `NSObject` conforming to `UNUserNotificationCenterDelegate`. Without this, iOS silently drops notifications while the app is in the foreground (RESEARCH.md Pitfall 2). Both delegate methods are `nonisolated` to satisfy Swift 6 conformance from a non-isolated class.
 
-Updated `TermostatoApp.swift` to retain `NotificationDelegate` as `@State` and assign it as `UNUserNotificationCenter.current().delegate` in `.onAppear`. This prevents the delegate from being deallocated (RESEARCH.md Pitfall 6 — the property is weak on `UNUserNotificationCenter`).
+Updated `CoreWatchApp.swift` to retain `NotificationDelegate` as `@State` and assign it as `UNUserNotificationCenter.current().delegate` in `.onAppear`. This prevents the delegate from being deallocated (RESEARCH.md Pitfall 6 — the property is weak on `UNUserNotificationCenter`).
 
 Key implementation details:
 - `willPresent` returns `[.banner, .sound]` — `.alert` is deprecated since iOS 14
@@ -94,7 +94,7 @@ All four Phase 3 success criteria verified on physical device:
 
 | Task | Commit | Description |
 |------|--------|-------------|
-| Task 1 | 5c3804b | feat(03-02): create NotificationDelegate and wire into TermostatoApp |
+| Task 1 | 5c3804b | feat(03-02): create NotificationDelegate and wire into CoreWatchApp |
 | Task 2 | e978d51 | feat(03-02): add permission-denied banner to ContentView |
 | Quick fix (pre-plan) | 34216e8 | fix(03): request background task on scene backgrounding so thermal observer stays live |
 
@@ -106,7 +106,7 @@ All four Phase 3 success criteria verified on physical device:
 - **Found during:** On-device testing (Criterion 3 pre-verification)
 - **Issue:** `thermalStateDidChangeNotification` observer was being suspended when the app backgrounded because iOS treats apps without an active background task as suspended. The observer would not fire until the app was foregrounded again.
 - **Fix:** Added `UIApplication.shared.beginBackgroundTask` call in `stopPolling()` via quick task 260513-0yk. This holds a background execution slot long enough for the notification observer to fire.
-- **Files modified:** `Termostato/Termostato/TemperatureViewModel.swift`
+- **Files modified:** `CoreWatch/CoreWatch/TemperatureViewModel.swift`
 - **Commit:** 34216e8
 
 None of the other plan tasks required deviation — all three files matched the plan spec exactly as written.
@@ -136,9 +136,9 @@ All three requirements satisfied:
 ## Self-Check: PASSED
 
 Files verified:
-- `Termostato/Termostato/NotificationDelegate.swift` — EXISTS
-- `Termostato/Termostato/TermostatoApp.swift` — contains `notificationDelegate` @State + delegate assignment
-- `Termostato/Termostato/ContentView.swift` — contains `notificationsAuthorized` conditional banner
+- `CoreWatch/CoreWatch/NotificationDelegate.swift` — EXISTS
+- `CoreWatch/CoreWatch/CoreWatchApp.swift` — contains `notificationDelegate` @State + delegate assignment
+- `CoreWatch/CoreWatch/ContentView.swift` — contains `notificationsAuthorized` conditional banner
 
 Commits verified:
 - `5c3804b` — EXISTS in git log

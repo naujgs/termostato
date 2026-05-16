@@ -1,12 +1,12 @@
 //
 //  ThermalState.swift
-//  Termostato
+//  CoreWatch
 //
 
 import Foundation
 import SwiftUI
 
-/// The four states Termostato displays. Mirrors ProcessInfo.ThermalState.
+/// The four states CoreWatch displays. Mirrors ProcessInfo.ThermalState.
 /// Do NOT localize label strings — they are proper nouns matching ProcessInfo terminology.
 enum ThermalLevel: String, CaseIterable, Identifiable, Sendable {
     case nominal, fair, serious, critical

@@ -1,6 +1,6 @@
 //
 //  SessionChartView.swift
-//  Termostato
+//  CoreWatch
 //
 
 import SwiftUI

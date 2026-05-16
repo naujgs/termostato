@@ -1,6 +1,6 @@
-# Research Summary — Termostato v1.1
+# Research Summary — CoreWatch v1.1
 
-**Project:** Termostato
+**Project:** CoreWatch
 **Domain:** iOS thermal monitoring app (sideloaded, personal use)
 **Milestone:** v1.1 — Custom app icon + polling interval reduction (30s → 10s)
 **Researched:** 2026-05-13
@@ -18,7 +18,7 @@
 
 ## Executive Summary
 
-Termostato v1.1 is a low-risk, two-change milestone. Both in-scope features are well-understood,
+CoreWatch v1.1 is a low-risk, two-change milestone. Both in-scope features are well-understood,
 require no new frameworks or dependencies, and can be validated quickly. The custom app icon is a
 pure asset-catalog change — zero Swift code involved. The polling interval reduction from 30s to
 10s is a single integer literal change in `TemperatureViewModel.swift`, with one required companion
@@ -176,7 +176,7 @@ The following findings are preserved for future planning but are **not actionabl
 - TrollStore supports iOS 14.0b2 through iOS 17.0 only. iOS 17.0.1 and all iOS 18.x are permanently incompatible (CoreTrust CVE-2023-41991 patched by Apple, confirmed in TrollStore README and iDevice Central).
 - Numeric temperature key: `"Temperature"` in the `IOPMPowerSource` IOKit dictionary. Raw value is centidegrees Celsius (divide by 100 for °C).
 - Required entitlement: `systemgroup.com.apple.powerlog` (private, boolean true).
-- The bridging header (`Termostato-Bridging-Header.h`) already declares all needed IOKit C functions. No bridging header changes are needed when this feature is eventually implemented.
+- The bridging header (`CoreWatch-Bridging-Header.h`) already declares all needed IOKit C functions. No bridging header changes are needed when this feature is eventually implemented.
 - Build workflow would require a separate Xcode build configuration with `CODE_SIGNING_ALLOWED=NO` and an ldid Run Script phase.
 - Graceful degradation is architecture-ready: a `numericTemperature: Double?` property returning nil when the entitlement is absent displays nothing rather than "0.0°C".
 

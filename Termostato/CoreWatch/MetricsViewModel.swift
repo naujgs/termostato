@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-/// Live CPU and memory metrics ViewModel for Termostato.
+/// Live CPU and memory metrics ViewModel for CoreWatch.
 /// Polls every 5 seconds via Task.detached — Mach calls are nonisolated to avoid blocking @MainActor.
 /// D-07: Separate class, does NOT extend TemperatureViewModel.
 /// D-11: Task.detached + await MainActor.run marshalling pattern.
@@ -52,7 +52,7 @@ final class MetricsViewModel {
             }
         }
         #if DEBUG
-        print("[Termostato] MetricsViewModel polling started.")
+        print("[CoreWatch] MetricsViewModel polling started.")
         #endif
     }
 
@@ -61,7 +61,7 @@ final class MetricsViewModel {
         pollingTask?.cancel()
         pollingTask = nil
         #if DEBUG
-        print("[Termostato] MetricsViewModel polling stopped.")
+        print("[CoreWatch] MetricsViewModel polling stopped.")
         #endif
     }
 

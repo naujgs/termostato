@@ -6,7 +6,7 @@ score: 2/3
 overrides_applied: 0
 human_verification:
   - test: "Confirm 10-second polling cadence in Simulator"
-    expected: "3 or more '[Termostato] thermalState = ...' console log lines appear within ~30 seconds of app launch"
+    expected: "3 or more '[CoreWatch] thermalState = ...' console log lines appear within ~30 seconds of app launch"
     why_human: "Timer cadence requires runtime observation; no XCTest target exists in the project"
 ---
 
@@ -37,8 +37,8 @@ None.
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `Termostato/Termostato/TemperatureViewModel.swift` | Updated polling interval and ring-buffer capacity | VERIFIED | File exists, `maxHistory = 360` at line 49, `Timer.publish(every: 10, ...)` at line 111 |
-| `Termostato/Termostato/TemperatureViewModel.swift` | Updated timer interval | VERIFIED | Covered by above — single file, both constants confirmed |
+| `CoreWatch/CoreWatch/TemperatureViewModel.swift` | Updated polling interval and ring-buffer capacity | VERIFIED | File exists, `maxHistory = 360` at line 49, `Timer.publish(every: 10, ...)` at line 111 |
+| `CoreWatch/CoreWatch/TemperatureViewModel.swift` | Updated timer interval | VERIFIED | Covered by above — single file, both constants confirmed |
 
 ### Key Link Verification
 
@@ -47,7 +47,7 @@ None.
 | `TemperatureViewModel.startPolling()` | `Timer.publish(every:)` | Combine sink on .main RunLoop | WIRED | Line 111: `timerCancellable = Timer.publish(every: 10, on: .main, in: .common).autoconnect().sink { ... }` |
 | `TemperatureViewModel.updateThermalState()` | `Self.maxHistory` | ring-buffer trim — `history.count >= Self.maxHistory` | WIRED | Line 144: `if history.count >= Self.maxHistory { history.removeFirst() }` — constant is 360 |
 
-Note: gsd-tools key-link verifier reported "source file not found" because the tool resolved a path without the nested `Termostato/Termostato/` directory structure. Both links were verified manually against the actual file at the correct path.
+Note: gsd-tools key-link verifier reported "source file not found" because the tool resolved a path without the nested `CoreWatch/CoreWatch/` directory structure. Both links were verified manually against the actual file at the correct path.
 
 ### Data-Flow Trace (Level 4)
 
@@ -85,9 +85,9 @@ No anti-patterns detected in `TemperatureViewModel.swift`. No TODO, FIXME, place
 
 #### 1. 10-Second Polling Cadence in Simulator
 
-**Test:** Build and run the Termostato scheme in Xcode targeting any iPhone Simulator (iOS 18+). Launch the app and watch the Xcode debug console for 30 seconds.
+**Test:** Build and run the CoreWatch scheme in Xcode targeting any iPhone Simulator (iOS 18+). Launch the app and watch the Xcode debug console for 30 seconds.
 
-**Expected:** At least 3 `[Termostato] thermalState = ...` log lines appear within ~30 seconds of app launch (first fires immediately on `startPolling()`, subsequent at 10s, 20s, 30s intervals).
+**Expected:** At least 3 `[CoreWatch] thermalState = ...` log lines appear within ~30 seconds of app launch (first fires immediately on `startPolling()`, subsequent at 10s, 20s, 30s intervals).
 
 **Why human:** Timer cadence is a runtime behavior. The `Timer.publish(every: 10, ...)` constant is verified in source, but actual firing rate can only be confirmed by observation in a running process. No XCTest target exists in this project.
 

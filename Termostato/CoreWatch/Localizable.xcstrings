@@ -114,6 +114,9 @@
         }
       }
     },
+    "CoreWatch" : {
+
+    },
     "Done" : {
 
     },
@@ -359,9 +362,6 @@
           }
         }
       }
-    },
-    "Termostato" : {
-
     },
     "thermal.level.critical" : {
       "comment" : "Localized display label for the Critical thermal state",

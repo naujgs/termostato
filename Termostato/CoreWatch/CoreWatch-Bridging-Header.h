@@ -1,5 +1,5 @@
-#ifndef Termostato_Bridging_Header_h
-#define Termostato_Bridging_Header_h
+#ifndef CoreWatch_Bridging_Header_h
+#define CoreWatch_Bridging_Header_h
 
 #import <Foundation/Foundation.h>
 #import <mach/mach.h>
@@ -20,4 +20,4 @@ extern kern_return_t IORegistryEntryCreateCFProperties(
 );
 extern kern_return_t IOObjectRelease(io_object_t obj);
 
-#endif /* Termostato_Bridging_Header_h */
+#endif /* CoreWatch_Bridging_Header_h */

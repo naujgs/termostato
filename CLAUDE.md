@@ -1,9 +1,9 @@
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**Termostato**
+**CoreWatch**
 
-Termostato is a personal iOS app (sideloaded, not App Store) that monitors the internal temperature of an iPhone in real time. It displays both a numeric temperature reading (via private iOS APIs) and the system thermal state level, rendered in a live dashboard with a session-length history chart and push-notification alerts when the device overheats.
+CoreWatch is a personal iOS app (sideloaded, not App Store) that monitors the internal temperature of an iPhone in real time. It displays both a numeric temperature reading (via private iOS APIs) and the system thermal state level, rendered in a live dashboard with a session-length history chart and push-notification alerts when the device overheats.
 
 **Core Value:** The phone's actual internal temperature, always visible at a glance — with an alert before it gets dangerously hot.
 

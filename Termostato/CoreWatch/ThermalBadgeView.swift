@@ -1,6 +1,6 @@
 //
 //  ThermalBadgeView.swift
-//  Termostato
+//  CoreWatch
 //
 
 import SwiftUI

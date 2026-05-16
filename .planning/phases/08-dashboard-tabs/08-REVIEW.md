@@ -4,7 +4,7 @@ reviewed: 2026-05-15T00:00:00Z
 depth: standard
 files_reviewed: 1
 files_reviewed_list:
-  - Termostato/Termostato/ContentView.swift
+  - CoreWatch/CoreWatch/ContentView.swift
 findings:
   critical: 0
   warning: 1
@@ -30,7 +30,7 @@ One warning is raised: `startPolling()` is called redundantly on every `.active`
 
 ### WR-01: `startPolling()` called on every `.active` transition including `.inactive → .active`
 
-**File:** `Termostato/Termostato/ContentView.swift:37-39`
+**File:** `CoreWatch/CoreWatch/ContentView.swift:37-39`
 
 **Issue:** The `onChange(of: scenePhase)` handler calls `vm.startPolling()` and `metrics.startPolling()` whenever `newPhase == .active`. iOS routes `inactive → active` (e.g., user dismisses Notification Centre, answers a call) through this same case, so polling is restarted — and `requestNotificationPermission()` / `refreshNotificationStatus()` are re-fired — on every such transition, not just on true `background → active` returns. Both `startPolling()` implementations do cancel the previous timer/task before creating a new one, so there is no runaway accumulation, but the unnecessary cancel-and-recreate adds jitter to the 5-second polling cadence and re-triggers the permission prompt path on `.active` returns from `.inactive`.
 
@@ -62,7 +62,7 @@ The `oldPhase` parameter is already available in the two-argument `onChange` clo
 
 ### IN-01: `onAppear` and `onChange` both call `startPolling()` without coordination
 
-**File:** `Termostato/Termostato/ContentView.swift:49-52`
+**File:** `CoreWatch/CoreWatch/ContentView.swift:49-52`
 
 **Issue:** `onAppear` calls `startPolling()` for both ViewModels unconditionally, and the `onChange(of: scenePhase)` handler also calls `startPolling()` when the phase is `.active`. On first launch the sequence is `onAppear` fires (polling starts), then immediately `scenePhase` becomes `.active` (polling is restarted). This double-start on cold launch is benign because both `startPolling()` implementations cancel the prior timer/task before creating a new one, but it is redundant and can be surprising to a future reader. The `onAppear` guard can be removed if `scenePhase` reliably delivers `.active` on first launch — which it does on iOS 14+.
 
@@ -77,15 +77,15 @@ Either option removes the guaranteed double-start on cold launch.
 
 ### IN-02: Leftover `print` debug artifacts in ViewModels called from ContentView lifecycle
 
-**File:** `Termostato/Termostato/ContentView.swift:38-39` (triggers prints in TemperatureViewModel.swift:120, MetricsViewModel.swift:54)
+**File:** `CoreWatch/CoreWatch/ContentView.swift:38-39` (triggers prints in TemperatureViewModel.swift:120, MetricsViewModel.swift:54)
 
-**Issue:** Every `startPolling()` / `stopPolling()` call — driven by `ContentView` — emits `print` statements to the console (e.g., `[Termostato] Polling started.`, `[Termostato] thermalState = nominal` every 5 seconds). These are benign for a sideloaded personal app but produce continuous console noise in production builds and are a code quality concern for any shared or archived build.
+**Issue:** Every `startPolling()` / `stopPolling()` call — driven by `ContentView` — emits `print` statements to the console (e.g., `[CoreWatch] Polling started.`, `[CoreWatch] thermalState = nominal` every 5 seconds). These are benign for a sideloaded personal app but produce continuous console noise in production builds and are a code quality concern for any shared or archived build.
 
 **Fix:** Wrap with a debug compile condition or remove before any distribution build:
 
 ```swift
 #if DEBUG
-print("[Termostato] Polling started.")
+print("[CoreWatch] Polling started.")
 #endif
 ```
 

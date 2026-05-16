@@ -13,7 +13,7 @@ Completed — user confirmed during Task 2 checkpoint.
 ## Tests
 
 ### 1. 10-second cadence at runtime
-expected: 3+ `[Termostato] thermalState = ...` log lines appear within ~30 seconds of app launch
+expected: 3+ `[CoreWatch] thermalState = ...` log lines appear within ~30 seconds of app launch
 result: confirmed ✓ (approved during Task 2 simulator checkpoint)
 
 ## Summary

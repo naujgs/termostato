@@ -13,9 +13,9 @@ tech_stack:
 key_files:
   created: []
   modified:
-    - Termostato/Termostato/ThermalView.swift
-    - Termostato/Termostato/CPUView.swift
-    - Termostato/Termostato/MemoryView.swift
+    - CoreWatch/CoreWatch/ThermalView.swift
+    - CoreWatch/CoreWatch/CPUView.swift
+    - CoreWatch/CoreWatch/MemoryView.swift
 decisions:
   - "ThermalView receives TemperatureViewModel as var parameter (not @State) — ContentView owns the VM; ThermalView reads only (Pitfall 4 / T-07-05 mitigation)"
   - "MetricCardView defined in CPUView.swift and shared by MemoryView — same Swift module avoids duplicate symbol, no separate file needed"
@@ -78,9 +78,9 @@ No new network endpoints, auth paths, file access patterns, or schema changes in
 
 ## Self-Check: PASSED
 
-- `/Users/jgs/workspace/Termostato/Termostato/Termostato/ThermalView.swift` — FOUND (150 lines, full implementation)
-- `/Users/jgs/workspace/Termostato/Termostato/Termostato/CPUView.swift` — FOUND (56 lines, MetricCardView included)
-- `/Users/jgs/workspace/Termostato/Termostato/Termostato/MemoryView.swift` — FOUND (full implementation)
+- `/Users/jgs/workspace/CoreWatch/CoreWatch/CoreWatch/ThermalView.swift` — FOUND (150 lines, full implementation)
+- `/Users/jgs/workspace/CoreWatch/CoreWatch/CoreWatch/CPUView.swift` — FOUND (56 lines, MetricCardView included)
+- `/Users/jgs/workspace/CoreWatch/CoreWatch/CoreWatch/MemoryView.swift` — FOUND (full implementation)
 - Commit 7218550 — Task 1: ThermalView.swift
 - Commit 5ce4adf — Task 2: CPUView.swift
 - Commit dda2c21 — Task 3: MemoryView.swift

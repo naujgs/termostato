@@ -11,7 +11,7 @@
 ### System Overview
 
 ```
-TermostatoApp (@main)
+CoreWatchApp (@main)
   └── ContentView
         └── TemperatureViewModel (@State, @Observable @MainActor)   ← one ViewModel, expanded
               ├── Thermal domain
@@ -44,13 +44,13 @@ TermostatoApp (@main)
 ## Recommended Project Structure
 
 ```
-Termostato/
+CoreWatch/
 ├── TemperatureViewModel.swift   # expanded — CPU/memory/battery properties added
 ├── ContentView.swift            # expanded — new metric panels
 ├── ThermalReading.swift         # (extract if currently inline) unchanged
 ├── SystemReading.swift          # NEW — shared value type for CPU and memory history
 ├── SystemMetrics.swift          # NEW — nonisolated free functions wrapping Mach C APIs
-└── Termostato-Bridging-Header.h # unchanged — Mach headers already available via SDK
+└── CoreWatch-Bridging-Header.h # unchanged — Mach headers already available via SDK
 ```
 
 ### Structure Rationale
@@ -265,7 +265,7 @@ private func updateAllMetrics() {
 ```
 ScrollView (vertical)
   VStack(spacing: 16)
-    ┌─ App header "Termostato" ─────────────────────────────┐
+    ┌─ App header "CoreWatch" ─────────────────────────────┐
     │                                                        │
     ├─ ThermalCard ─────────────────────────────────────────┤
     │  Colored badge (Nominal/Fair/Serious/Critical)         │
@@ -477,5 +477,5 @@ This is a personal single-device tool — scaling in the user-count sense is not
 - [Exploring concurrency changes in Swift 6.2 — Donny Wals](https://www.donnywals.com/exploring-concurrency-changes-in-swift-6-2/) — approachable concurrency, MainActor defaults; HIGH confidence
 
 ---
-*Architecture research for: Termostato v1.2 — system metrics integration*
+*Architecture research for: CoreWatch v1.2 — system metrics integration*
 *Researched: 2026-05-14*

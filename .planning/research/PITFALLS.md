@@ -2,7 +2,7 @@
 
 **Domain:** iOS system metrics — Mach kernel APIs, UIDevice battery, SwiftUI display in a Swift 6.3 @MainActor sideloaded app
 **Researched:** 2026-05-14
-**Milestone:** v1.2 — CPU usage, memory pressure, battery level added to existing Termostato dashboard
+**Milestone:** v1.2 — CPU usage, memory pressure, battery level added to existing CoreWatch dashboard
 **Confidence:** HIGH (Mach API behavior, Swift 6.3 concurrency, UIDevice battery API); MEDIUM (energy impact thresholds — Apple does not publish specific interval guidelines)
 
 > This file replaces v1.1 PITFALLS.md for the v1.2 milestone. v1.2 adds Mach kernel API calls for
@@ -396,5 +396,5 @@ v1.2 phases: **Research** (probe all APIs, validate formulas on device), **Imple
 - [Apple Developer Forums — how to get overall CPU utilization of iPhone](https://developer.apple.com/forums/thread/11393) — Apple engineer notes on `host_statistics` vs process-specific APIs
 
 ---
-*Pitfalls research for: Termostato v1.2 — Mach kernel CPU/memory APIs, UIDevice battery, SwiftUI metrics display*
+*Pitfalls research for: CoreWatch v1.2 — Mach kernel CPU/memory APIs, UIDevice battery, SwiftUI metrics display*
 *Researched: 2026-05-14*

@@ -28,7 +28,7 @@ created: 2026-05-12
 |----------|-------|
 | **Framework** | None — no test target; manual device testing is the acceptance gate |
 | **Config file** | none |
-| **Quick run command** | `xcodebuild build -project Termostato/Termostato.xcodeproj -scheme Termostato -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO 2>&1 | tail -5` |
+| **Quick run command** | `xcodebuild build -project CoreWatch/CoreWatch.xcodeproj -scheme CoreWatch -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO 2>&1 | tail -5` |
 | **Full suite command** | Physical device install + full ALRT-01/02/03 manual walkthrough |
 | **Estimated runtime** | Build: ~60 seconds; manual: ~10 minutes |
 
@@ -47,8 +47,8 @@ created: 2026-05-12
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 3-01-01 | 01 | 1 | ALRT-01, ALRT-02, ALRT-03 | T-03-01, T-03-02 | N/A | build + manual | `xcodebuild build -project Termostato/Termostato.xcodeproj -scheme Termostato -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO 2>&1 | tail -5` | N/A | ⬜ pending |
-| 3-02-01 | 02 | 1 | ALRT-01 | — | N/A | build + manual | `xcodebuild build -project Termostato/Termostato.xcodeproj -scheme Termostato -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO 2>&1 | tail -5` | N/A | ⬜ pending |
+| 3-01-01 | 01 | 1 | ALRT-01, ALRT-02, ALRT-03 | T-03-01, T-03-02 | N/A | build + manual | `xcodebuild build -project CoreWatch/CoreWatch.xcodeproj -scheme CoreWatch -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO 2>&1 | tail -5` | N/A | ⬜ pending |
+| 3-02-01 | 02 | 1 | ALRT-01 | — | N/A | build + manual | `xcodebuild build -project CoreWatch/CoreWatch.xcodeproj -scheme CoreWatch -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO 2>&1 | tail -5` | N/A | ⬜ pending |
 | 3-02-02 | 02 | 1 | ALRT-02, ALRT-03 | — | N/A | manual | Physical device test with debugger detached | N/A | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*

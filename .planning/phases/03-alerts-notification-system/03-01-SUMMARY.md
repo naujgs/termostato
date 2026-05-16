@@ -29,7 +29,7 @@ tech-stack:
 key-files:
   created: []
   modified:
-    - Termostato/Termostato/TemperatureViewModel.swift
+    - CoreWatch/CoreWatch/TemperatureViewModel.swift
 
 key-decisions:
   - "Used nonisolated(unsafe) on thermalObserver (not just @ObservationIgnored) — Swift 6 deinit cannot access actor-isolated @Observable properties; nonisolated(unsafe) restores plain stored property semantics"
@@ -64,7 +64,7 @@ completed: 2026-05-12
 
 ## Accomplishments
 
-- Added full ALRT-01/02/03 notification logic to TemperatureViewModel without touching ContentView or TermostatoApp
+- Added full ALRT-01/02/03 notification logic to TemperatureViewModel without touching ContentView or CoreWatchApp
 - Cooldown gate (D-04 through D-06) shared between foreground and background paths via single `lastAlertedState` property
 - Swift 6 strict concurrency build succeeds with zero errors and zero warnings
 - Background path reads ProcessInfo directly and does not touch the session history ring buffer (D-08 preserved)
@@ -75,7 +75,7 @@ completed: 2026-05-12
 
 ## Files Created/Modified
 
-- `Termostato/Termostato/TemperatureViewModel.swift` — Added UserNotifications import, 3 new stored properties, deinit, and 6 new methods covering all ALRT-01/02/03 requirements
+- `CoreWatch/CoreWatch/TemperatureViewModel.swift` — Added UserNotifications import, 3 new stored properties, deinit, and 6 new methods covering all ALRT-01/02/03 requirements
 
 ## Decisions Made
 
@@ -90,7 +90,7 @@ completed: 2026-05-12
 - **Found during:** Task 1, first build attempt
 - **Issue:** `@ObservationIgnored` alone did not resolve the Swift 6 concurrency error in deinit: "cannot access property 'thermalObserver' with a non-Sendable type '(any NSObjectProtocol)?' from nonisolated deinit"
 - **Fix:** Added `nonisolated(unsafe)` modifier to `thermalObserver` alongside `@ObservationIgnored`; also activated the pre-planned `Task { @MainActor in }` fallback for the observer closure (Assumption A1 in RESEARCH.md was false)
-- **Files modified:** Termostato/Termostato/TemperatureViewModel.swift
+- **Files modified:** CoreWatch/CoreWatch/TemperatureViewModel.swift
 - **Verification:** BUILD SUCCEEDED, zero errors, zero concurrency warnings
 - **Committed in:** 2471e9e (Task 1 commit)
 

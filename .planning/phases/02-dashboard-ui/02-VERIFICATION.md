@@ -31,8 +31,8 @@ overrides_applied: 0
 
 | Artifact                                                | Expected                                        | Status     | Details                                                                                                                |
 |---------------------------------------------------------|-------------------------------------------------|------------|------------------------------------------------------------------------------------------------------------------------|
-| `Termostato/Termostato/TemperatureViewModel.swift`      | ThermalReading struct + 120-entry ring buffer   | ✓ VERIFIED | `struct ThermalReading: Identifiable` (line 6), `private static let maxHistory = 120` (line 47), `private(set) var history: [ThermalReading] = []` (line 48), ring buffer append logic in `updateThermalState()` (lines 85-93) |
-| `Termostato/Termostato/ContentView.swift`               | Dashboard layout: badge + step-chart            | ✓ VERIFIED | `import Charts` (line 2), `RoundedRectangle(cornerRadius: 20)` (line 23), full chart block with all required modifiers (lines 51-84), lifecycle hooks preserved from Phase 1 |
+| `CoreWatch/CoreWatch/TemperatureViewModel.swift`      | ThermalReading struct + 120-entry ring buffer   | ✓ VERIFIED | `struct ThermalReading: Identifiable` (line 6), `private static let maxHistory = 120` (line 47), `private(set) var history: [ThermalReading] = []` (line 48), ring buffer append logic in `updateThermalState()` (lines 85-93) |
+| `CoreWatch/CoreWatch/ContentView.swift`               | Dashboard layout: badge + step-chart            | ✓ VERIFIED | `import Charts` (line 2), `RoundedRectangle(cornerRadius: 20)` (line 23), full chart block with all required modifiers (lines 51-84), lifecycle hooks preserved from Phase 1 |
 
 ### Key Link Verification
 
@@ -84,7 +84,7 @@ Developer performed live verification on a physical iPhone via Xcode 26.4.1. Scr
 3. **Green line at Nominal level** — chart rendering at correct Y position
 4. **Color-coded legend** — Nominal / Fair / Serious / Critical dots visible
 5. **"Session history (last 60 min)" caption** — present below chart
-6. **"Termostato" title** — present at top in smaller text
+6. **"CoreWatch" title** — present at top in smaller text
 
 All visual checklist items from the Phase 2 checkpoint task passed on-device. No items require further human verification.
 

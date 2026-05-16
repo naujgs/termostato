@@ -16,11 +16,11 @@ tech_stack:
     - "MemoryLayout<T>.size / MemoryLayout<natural_t>.size for Mach struct count (C macros don't bridge to Swift)"
 key_files:
   created:
-    - Termostato/Termostato/SystemMetrics.swift
-    - Termostato/Termostato/MachProbeDebugView.swift
+    - CoreWatch/CoreWatch/SystemMetrics.swift
+    - CoreWatch/CoreWatch/MachProbeDebugView.swift
   modified:
-    - Termostato/Termostato/ContentView.swift
-    - Termostato/Termostato.xcodeproj/project.pbxproj
+    - CoreWatch/CoreWatch/ContentView.swift
+    - CoreWatch/CoreWatch.xcodeproj/project.pbxproj
 decisions:
   - "Used MemoryLayout<T>.size / MemoryLayout<natural_t>.size instead of MACH_TASK_BASIC_INFO_COUNT and THREAD_BASIC_INFO_COUNT — both are sizeof()-based C macros that don't bridge to Swift"
   - "Both new Swift files manually added to project.pbxproj (PBXBuildFile, PBXFileReference, PBXGroup, PBXSourcesBuildPhase) since Xcode project file requires explicit registration"
@@ -52,7 +52,7 @@ metrics:
   - `probeTaskCPU()` — `task_threads(mach_task_self_, ...)` + `THREAD_BASIC_INFO` per thread; `vm_deallocate` in `defer` block (T-06-02 mitigation)
 - **`runProbeSequence()`** — 3 samples at 10-second intervals via `Task.sleep(for: .seconds(10))`; majority verdict computed after all samples
 - **`cancelProbe()`** — cancels in-flight Task, resets `isProbing`
-- Console logging: `[Termostato]` prefix on every probe call and sequence completion
+- Console logging: `[CoreWatch]` prefix on every probe call and sequence completion
 
 ### MachProbeDebugView.swift (debug sheet)
 
@@ -69,7 +69,7 @@ SwiftUI sheet implementing the 06-UI-SPEC contract:
 ### ContentView.swift (sheet trigger)
 
 - `@State private var showDebugSheet = false`
-- `.onLongPressGesture { showDebugSheet = true }` on "Termostato" title
+- `.onLongPressGesture { showDebugSheet = true }` on "CoreWatch" title
 - `.sensoryFeedback(.impact, trigger: showDebugSheet)` haptic on trigger
 - `.sheet(isPresented: $showDebugSheet) { MachProbeDebugView() }` on outermost VStack
 
@@ -92,14 +92,14 @@ SwiftUI sheet implementing the 06-UI-SPEC contract:
 - **Found during:** Task 2 build verification (also affects Task 1 code)
 - **Issue:** Both constants are defined as `sizeof(T) / sizeof(natural_t)` C macros — Swift cannot import C `sizeof`-based macros from bridging headers, causing "cannot find in scope" errors
 - **Fix:** Replaced with `MemoryLayout<mach_task_basic_info_data_t>.size / MemoryLayout<natural_t>.size` and `MemoryLayout<thread_basic_info_data_t>.size / MemoryLayout<natural_t>.size` respectively — semantically identical, Swift-native
-- **Files modified:** `Termostato/Termostato/SystemMetrics.swift`
+- **Files modified:** `CoreWatch/CoreWatch/SystemMetrics.swift`
 - **Commit:** `c56f460`
 
 **2. [Rule 3 - Blocking] New Swift files not registered in Xcode project**
 - **Found during:** Task 2 build verification
 - **Issue:** `SystemMetrics.swift` and `MachProbeDebugView.swift` were created as filesystem files but not added to `project.pbxproj` — Xcode ignores files not in the project graph, causing "cannot find MachProbeDebugView in scope" build error
 - **Fix:** Manually added both files to `project.pbxproj` — PBXBuildFile, PBXFileReference, PBXGroup children, and PBXSourcesBuildPhase entries
-- **Files modified:** `Termostato/Termostato.xcodeproj/project.pbxproj`
+- **Files modified:** `CoreWatch/CoreWatch.xcodeproj/project.pbxproj`
 - **Commit:** `c56f460`
 
 ---

@@ -4,12 +4,12 @@ reviewed: 2026-05-15T00:00:00Z
 depth: standard
 files_reviewed: 6
 files_reviewed_list:
-  - Termostato/Termostato/ContentView.swift
-  - Termostato/Termostato/MachProbeDebugView.swift
-  - Termostato/Termostato/SystemMetrics.swift
-  - Termostato/Termostato/NotificationDelegate.swift
-  - Termostato/Termostato/TemperatureViewModel.swift
-  - Termostato/Termostato/TermostatoApp.swift
+  - CoreWatch/CoreWatch/ContentView.swift
+  - CoreWatch/CoreWatch/MachProbeDebugView.swift
+  - CoreWatch/CoreWatch/SystemMetrics.swift
+  - CoreWatch/CoreWatch/NotificationDelegate.swift
+  - CoreWatch/CoreWatch/TemperatureViewModel.swift
+  - CoreWatch/CoreWatch/CoreWatchApp.swift
 findings:
   critical: 1
   warning: 4
@@ -27,7 +27,7 @@ status: issues_found
 
 ## Summary
 
-Phase 6 introduces `SystemMetricsProbe` — a Mach API probe engine — along with a debug sheet UI (`MachProbeDebugView`) and a long-press trigger in `ContentView`. The existing files (`TemperatureViewModel`, `NotificationDelegate`, `TermostatoApp`) carry forward from prior phases.
+Phase 6 introduces `SystemMetricsProbe` — a Mach API probe engine — along with a debug sheet UI (`MachProbeDebugView`) and a long-press trigger in `ContentView`. The existing files (`TemperatureViewModel`, `NotificationDelegate`, `CoreWatchApp`) carry forward from prior phases.
 
 The new Mach API code is largely well-structured. Memory management for the `task_threads` call is handled correctly via `defer`/`vm_deallocate`. The `@Observable @MainActor` approach is consistent with the rest of the codebase. However, there is one critical concurrency bug in `SystemMetrics.swift`: the probe `Task` calls synchronous Mach APIs directly on the main actor despite being spawned as an unstructured `Task`, which blocks the main thread for the full probe duration. There are also several meaningful warnings around the `vm_deallocate` pointer cast, cancelled-task result propagation, and a logic omission in `probeTaskCPU`.
 
@@ -37,7 +37,7 @@ The new Mach API code is largely well-structured. Memory management for the `tas
 
 ### CR-01: Synchronous Mach API calls block the main thread for 30+ seconds
 
-**File:** `Termostato/Termostato/SystemMetrics.swift:71-103`
+**File:** `CoreWatch/CoreWatch/SystemMetrics.swift:71-103`
 
 **Issue:** `runProbeSequence()` is `@MainActor`-isolated, and the `Task` it spawns inherits that isolation. The probe methods `probeSystemCPU()`, `probeSystemMemory()`, `probeTaskMemory()`, and `probeTaskCPU()` are all synchronous and marked `private func` on the same `@MainActor` class. Calling them inside the `Task` body runs them on the main actor's serial executor — i.e., on the main thread. The three-sample loop with two `Task.sleep(for: .seconds(10))` awaits does yield correctly between samples, but each of the four Mach kernel calls in a sample round executes synchronously on the main thread. On a loaded device, `task_threads` with a thread-info inner loop can be slow. More critically, the UI remains responsive only during the `sleep` awaits; all four probes within a single sample are dispatched synchronously on the main thread without any yield point between them.
 
@@ -97,7 +97,7 @@ The four probe methods and `majorityVerdict` should be made `nonisolated` (they 
 
 ### WR-01: `vm_deallocate` pointer cast is unsound on 32-bit (and technically UB on any arch)
 
-**File:** `Termostato/Termostato/SystemMetrics.swift:256`
+**File:** `CoreWatch/CoreWatch/SystemMetrics.swift:256`
 
 ```swift
 vm_deallocate(mach_task_self_, vm_address_t(bitPattern: threads), size)
@@ -116,7 +116,7 @@ vm_deallocate(
 
 ### WR-02: `probeTaskCPU` always returns `.accessible` verdict even when no thread data is retrieved
 
-**File:** `Termostato/Termostato/SystemMetrics.swift:278-284`
+**File:** `CoreWatch/CoreWatch/SystemMetrics.swift:278-284`
 
 **Issue:** After the loop over threads, the method unconditionally returns verdict `.accessible` regardless of whether `threadCount` is 0 or `totalUsage` is 0. If `task_threads` succeeds but returns 0 threads (which can happen in constrained environments), the verdict will be `.accessible` when it should arguably be `.degraded` (matching the pattern in the other three probe methods).
 
@@ -134,7 +134,7 @@ return MachProbeResult(
 
 ### WR-03: `cancelProbe()` does not wait for task completion before resetting `isProbing`
 
-**File:** `Termostato/Termostato/SystemMetrics.swift:106-110`
+**File:** `CoreWatch/CoreWatch/SystemMetrics.swift:106-110`
 
 ```swift
 func cancelProbe() {
@@ -161,7 +161,7 @@ If you need to reset the button state immediately (UX preference), accept that t
 
 ### WR-04: `DateFormatter` allocated per `VerdictRowView` render cycle
 
-**File:** `Termostato/Termostato/MachProbeDebugView.swift:109-111`
+**File:** `CoreWatch/CoreWatch/MachProbeDebugView.swift:109-111`
 
 ```swift
 private var timestampText: String {
@@ -195,7 +195,7 @@ private var timestampText: String {
 
 ### IN-01: `sensoryFeedback` fires on initial render, not only on long-press
 
-**File:** `Termostato/Termostato/ContentView.swift:29`
+**File:** `CoreWatch/CoreWatch/ContentView.swift:29`
 
 ```swift
 .sensoryFeedback(.impact, trigger: showDebugSheet)
@@ -210,7 +210,7 @@ private var timestampText: String {
 
 ### IN-02: `ProgressView` total hard-coded to `3.0` without referencing the loop constant
 
-**File:** `Termostato/Termostato/MachProbeDebugView.swift:21`
+**File:** `CoreWatch/CoreWatch/MachProbeDebugView.swift:21`
 
 ```swift
 ProgressView(value: Double(probe.samplesCompleted), total: 3.0)
@@ -229,7 +229,7 @@ ProgressView(value: Double(probe.samplesCompleted), total: Double(SystemMetricsP
 
 ### IN-03: `startPolling()` called twice on cold launch
 
-**File:** `Termostato/Termostato/ContentView.swift:130-144`
+**File:** `CoreWatch/CoreWatch/ContentView.swift:130-144`
 
 **Issue:** On first app launch, `onAppear` fires (line 143, calls `startPolling()`), and then `scenePhase` transitions to `.active` also fires (line 133, calls `startPolling()` again). The second call hits `timerCancellable?.cancel()` before re-creating the timer, so there is no functional bug — but two permission-request tasks (`requestNotificationPermission()`) are launched in parallel, and two `refreshNotificationStatus()` tasks run concurrently. `requestAuthorization` is idempotent so there is no crash risk, but it adds unnecessary noise and could produce two log lines per launch.
 

@@ -11,7 +11,7 @@ human_verification:
   - test: "On the Memory tab, confirm all three cards (App Memory, Memory Free, Memory Used) show non-zero values after the first poll (~5s)."
     expected: "App Memory ~79 MB integer, Memory Free non-zero GB, Memory Used non-zero GB."
     why_human: "Memory readings depend on live host_statistics64 Mach call on device. Same reasoning as above."
-  - test: "On the Thermal tab, long-press 'Termostato' title. Confirm MachProbeDebugView debug sheet appears, then dismiss it."
+  - test: "On the Thermal tab, long-press 'CoreWatch' title. Confirm MachProbeDebugView debug sheet appears, then dismiss it."
     expected: "Debug sheet opens, content visible, closes on swipe-down — no regression."
     why_human: "Sheet presentation is a runtime UI behavior that requires physical interaction."
 ---
@@ -29,8 +29,8 @@ human_verification:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | User can see Termostato's own CPU usage displayed as a percentage, updating on the polling interval | VERIFIED | `CPUView.swift` renders `metrics.appCPUPercent` via `MetricCardView`. `MetricsViewModel.readAppCPU()` calls `task_threads` loop with `KERN_SUCCESS` guard. Polling via `Task.detached` every 5s confirmed. User on-device sign-off in 07-03-SUMMARY.md ("all 18 verification points passed"). |
-| 2 | User can see Termostato's own memory footprint displayed in MB, updating on the polling interval | VERIFIED | `MemoryView.swift` renders `metrics.appMemoryMB` (e.g. "79 MB"). `MetricsViewModel.readAppMemory()` calls `task_info(MACH_TASK_BASIC_INFO)` with `KERN_SUCCESS` guard. On-device sign-off confirms non-zero values. |
+| 1 | User can see CoreWatch's own CPU usage displayed as a percentage, updating on the polling interval | VERIFIED | `CPUView.swift` renders `metrics.appCPUPercent` via `MetricCardView`. `MetricsViewModel.readAppCPU()` calls `task_threads` loop with `KERN_SUCCESS` guard. Polling via `Task.detached` every 5s confirmed. User on-device sign-off in 07-03-SUMMARY.md ("all 18 verification points passed"). |
+| 2 | User can see CoreWatch's own memory footprint displayed in MB, updating on the polling interval | VERIFIED | `MemoryView.swift` renders `metrics.appMemoryMB` (e.g. "79 MB"). `MetricsViewModel.readAppMemory()` calls `task_info(MACH_TASK_BASIC_INFO)` with `KERN_SUCCESS` guard. On-device sign-off confirms non-zero values. |
 | 3 | System-wide CPU % and memory (used/free) are displayed (Phase 6 confirmed all 4 APIs KERN_SUCCESS) | VERIFIED | `CPUView.swift` renders `metrics.sysCPUPercent`. `MemoryView.swift` renders `metrics.sysMemoryFreeGB` and `metrics.sysMemoryUsedGB`. `MetricsViewModel.readSystemCPU()` calls `host_statistics(HOST_CPU_LOAD_INFO)`. `readSystemMemory()` calls `host_statistics64(HOST_VM_INFO64)`. Graceful fallback: values display "—" when zero (before first delta poll or if blocked). |
 | 4 | TabView with Thermal, CPU, Memory tabs is implemented (DASH-01, DASH-02 satisfied here per D-03) | VERIFIED | `ContentView.swift` is a pure `TabView` container (52 lines). Three tabs: `ThermalView(viewModel: vm)`, `CPUView(metrics: metrics)`, `MemoryView(metrics: metrics)`. No `VStack` as body. Tab icons: thermometer.medium, cpu, memorychip. On-device navigation confirmed in 07-03-SUMMARY.md. |
 
@@ -40,12 +40,12 @@ human_verification:
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `Termostato/Termostato/MetricsViewModel.swift` | Live CPU and memory polling ViewModel | VERIFIED | 185 lines. All 5 `private(set)` properties present. `Task.detached` polling, `await MainActor.run` marshalling, `nonisolated(unsafe) previousCPUTicks`, `vm_deallocate` defer in `readAppCPU()`. |
-| `Termostato/Termostato/ThermalView.swift` | Thermal tab content extracted from ContentView | VERIFIED | 172 lines. Full extraction: badge, chart, permission banner, debug sheet trigger. `var viewModel: TemperatureViewModel` (not `@State` — passes ownership correctly). `MachProbeDebugView` sheet wired. |
-| `Termostato/Termostato/CPUView.swift` | CPU tab with App CPU% and System CPU% metric cards | VERIFIED | 86 lines. Two `MetricCardView` cards rendering `appCPUPercent` and `sysCPUPercent`. `MetricCardView` reusable component defined here. No history charts. |
-| `Termostato/Termostato/MemoryView.swift` | Memory tab with App Memory MB and System Memory GB metric cards | VERIFIED | 46 lines. Three `MetricCardView` cards rendering `appMemoryMB`, `sysMemoryFreeGB`, `sysMemoryUsedGB`. No history charts. |
-| `Termostato/Termostato/ContentView.swift` | TabView container wiring all three tabs and both ViewModel lifecycles | VERIFIED | 54 lines. Owns `@State private var vm = TemperatureViewModel()` and `@State private var metrics = MetricsViewModel()`. `scenePhase` drives both VM lifecycles. `onAppear` starts both. No residual VStack, badgeColor, showDebugSheet, or helper computed properties. |
-| `Termostato/Termostato.xcodeproj/project.pbxproj` | Xcode project file with all 4 new files registered | VERIFIED | All 4 files registered: PBXBuildFile (lines 18-21), PBXSourcesBuildPhase (lines 177-180). Correct `AA000011-AA000014` ID scheme. |
+| `CoreWatch/CoreWatch/MetricsViewModel.swift` | Live CPU and memory polling ViewModel | VERIFIED | 185 lines. All 5 `private(set)` properties present. `Task.detached` polling, `await MainActor.run` marshalling, `nonisolated(unsafe) previousCPUTicks`, `vm_deallocate` defer in `readAppCPU()`. |
+| `CoreWatch/CoreWatch/ThermalView.swift` | Thermal tab content extracted from ContentView | VERIFIED | 172 lines. Full extraction: badge, chart, permission banner, debug sheet trigger. `var viewModel: TemperatureViewModel` (not `@State` — passes ownership correctly). `MachProbeDebugView` sheet wired. |
+| `CoreWatch/CoreWatch/CPUView.swift` | CPU tab with App CPU% and System CPU% metric cards | VERIFIED | 86 lines. Two `MetricCardView` cards rendering `appCPUPercent` and `sysCPUPercent`. `MetricCardView` reusable component defined here. No history charts. |
+| `CoreWatch/CoreWatch/MemoryView.swift` | Memory tab with App Memory MB and System Memory GB metric cards | VERIFIED | 46 lines. Three `MetricCardView` cards rendering `appMemoryMB`, `sysMemoryFreeGB`, `sysMemoryUsedGB`. No history charts. |
+| `CoreWatch/CoreWatch/ContentView.swift` | TabView container wiring all three tabs and both ViewModel lifecycles | VERIFIED | 54 lines. Owns `@State private var vm = TemperatureViewModel()` and `@State private var metrics = MetricsViewModel()`. `scenePhase` drives both VM lifecycles. `onAppear` starts both. No residual VStack, badgeColor, showDebugSheet, or helper computed properties. |
+| `CoreWatch/CoreWatch.xcodeproj/project.pbxproj` | Xcode project file with all 4 new files registered | VERIFIED | All 4 files registered: PBXBuildFile (lines 18-21), PBXSourcesBuildPhase (lines 177-180). Correct `AA000011-AA000014` ID scheme. |
 
 ### Key Link Verification
 
@@ -80,9 +80,9 @@ Step 7b: SKIPPED — no runnable entry points on this machine (iOS app requires 
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|-------------|-------------|--------|----------|
-| CPU-01 | 07-01, 07-02, 07-03 | User can see Termostato's own CPU usage as a percentage gauge | SATISFIED | `CPUView` "App CPU" card reads `metrics.appCPUPercent` from `readAppCPU()` via `task_threads`. On-device confirmed. |
+| CPU-01 | 07-01, 07-02, 07-03 | User can see CoreWatch's own CPU usage as a percentage gauge | SATISFIED | `CPUView` "App CPU" card reads `metrics.appCPUPercent` from `readAppCPU()` via `task_threads`. On-device confirmed. |
 | CPU-02 | 07-01, 07-02, 07-03 | User can see system-wide CPU usage (graceful fallback to hidden if blocked) | SATISFIED | `CPUView` "System CPU" card reads `metrics.sysCPUPercent` from `readSystemCPU()` via `host_statistics`. Shows "—" when 0 (graceful fallback). On-device confirmed. |
-| MEM-01 | 07-01, 07-02, 07-03 | User can see Termostato's memory footprint in MB | SATISFIED | `MemoryView` "App Memory" card reads `metrics.appMemoryMB` from `readAppMemory()` via `task_info`. On-device ~79 MB confirmed. |
+| MEM-01 | 07-01, 07-02, 07-03 | User can see CoreWatch's memory footprint in MB | SATISFIED | `MemoryView` "App Memory" card reads `metrics.appMemoryMB` from `readAppMemory()` via `task_info`. On-device ~79 MB confirmed. |
 | MEM-02 | 07-01, 07-02, 07-03 | User can see system-wide memory usage (graceful fallback to hidden if blocked) | SATISFIED | `MemoryView` "Memory Free" and "Memory Used" cards read `sysMemoryFreeGB`/`sysMemoryUsedGB` from `readSystemMemory()` via `host_statistics64`. Shows "—" when 0. On-device confirmed. |
 | DASH-01 | 07-02, 07-03 | User can switch between Thermal, CPU, and Memory tabs | SATISFIED | `ContentView` is a `TabView` with three tabs. On-device navigation confirmed. Note: REQUIREMENTS.md traceability table maps this to Phase 8, but ROADMAP Phase 7 SC4 explicitly states "DASH-01, DASH-02 satisfied here per D-03" — ROADMAP is authoritative. |
 | DASH-02 | 07-02, 07-03 | Existing thermal badge and step-chart remain functional in Thermal tab (no regression) | SATISFIED | `ThermalView` is a verbatim extraction of the original ContentView body. Badge, chart, permission banner, and debug sheet all preserved. On-device regression check passed. |
@@ -119,7 +119,7 @@ Three items require on-device confirmation. Note: The developer already provided
 
 #### 3. Thermal Tab Debug Sheet Regression Check
 
-**Test:** Navigate to the Thermal tab. Long-press "Termostato" title. Confirm `MachProbeDebugView` sheet opens. Dismiss by swiping down.
+**Test:** Navigate to the Thermal tab. Long-press "CoreWatch" title. Confirm `MachProbeDebugView` sheet opens. Dismiss by swiping down.
 **Expected:** Debug sheet opens with Mach probe data. Dismiss returns to Thermal tab. Badge and chart remain functional.
 **Why human:** Sheet presentation requires physical interaction. Developer sign-off documented in 07-03-SUMMARY.md.
 

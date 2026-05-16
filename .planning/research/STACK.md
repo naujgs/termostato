@@ -1,6 +1,6 @@
 # Technology Stack
 
-**Project:** Termostato
+**Project:** CoreWatch
 **Researched:** 2026-05-14 (v1.2 update — CPU usage, memory, battery APIs for iOS 18 free sideload)
 **Mode:** Ecosystem / Feasibility
 
@@ -119,7 +119,7 @@ ProcessInfo.processInfo.physicalMemory  // UInt64, total RAM in bytes
 
 **The safer alternative: thread-level CPU for this process only**
 
-`task_threads(mach_task_self_, ...)` + `thread_info(..., THREAD_BASIC_INFO, ...)` reads CPU usage for all threads in your own process. This is the same mechanism that Xcode's CPU gauge uses to show per-process CPU %. It gives CPU % consumed by the Termostato app, not total device CPU — which is arguably more relevant for a self-monitoring tool.
+`task_threads(mach_task_self_, ...)` + `thread_info(..., THREAD_BASIC_INFO, ...)` reads CPU usage for all threads in your own process. This is the same mechanism that Xcode's CPU gauge uses to show per-process CPU %. It gives CPU % consumed by the CoreWatch app, not total device CPU — which is arguably more relevant for a self-monitoring tool.
 
 **Implementation pattern (own-process CPU %):**
 ```swift
@@ -205,10 +205,10 @@ func appCPUUsage() -> Double {
 `MTLDevice.currentAllocatedSize` is a public Metal API property that reports the total bytes of GPU memory currently allocated by all Metal resources created by the app (buffers, textures, heaps). It is available on iOS and does not require entitlements. However:
 
 - It measures **GPU memory allocated by this app's Metal objects**, not GPU compute utilization %.
-- For Termostato (a SwiftUI dashboard with no Metal rendering), this value will be near-zero and meaningless — the app creates no Metal resources.
+- For CoreWatch (a SwiftUI dashboard with no Metal rendering), this value will be near-zero and meaningless — the app creates no Metal resources.
 - There is no public iOS API to read GPU utilization % at runtime from an arbitrary app. GPU profiling (via Metal Performance Counters and Instruments) is a development-time tool, not a runtime API.
 
-**Conclusion for v1.2:** GPU utilization % is not obtainable via public APIs. `MTLDevice.currentAllocatedSize` is technically accessible but useless for Termostato's use case. Do not implement.
+**Conclusion for v1.2:** GPU utilization % is not obtainable via public APIs. `MTLDevice.currentAllocatedSize` is technically accessible but useless for CoreWatch's use case. Do not implement.
 
 ---
 
@@ -329,5 +329,5 @@ Key v1.1 decisions still in force:
 - `ldid` for TrollStore build path — not needed for v1.2
 
 ---
-*Stack research for: Termostato v1.2 — iOS system health APIs under free Apple ID sideload*
+*Stack research for: CoreWatch v1.2 — iOS system health APIs under free Apple ID sideload*
 *Researched: 2026-05-14*

@@ -1,6 +1,6 @@
 //
 //  ThermalView.swift
-//  Termostato
+//  CoreWatch
 //
 
 import SwiftUI

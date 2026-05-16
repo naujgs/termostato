@@ -12,9 +12,9 @@ tech_stack:
   patterns: [Xcode asset catalog universal image entry]
 key_files:
   created:
-    - Termostato/Termostato/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
+    - CoreWatch/CoreWatch/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
   modified:
-    - Termostato/Termostato/Assets.xcassets/AppIcon.appiconset/Contents.json
+    - CoreWatch/CoreWatch/Assets.xcassets/AppIcon.appiconset/Contents.json
 decisions:
   - "filename field added directly to the single universal/ios/1024x1024 entry — no additional size variants needed since Xcode generates all sizes from the 1024 universal"
 metrics:
@@ -36,7 +36,7 @@ A two-file asset drop-in that replaces Xcode's placeholder icon grid with a cust
 
 | Task | Name | Commit | Files |
 |------|------|--------|-------|
-| 1 | Update Contents.json to reference AppIcon-1024.png | 10fe405 | Termostato/Termostato/Assets.xcassets/AppIcon.appiconset/Contents.json |
+| 1 | Update Contents.json to reference AppIcon-1024.png | 10fe405 | CoreWatch/CoreWatch/Assets.xcassets/AppIcon.appiconset/Contents.json |
 | 2 | Commit icon assets to repo | 10fe405 | Contents.json + AppIcon-1024.png |
 
 ## Verification
@@ -59,6 +59,6 @@ None — static PNG asset plus JSON manifest edit. No network, auth, or data bou
 
 ## Self-Check: PASSED
 
-- `Termostato/Termostato/Assets.xcassets/AppIcon.appiconset/Contents.json` — FOUND
-- `Termostato/Termostato/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png` — FOUND
+- `CoreWatch/CoreWatch/Assets.xcassets/AppIcon.appiconset/Contents.json` — FOUND
+- `CoreWatch/CoreWatch/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png` — FOUND
 - Commit `10fe405` — FOUND

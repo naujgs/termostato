@@ -12,10 +12,10 @@ tech_stack:
   patterns: [MVVM-Observable, Combine-Timer-cancel-recreate, scenePhase-lifecycle]
 key_files:
   created:
-    - Termostato/Termostato/TemperatureViewModel.swift
+    - CoreWatch/CoreWatch/TemperatureViewModel.swift
   modified:
-    - Termostato/Termostato/ContentView.swift
-    - Termostato/Termostato.xcodeproj/project.pbxproj
+    - CoreWatch/CoreWatch/ContentView.swift
+    - CoreWatch/CoreWatch.xcodeproj/project.pbxproj
 decisions:
   - "Used [self] instead of [weak self] in Combine sink — @MainActor final class has no retain cycle risk; AnyCancellable cancels on deinit"
   - "IOServiceMatching returns Unmanaged<CFMutableDictionary>? in Swift 6 bridging — must call takeRetainedValue() before passing to IOServiceGetMatchingService"
@@ -39,7 +39,7 @@ metrics:
 
 ## What Was Built
 
-### TemperatureViewModel (`Termostato/Termostato/TemperatureViewModel.swift`)
+### TemperatureViewModel (`CoreWatch/CoreWatch/TemperatureViewModel.swift`)
 
 - `@Observable @MainActor final class` — Swift 6 strict concurrency safe
 - `thermalState: ProcessInfo.ThermalState` published property, initially `.nominal`
@@ -48,7 +48,7 @@ metrics:
 - `probeIOKit()` — one-shot IOKit probe called from `init()`; logs result to console; marked for deletion after Phase 1 per D-01/D-02
 - Added to Xcode project Sources build phase in `project.pbxproj`
 
-### ContentView (`Termostato/Termostato/ContentView.swift`)
+### ContentView (`CoreWatch/CoreWatch/ContentView.swift`)
 
 - `@State private var viewModel = TemperatureViewModel()` per D-03
 - `@Environment(\.scenePhase)` per D-06 — no UIKit lifecycle hooks
@@ -64,14 +64,14 @@ metrics:
 - **Found during:** Task 1 build
 - **Issue:** `IOServiceMatching` bridged to Swift as returning `Unmanaged<CFMutableDictionary>?`, not `CFDictionary` directly. The plan's code passed `matching` directly to `IOServiceGetMatchingService` which expects `CFDictionary`.
 - **Fix:** Called `matchingUnmanaged.takeRetainedValue()` to extract the `CFMutableDictionary` before passing to `IOServiceGetMatchingService`. CFMutableDictionary is a subtype of CFDictionary so no cast needed.
-- **Files modified:** `Termostato/Termostato/TemperatureViewModel.swift`
+- **Files modified:** `CoreWatch/CoreWatch/TemperatureViewModel.swift`
 - **Commit:** f7c76eb
 
 **2. [Rule 1 - Bug] Removed `[weak self]` from Combine sink**
 - **Found during:** Task 1 implementation (preemptive — noted in plan's important_context)
 - **Issue:** Swift 6 strict concurrency disallows weak references to `@MainActor`-isolated actors in some contexts; `[weak self]` on a `final class` with `AnyCancellable` also provides no retain-cycle benefit since the cancellable is stored on the same object.
 - **Fix:** Used `[self]` capture to satisfy Swift 6 compiler while preserving correct semantics.
-- **Files modified:** `Termostato/Termostato/TemperatureViewModel.swift`
+- **Files modified:** `CoreWatch/CoreWatch/TemperatureViewModel.swift`
 - **Commit:** f7c76eb
 
 ## Known Stubs

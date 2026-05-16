@@ -13,7 +13,7 @@
 
 **D-01:** Phase 7 introduces TabView with 3 tabs: Thermal, CPU, Memory. ContentView becomes the TabView container. Existing thermal content (badge + chart) moves into a new `ThermalView` sub-view.
 
-**D-02:** Debug sheet trigger (long-press on "Termostato" title) moves into `ThermalView` with the rest of the thermal content. Behavior unchanged, just relocated.
+**D-02:** Debug sheet trigger (long-press on "CoreWatch" title) moves into `ThermalView` with the rest of the thermal content. Behavior unchanged, just relocated.
 
 **D-03:** DASH-01 and DASH-02 (from REQUIREMENTS.md, Phase 8) are satisfied here — the TabView restructure happens in Phase 7, not Phase 8.
 
@@ -71,8 +71,8 @@
 
 | ID | Description | Research Support |
 |----|-------------|------------------|
-| CPU-01 | User can see Termostato's own CPU usage as a percentage gauge | `probeTaskCPU()` pattern in SystemMetrics.swift is proven; extract into MetricsViewModel `appCPUPercent` property |
-| MEM-01 | User can see Termostato's memory footprint in MB | `probeTaskMemory()` pattern proven; `resident_size / 1024 / 1024` → MB, expose as `appMemoryMB` |
+| CPU-01 | User can see CoreWatch's own CPU usage as a percentage gauge | `probeTaskCPU()` pattern in SystemMetrics.swift is proven; extract into MetricsViewModel `appCPUPercent` property |
+| MEM-01 | User can see CoreWatch's memory footprint in MB | `probeTaskMemory()` pattern proven; `resident_size / 1024 / 1024` → MB, expose as `appMemoryMB` |
 | CPU-02 | System-wide CPU if sandbox permits (graceful fallback if blocked) | Phase 6 confirmed KERN_SUCCESS — no fallback needed; delta formula (D-13) researched below |
 | MEM-02 | System-wide memory if sandbox permits (graceful fallback if blocked) | Phase 6 confirmed KERN_SUCCESS — page count × page size formula researched below |
 | DASH-01 | User can switch between Thermal, CPU, and Memory tabs | TabView restructure (D-01) — SwiftUI TabView pattern documented below |
@@ -113,8 +113,8 @@ No new dependencies. Phase 7 is zero-external-dependency, same as the rest of th
 
 ### Recommended Project Structure (after Phase 7)
 ```
-Termostato/
-├── TermostatoApp.swift          # unchanged
+CoreWatch/
+├── CoreWatchApp.swift          # unchanged
 ├── ContentView.swift            # becomes TabView container (modified)
 ├── ThermalView.swift            # NEW — extracted from ContentView body
 ├── CPUView.swift                # NEW — CPU tab content
@@ -124,7 +124,7 @@ Termostato/
 ├── SystemMetrics.swift          # unchanged (debug probe retained)
 ├── MachProbeDebugView.swift     # unchanged
 ├── NotificationDelegate.swift   # unchanged
-├── Termostato-Bridging-Header.h # unchanged
+├── CoreWatch-Bridging-Header.h # unchanged
 └── Assets.xcassets/             # unchanged
 ```
 
@@ -194,7 +194,7 @@ struct ThermalView: View {
 
     var body: some View {
         // entire existing ContentView VStack body here
-        // including the "Termostato" title with .onLongPressGesture
+        // including the "CoreWatch" title with .onLongPressGesture
         // the badge, the permission-denied banner, the chart
         // and the .sheet(isPresented: $showDebugSheet) modifier
     }
@@ -244,13 +244,13 @@ final class MetricsViewModel {
                 await self.tick()
             }
         }
-        print("[Termostato] MetricsViewModel polling started.")
+        print("[CoreWatch] MetricsViewModel polling started.")
     }
 
     func stopPolling() {
         pollingTask?.cancel()
         pollingTask = nil
-        print("[Termostato] MetricsViewModel polling stopped.")
+        print("[CoreWatch] MetricsViewModel polling stopped.")
     }
 
     // MARK: - Tick
@@ -480,7 +480,7 @@ AA000011000000000000000A /* MetricsViewModel.swift in Sources */ = {isa = PBXBui
 AA000011000000000000000B /* MetricsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsViewModel.swift; sourceTree = "<group>"; };
 ```
 
-3. **PBXGroup section** (AA000021000000000000000A "Termostato" group) — add fileRef to children array.
+3. **PBXGroup section** (AA000021000000000000000A "CoreWatch" group) — add fileRef to children array.
 
 4. **PBXSourcesBuildPhase section** (AA000011000000000000000A "Sources") — add build file ref to files array.
 
@@ -560,7 +560,7 @@ AA000011000000000000000B /* MetricsViewModel.swift */ = {isa = PBXFileReference;
 **What goes wrong:** `Task.detached` runs independently of the actor. If `stopPolling()` is not called (or the Task is not stored), the loop continues in the background even after the app backgrounds.
 **Why it happens:** `Task.detached` has no automatic lifecycle tie to the ViewModel.
 **How to avoid:** Always store the Task handle in `pollingTask` and cancel it in `stopPolling()`. Check `Task.isCancelled` at the start of each loop iteration.
-**Warning signs:** Xcode console shows "[Termostato] MetricsViewModel polling" logs after the app backgrounds.
+**Warning signs:** Xcode console shows "[CoreWatch] MetricsViewModel polling" logs after the app backgrounds.
 
 ---
 
@@ -698,11 +698,11 @@ No security concerns introduced in Phase 7.
 ## Sources
 
 ### Primary (HIGH confidence)
-- `Termostato/Termostato/SystemMetrics.swift` — Mach call implementations verified correct on device (Phase 6); direct source for MetricsViewModel extraction
-- `Termostato/Termostato/TemperatureViewModel.swift` — `@Observable @MainActor` ViewModel pattern, `@ObservationIgnored nonisolated(unsafe)` pattern
-- `Termostato/Termostato/ContentView.swift` — Existing layout to restructure into TabView; all existing code confirmed working
+- `CoreWatch/CoreWatch/SystemMetrics.swift` — Mach call implementations verified correct on device (Phase 6); direct source for MetricsViewModel extraction
+- `CoreWatch/CoreWatch/TemperatureViewModel.swift` — `@Observable @MainActor` ViewModel pattern, `@ObservationIgnored nonisolated(unsafe)` pattern
+- `CoreWatch/CoreWatch/ContentView.swift` — Existing layout to restructure into TabView; all existing code confirmed working
 - `.planning/phases/06-mach-api-proof-of-concept/06-VERDICTS.md` — On-device API verdicts; all 4 KERN_SUCCESS; Apple Silicon system-tick=0 confirmed
-- `Termostato/Termostato.xcodeproj/project.pbxproj` — Manual file registration pattern confirmed
+- `CoreWatch/CoreWatch.xcodeproj/project.pbxproj` — Manual file registration pattern confirmed
 
 ### Secondary (MEDIUM confidence)
 - CONTEXT.md decisions (D-01 through D-15) — Verified against existing codebase during research

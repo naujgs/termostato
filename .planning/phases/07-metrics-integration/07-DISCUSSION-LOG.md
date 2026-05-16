@@ -22,7 +22,7 @@
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Move to ThermalView title | Long-press on 'Termostato' title stays, just moves with the title into ThermalView. No behavior change. | ✓ |
+| Move to ThermalView title | Long-press on 'CoreWatch' title stays, just moves with the title into ThermalView. No behavior change. | ✓ |
 | Keep in ContentView (tab bar level) | Long-press on the TabView container or a tab bar item. | |
 
 **User's choice:** Debug sheet trigger moves to ThermalView

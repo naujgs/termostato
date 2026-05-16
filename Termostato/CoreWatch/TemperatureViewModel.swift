@@ -33,7 +33,7 @@ struct ThermalReading: Identifiable {
     }
 }
 
-/// Primary data pipeline for Termostato.
+/// Primary data pipeline for CoreWatch.
 /// Phase 2 adds: history array, chart data points.
 /// Phase 3 adds: notification triggering on threshold crossing.
 @Observable
@@ -118,7 +118,7 @@ final class TemperatureViewModel {
         Task { await requestNotificationPermission() }   // D-09
         Task { await refreshNotificationStatus() }        // D-13
         #if DEBUG
-        print("[Termostato] Polling started.")
+        print("[CoreWatch] Polling started.")
         #endif
     }
 
@@ -136,7 +136,7 @@ final class TemperatureViewModel {
         }
         backgroundTaskID = task
         #if DEBUG
-        print("[Termostato] Polling stopped. Background task \(task.rawValue) started.")
+        print("[CoreWatch] Polling stopped. Background task \(task.rawValue) started.")
         #endif
     }
 
@@ -150,7 +150,7 @@ final class TemperatureViewModel {
         }
         history.append(reading)
         #if DEBUG
-        print("[Termostato] thermalState = \(thermalStateDescription)")
+        print("[CoreWatch] thermalState = \(thermalStateDescription)")
         #endif
         checkAndFireNotification()   // Phase 3 foreground notification gate
     }
@@ -176,12 +176,12 @@ final class TemperatureViewModel {
             notificationsAuthorized = granted
             if !granted {
                 #if DEBUG
-                print("[Termostato] Notification permission denied.")
+                print("[CoreWatch] Notification permission denied.")
                 #endif
             }
         } catch {
             #if DEBUG
-            print("[Termostato] Notification auth error: \(error)")
+            print("[CoreWatch] Notification auth error: \(error)")
             #endif
             notificationsAuthorized = false
         }
@@ -224,7 +224,7 @@ final class TemperatureViewModel {
             lastAlertedState = state          // set cooldown (D-04)
             guard notificationsAuthorized else {
                 #if DEBUG
-                print("[Termostato] Notification skipped — permission not granted.")
+                print("[CoreWatch] Notification skipped — permission not granted.")
                 #endif
                 return
             }
@@ -240,7 +240,7 @@ final class TemperatureViewModel {
     /// Does NOT call updateThermalState() — must not corrupt session history ring buffer.
     private func handleBackgroundThermalChange() {
         #if DEBUG
-        print("[Termostato] Background thermal change received.")
+        print("[CoreWatch] Background thermal change received.")
         #endif
         // Re-read from ProcessInfo (D-08) — do not use self.thermalState which reflects last foreground read.
         let state = ProcessInfo.processInfo.thermalState
@@ -275,7 +275,7 @@ final class TemperatureViewModel {
         Task {
             try? await UNUserNotificationCenter.current().add(request)
             #if DEBUG
-            print("[Termostato] Overheating notification scheduled for \(level).")
+            print("[CoreWatch] Overheating notification scheduled for \(level).")
             #endif
         }
     }

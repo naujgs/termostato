@@ -39,8 +39,8 @@ human_verification:
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `Termostato/Termostato/Assets.xcassets/AppIcon.appiconset/Contents.json` | Updated asset catalog referencing the custom icon | VERIFIED | Contains `"filename" : "AppIcon-1024.png"`; single universal/ios/1024x1024 entry; correct Xcode 13+ modern format |
-| `Termostato/Termostato/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png` | 1024x1024 custom app icon PNG | VERIFIED | Present; 1,072,454 bytes; `file` reports `PNG image data, 1024 x 1024, 8-bit/color RGB, non-interlaced`; alpha channel stripped (fix commit 5a08a83) |
+| `CoreWatch/CoreWatch/Assets.xcassets/AppIcon.appiconset/Contents.json` | Updated asset catalog referencing the custom icon | VERIFIED | Contains `"filename" : "AppIcon-1024.png"`; single universal/ios/1024x1024 entry; correct Xcode 13+ modern format |
+| `CoreWatch/CoreWatch/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png` | 1024x1024 custom app icon PNG | VERIFIED | Present; 1,072,454 bytes; `file` reports `PNG image data, 1024 x 1024, 8-bit/color RGB, non-interlaced`; alpha channel stripped (fix commit 5a08a83) |
 
 ### Key Link Verification
 

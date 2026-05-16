@@ -5,6 +5,8 @@
 - ✅ **v1.0 MVP** — Phases 1-3 (shipped 2026-05-13)
 - ✅ **v1.1 Visual Improvements** — Phases 4-5 (shipped 2026-05-13)
 - ✅ **v1.2 Sensor Research & Data Expansion** — Phases 6-8 (shipped 2026-05-15)
+- ✅ **v1.3 Braun Design & CoreWatch Identity** — direct commits (shipped 2026-05-16)
+- ✅ **v1.4 CoreWatch Full Rename** — direct commits (shipped 2026-05-16)
 
 ## Phases
 
@@ -54,5 +56,8 @@ Full details: `.planning/milestones/v1.2-ROADMAP.md`
 | 6. Mach API Proof-of-Concept | v1.2 | 2/2 | Complete | 2026-05-14 |
 | 7. Metrics Integration | v1.2 | 3/3 | Complete | 2026-05-15 |
 | 8. Dashboard Tabs | v1.2 | 3/3 | Complete | 2026-05-15 |
+
+| v1.3 Braun Design & CoreWatch Identity | v1.3 | direct commits | Complete | 2026-05-16 |
+| v1.4 CoreWatch Full Rename | v1.4 | direct commits | Complete | 2026-05-16 |
 
 *Full phase details archived in `.planning/milestones/`*

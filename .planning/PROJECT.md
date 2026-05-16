@@ -8,13 +8,13 @@ CoreWatch is a personal iOS app (sideloaded, not App Store) that monitors iPhone
 
 The phone's actual health — thermal state, CPU load, and memory pressure — always visible at a glance, with an alert before it gets dangerously hot.
 
-## Current State: v1.2 Shipped — Planning v1.3
+## Current State: v1.4 Shipped
 
-All three milestones shipped. v1.2 added the full sensor dashboard (CPU + memory via Mach APIs) and confirmed all data sources accessible under free Apple ID sideload on iOS 18. Next milestone (v1.3) TBD — see Future requirements below.
+Four milestones shipped. v1.4 completes the CoreWatch identity rename across all files, folders, and project configuration.
 
 ## Current State
 
-**v1.2 complete — Phase 8 complete 2026-05-15 (milestone shipped)**
+**v1.4 complete — 2026-05-16 (milestone shipped)**
 
 Phase 7 result: live CPU and memory metrics integrated into a 3-tab dashboard (Thermal / CPU / Memory). All 4 confirmed Mach APIs wired into MetricsViewModel. On-device verified — all tabs show live data, Thermal tab regression-free.
 
@@ -102,4 +102,4 @@ Phase 7 result: live CPU and memory metrics integrated into a 3-tab dashboard (T
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-05-15 — Phase 8 complete, v1.2 milestone shipped*
+*Last updated: 2026-05-16 — v1.3 design system + identity, v1.4 full CoreWatch rename*

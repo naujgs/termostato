@@ -1,5 +1,26 @@
 # Milestones
 
+## v1.4 CoreWatch Full Rename (Shipped: 2026-05-16)
+
+**Key accomplishments:**
+
+- Complete Termostato → CoreWatch rename across all 104 files: Swift source, Xcode project, `.xcscheme`, bundle ID, planning docs
+- Inner folder structure corrected — full path is now `CoreWatch/CoreWatch/CoreWatch/` with no Termostato anywhere
+- Bundle ID updated: `com.jgs.Termostato` → `com.jgs.CoreWatch`
+
+---
+
+## v1.3 Braun Design & CoreWatch Identity (Shipped: 2026-05-16)
+
+**Key accomplishments:**
+
+- Braun-inspired dark design system — `DesignTokens.swift` with semantic color tokens, dark background, high-contrast thermal badge
+- Full localization in `Localizable.xcstrings` — thermal levels, tab labels, metric tooltips (EN + ES)
+- Session history chart expanded to full screen width
+- App display name set to CoreWatch; tab label and PTS counter corrected
+
+---
+
 ## v1.2 Sensor Research & Data Expansion (Shipped: 2026-05-15)
 
 **Phases completed:** 3 phases, 8 plans, 5 tasks
